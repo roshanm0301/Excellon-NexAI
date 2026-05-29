@@ -23,6 +23,8 @@ import (
 	"github.com/excellon/nexai/internal/pii"
 	"github.com/excellon/nexai/internal/rules"
 	"github.com/excellon/nexai/internal/workflow"
+	business_workflow "github.com/excellon/nexai/internal/business_workflow"
+	"github.com/excellon/nexai/internal/nlp"
 )
 
 func main() {
@@ -84,6 +86,18 @@ func main() {
 	workerCtx, cancelWorker := context.WithCancel(context.Background())
 	go slaWorker.Start(workerCtx)
 
+
+	// Business workflow engine
+	bwEngine := business_workflow.NewEngine(pool)
+	bwRepo := business_workflow.NewRepo(pool)
+	if err := bwRepo.EnsureTables(context.Background()); err != nil {
+		slog.Warn("business workflow tables ensure failed", "error", err)
+	}
+	bwHandler := business_workflow.NewHandler(bwEngine, pool)
+
+	// NLP handler
+	nlpHandler := nlp.NewHandler(os.Getenv("ANTHROPIC_API_KEY"), "claude-haiku-4-5-20251001")
+
 	r := chi.NewRouter()
 	r.Use(chimw.RequestID)
 	r.Use(chimw.RealIP)
@@ -105,6 +119,12 @@ func main() {
 		})
 		r.Route("/overlays", func(r chi.Router) {
 			overlayHandler.RegisterRoutes(r)
+		})
+		r.Route("/workflows", func(r chi.Router) {
+			bwHandler.RegisterRoutes(r)
+		})
+		r.Route("/nlp", func(r chi.Router) {
+			nlpHandler.RegisterRoutes(r)
 		})
 	})
 
