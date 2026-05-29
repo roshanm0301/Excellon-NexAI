@@ -272,3 +272,38 @@ export const validateExpression = (expression: string) =>
     method: 'POST',
     body: JSON.stringify({ expression }),
   })
+
+// ── NLP / AI API ──────────────────────────────────────────────────────────────
+
+export interface NLPChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface NLPChatResponse {
+  message: string
+  suggestions?: string[]
+}
+
+export const nlpChat = (message: string, context: Record<string, unknown>) =>
+  studioFetch<NLPChatResponse>('/nlp/chat', {
+    method: 'POST',
+    body: JSON.stringify({ message, context }),
+  })
+
+export interface NLPImportedField {
+  name: string
+  type: string
+  required?: boolean
+  description?: string
+}
+
+export interface NLPImportResponse {
+  fields: NLPImportedField[]
+}
+
+export const nlpImport = (text: string) =>
+  studioFetch<NLPImportResponse>('/nlp/import', {
+    method: 'POST',
+    body: JSON.stringify({ text }),
+  })

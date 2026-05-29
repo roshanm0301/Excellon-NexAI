@@ -10,6 +10,7 @@ export interface EditorLayoutProps {
   onPublish?: () => void
   saving?: boolean
   publishing?: boolean
+  extraActions?: ReactNode
   children: ReactNode
 }
 
@@ -21,6 +22,7 @@ export function EditorLayout({
   onPublish,
   saving,
   publishing,
+  extraActions,
   children,
 }: EditorLayoutProps) {
   return (
@@ -59,6 +61,8 @@ export function EditorLayout({
         </h2>
 
         {statusBadge && <div>{statusBadge}</div>}
+
+        {extraActions && <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{extraActions}</div>}
 
         {isDirty && (
           <div

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Sparkles } from 'lucide-react'
 
 import {
   Input,
@@ -11,10 +12,12 @@ import {
   ConfirmDialog,
   StatusBadge,
   EditorLayout,
+  IconButton,
 } from '../../design-system'
 import {
   saveArtifact,
   publishArtifact,
+  type NLPImportedField,
 } from '../../config/studioApi'
 import { useArtifact } from '../../hooks/useArtifact'
 
@@ -27,6 +30,7 @@ import { CompositeIndexPanel, type IndexDef } from '../../components/studio/Enti
 import { IndexMigrationPanel } from '../../components/studio/EntityDesigner/IndexMigrationPanel'
 import { RetentionPanel, type RetentionConfig } from '../../components/studio/EntityDesigner/RetentionPanel'
 import { type IDConfig } from '../../components/studio/EntityDesigner/IDConfigPanel'
+import { NLPAssistantPanel } from '../../components/studio/EntityDesigner/NLPAssistantPanel'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -92,6 +96,7 @@ export function EntityEditorPage() {
   const [activeTab, setActiveTab] = useState('schema')
   const [publishing, setPublishing] = useState(false)
   const [confirmPublish, setConfirmPublish] = useState(false)
+  const [nlpOpen, setNlpOpen] = useState(false)
 
   // ── Data Loading ───────────────────────────────────────────────────────────
 
@@ -217,6 +222,15 @@ export function EntityEditorPage() {
       saving={saveMut.isPending}
       onPublish={() => setConfirmPublish(true)}
       publishing={publishing}
+      extraActions={
+        <IconButton
+          onClick={() => setNlpOpen(true)}
+          aria-label="Open AI Assistant"
+          title="AI Assistant"
+        >
+          <Sparkles size={16} />
+        </IconButton>
+      }
     >
       <div style={{ padding: '0 24px' }}>
         <TabGroup tabs={TABS} active={activeTab} onChange={setActiveTab} />
@@ -355,6 +369,21 @@ export function EntityEditorPage() {
         message="This will compile the entity schema and make it available at runtime. Any unsaved changes will be saved first."
         confirmLabel="Publish"
         loading={publishing}
+      />
+      <NLPAssistantPanel
+        open={nlpOpen}
+        onClose={() => setNlpOpen(false)}
+        schemaContext={{ fields, relationships }}
+        onImportFields={(imported: NLPImportedField[]) => {
+          const newFields: FieldDef[] = imported.map(f => ({
+            name: f.name,
+            type: f.type,
+            required: f.required ?? false,
+          }))
+          setFields(prev => [...prev, ...newFields])
+          setIsDirty(true)
+          setNlpOpen(false)
+        }}
       />
     </EditorLayout>
   )
