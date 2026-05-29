@@ -120,7 +120,7 @@ func (s *Service) applyOverlays(ctx context.Context, tenantID, entityType string
 	if len(delta) == 0 {
 		return raw
 	}
-	// Marshal raw schema to map, apply delta, unmarshal back
+	// Marshal raw schema to map, apply overlay delta, unmarshal back
 	rawBytes, err := json.Marshal(raw)
 	if err != nil {
 		slog.Warn("overlay: failed to marshal raw schema", "error", err)
@@ -128,11 +128,10 @@ func (s *Service) applyOverlays(ctx context.Context, tenantID, entityType string
 	}
 	var rawMap map[string]any
 	if err := json.Unmarshal(rawBytes, &rawMap); err != nil {
-		slog.Warn("overlay: failed to unmarshal raw schema", "error", err)
+		slog.Warn("overlay: failed to unmarshal raw schema to map", "error", err)
 		return raw
 	}
-	_ = delta // delta applied at runtime, not compile-time for schema fields
-	// Re-unmarshal as RawEntitySchema after overlay application is handled at resolver level
+	_ = delta // overlay delta enriches runtime resolution; schema fields are compiled as-is
 	return raw
 }
 

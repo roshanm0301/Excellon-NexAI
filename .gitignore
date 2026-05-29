@@ -1,0 +1,36 @@
+# Go
+src/go/bin/
+src/go/vendor/
+*.test
+
+# Node
+node_modules/
+src/react/node_modules/
+src/react/dist/
+src/node/node_modules/
+src/node/dist/
+
+# Env
+.env
+.env.local
+
+# Docker
+.docker/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test coverage
+coverage.out
+coverage.html
+---worktrees---
+.claude/worktrees/
