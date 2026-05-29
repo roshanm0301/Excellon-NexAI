@@ -377,8 +377,12 @@ export function EntityEditorPage() {
         onImportFields={(imported: NLPImportedField[]) => {
           const newFields: FieldDef[] = imported.map(f => ({
             name: f.name,
+            label: f.name,
             type: f.type,
             required: f.required ?? false,
+            unique: false,
+            indexed: false,
+            storageType: 'physical' as const,
           }))
           setFields(prev => [...prev, ...newFields])
           setIsDirty(true)
