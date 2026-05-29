@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutGrid, Settings, Shield, GitBranch, Search, Bell, ChevronDown,
-  PanelLeftClose, PanelLeftOpen,
+  PanelLeftClose, PanelLeftOpen, Network, Layers, Code2,
 } from 'lucide-react'
 
 interface NavItem {
@@ -13,8 +13,11 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { path: '/entities', label: 'Entity Designer', icon: <LayoutGrid size={20} />, count: 0 },
-  { path: '/rules', label: 'Rule Builder', icon: <Shield size={20} /> },
+  { path: '/admin/entities', label: 'Entity Designer', icon: <LayoutGrid size={20} />, count: 0 },
+  { path: '/admin/rules', label: 'Rule Builder', icon: <Shield size={20} /> },
+  { path: '/admin/nodes', label: 'Nodes', icon: <Network size={20} /> },
+  { path: '/admin/overlays', label: 'Overlays', icon: <Layers size={20} /> },
+  { path: '/admin/expressions', label: 'Expressions', icon: <Code2 size={20} /> },
   { path: '/workflow', label: 'Workflow', icon: <GitBranch size={20} /> },
   { path: '/settings', label: 'Settings', icon: <Settings size={20} /> },
 ]
@@ -24,7 +27,7 @@ export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const active = NAV_ITEMS.find(n => location.pathname.startsWith(n.path))?.path ?? '/entities'
+  const active = NAV_ITEMS.find(n => location.pathname.startsWith(n.path))?.path ?? '/admin/entities'
 
   return (
     <div className="ex-app">
@@ -96,3 +99,5 @@ export function AppLayout() {
     </div>
   )
 }
+
+export default AppLayout
