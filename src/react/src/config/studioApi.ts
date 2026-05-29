@@ -145,12 +145,30 @@ export const getEntityHistory = (type: string, id: string) =>
 
 // ── Rule Set API ──────────────────────────────────────────────────────────────
 
+export interface Condition {
+  type: 'AND' | 'OR' | 'NOT' | 'FIELD'
+  field?: string
+  operator?: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'contains' | 'startsWith' | 'in' | 'notIn' | 'isNull' | 'isNotNull'
+  value?: string | number | boolean | string[]
+  conditions?: Condition[]
+}
+
+export interface RuleAction {
+  type: 'BLOCK' | 'WARN' | 'SET_FIELD'
+  message?: string
+  field?: string
+  value?: unknown
+}
+
 export interface RuleSet {
   id: string
+  tenant_id?: string
   entity_type: string
   name: string
-  conditions: unknown
-  actions: unknown[]
+  definition: {
+    conditions: Condition
+    actions: RuleAction[]
+  }
   enabled: boolean
   created_at: string
   updated_at: string
@@ -165,8 +183,11 @@ export const getRuleSet = (id: string) =>
 export const saveRuleSet = (id: string, body: Partial<RuleSet>) =>
   studioFetch<RuleSet>(`/rules/${id}`, { method: 'PUT', body: JSON.stringify(body) })
 
-export const createRuleSet = (body: Omit<RuleSet, 'id' | 'created_at' | 'updated_at'>) =>
+export const createRuleSet = (body: { entity_type: string; name: string }) =>
   studioFetch<RuleSet>('/rules', { method: 'POST', body: JSON.stringify(body) })
+
+export const deleteRuleSet = (id: string) =>
+  studioFetch<void>(`/rules/${id}`, { method: 'DELETE' })
 
 // ── Overlay API ───────────────────────────────────────────────────────────────
 

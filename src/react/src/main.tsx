@@ -7,6 +7,7 @@ import { AppLayout } from './components/studio/AppLayout'
 import { EntityDesignerPage } from './pages/admin/EntityDesignerPage'
 import { EntityEditorPage } from './pages/studio/EntityEditorPage'
 import { RuleBuilderPage } from './pages/admin/RuleBuilderPage'
+import { RuleEditorPage } from './pages/studio/RuleEditorPage'
 import { WorkflowPage } from './pages/studio/WorkflowPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
       { path: 'entities', element: <EntityDesignerPage /> },
       { path: 'entities/:entityType', element: <EntityEditorPage /> },
       { path: 'rules', element: <RuleBuilderPage /> },
+      { path: 'rules/:id', element: <RuleEditorPage /> },
       { path: 'workflow', element: <WorkflowPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
