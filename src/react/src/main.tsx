@@ -1,15 +1,21 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom'
 import { ToastProvider } from './design-system/components/Toast'
-import { AppLayout } from './components/studio/AppLayout'
-import { EntityDesignerPage } from './pages/admin/EntityDesignerPage'
-import { EntityEditorPage } from './pages/studio/EntityEditorPage'
-import { RuleBuilderPage } from './pages/admin/RuleBuilderPage'
-import { RuleEditorPage } from './pages/studio/RuleEditorPage'
-import { WorkflowPage } from './pages/studio/WorkflowPage'
-import { NotFoundPage } from './pages/NotFoundPage'
+import { Spinner } from './design-system'
+import AppLayout from './components/studio/AppLayout'
+
+const EntityDesignerPage = lazy(() => import('./pages/admin/EntityDesignerPage'))
+const EntityEditorPage = lazy(() => import('./pages/studio/EntityEditorPage'))
+const EntityMapPage = lazy(() => import('./pages/studio/EntityMapPage'))
+const RuleBuilderPage = lazy(() => import('./pages/admin/RuleBuilderPage'))
+const RuleEditorPage = lazy(() => import('./pages/studio/RuleEditorPage'))
+const WorkflowPage = lazy(() => import('./pages/studio/WorkflowPage'))
+const OverlayStudioPage = lazy(() => import('./pages/admin/OverlayStudioPage'))
+const NodeTreePage = lazy(() => import('./pages/admin/NodeTreePage'))
+const ExpressionStudioPage = lazy(() => import('./pages/studio/ExpressionStudioPage'))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,21 +26,34 @@ const queryClient = new QueryClient({
   },
 })
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <AppLayout />,
-    children: [
-      { index: true, element: <EntityDesignerPage /> },
-      { path: 'entities', element: <EntityDesignerPage /> },
-      { path: 'entities/:entityType', element: <EntityEditorPage /> },
-      { path: 'rules', element: <RuleBuilderPage /> },
-      { path: 'rules/:id', element: <RuleEditorPage /> },
-      { path: 'workflow', element: <WorkflowPage /> },
-      { path: '*', element: <NotFoundPage /> },
-    ],
-  },
-])
+function wrap(element: React.ReactNode) {
+  return <Suspense fallback={<Spinner />}>{element}</Suspense>
+}
+
+const router = createBrowserRouter(
+  [
+    {
+      path: '/',
+      element: <AppLayout />,
+      children: [
+        { index: true, element: <Navigate to="/admin/entities" replace /> },
+        { path: 'admin/entities', element: wrap(<EntityDesignerPage />) },
+        { path: 'admin/entities/new', element: wrap(<EntityEditorPage />) },
+        { path: 'admin/entities/:id/edit', element: wrap(<EntityEditorPage />) },
+        { path: 'admin/entities/map', element: wrap(<EntityMapPage />) },
+        { path: 'admin/rules', element: wrap(<RuleBuilderPage />) },
+        { path: 'admin/rules/new', element: wrap(<RuleEditorPage />) },
+        { path: 'admin/rules/:id/edit', element: wrap(<RuleEditorPage />) },
+        { path: 'admin/overlays', element: wrap(<OverlayStudioPage />) },
+        { path: 'admin/nodes', element: wrap(<NodeTreePage />) },
+        { path: 'admin/expressions', element: wrap(<ExpressionStudioPage />) },
+        { path: 'workflow', element: wrap(<WorkflowPage />) },
+        { path: '*', element: wrap(<NotFoundPage />) },
+      ],
+    },
+  ],
+  { basename: '/Excellon-NexAI' },
+)
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
