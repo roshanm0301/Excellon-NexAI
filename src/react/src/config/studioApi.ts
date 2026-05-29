@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
+const BASE_URL = import.meta.env.VITE_API_URL ?? '/api'
 
 // Dev-mode headers — no auth in initial build
 const DEV_HEADERS: Record<string, string> = {
@@ -22,7 +22,7 @@ export async function studioFetch<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const url = path.startsWith('/api/') ? `${API_BASE}${path}` : `${API_BASE}/api/v1${path}`
+  const url = `${BASE_URL}${path}`
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...DEV_HEADERS,
@@ -61,23 +61,13 @@ export interface Artifact {
   updated_at: string
 }
 
-export interface ArtifactVersion {
-  id: string
-  artifactId: string
-  versionNo: number
-  status: 'draft' | 'in-review' | 'published' | 'deprecated'
-  payload: Record<string, unknown>
-  createdBy: string
-  createdAt: string
-}
-
 export interface ArtifactListResponse {
   items: Artifact[]
   total: number
   next_cursor?: string
 }
 
-export const listArtifacts = (params?: { artifact_type?: string; entity_type?: string; status?: string; cursor?: string }) =>
+export const listArtifacts = (params?: { entity_type?: string; status?: string; cursor?: string }) =>
   studioFetch<ArtifactListResponse>(`/artifacts?${new URLSearchParams(params as Record<string, string>).toString()}`)
 
 export const getArtifact = (id: string) =>
@@ -93,21 +83,13 @@ export const forkArtifact = (id: string) =>
   studioFetch<Artifact>(`/artifacts/${id}/fork`, { method: 'POST' })
 
 export const publishArtifact = (id: string) =>
-  studioFetch<Artifact>(`/artifacts/${id}/versions/latest/publish`, { method: 'POST' })
+  studioFetch<Artifact>(`/artifacts/${id}/publish`, { method: 'POST' })
 
 export const deprecateArtifact = (id: string) =>
   studioFetch<Artifact>(`/artifacts/${id}/deprecate`, { method: 'POST' })
 
 export const deleteArtifact = (id: string) =>
   studioFetch<void>(`/artifacts/${id}`, { method: 'DELETE' })
-
-export async function getArtifactVersions(id: string): Promise<ArtifactVersion[]> {
-  return studioFetch<ArtifactVersion[]>(`/artifacts/${id}/versions`)
-}
-
-export async function getActiveArtifact(id: string): Promise<ArtifactVersion> {
-  return studioFetch<ArtifactVersion>(`/artifacts/${id}/active`)
-}
 
 // ── Entity Record API ─────────────────────────────────────────────────────────
 
@@ -207,60 +189,6 @@ export const createRuleSet = (body: { entity_type: string; name: string }) =>
 export const deleteRuleSet = (id: string) =>
   studioFetch<void>(`/rules/${id}`, { method: 'DELETE' })
 
-// ── Index Queue API ───────────────────────────────────────────────────────────
-
-export interface IndexQueueItem {
-  id: string
-  tenantId: string
-  entityKey: string
-  indexName: string
-  ddl: string
-  status: 'pending' | 'applied' | 'failed' | 'discarded'
-  errorMessage?: string
-  createdAt: string
-  appliedAt?: string
-}
-
-export async function listIndexQueue(entityKey: string): Promise<IndexQueueItem[]> {
-  return studioFetch<IndexQueueItem[]>(`/admin/indexes?entity_key=${encodeURIComponent(entityKey)}`)
-}
-
-export async function applyIndex(id: string): Promise<void> {
-  return studioFetch<void>(`/admin/indexes/${id}/apply`, { method: 'POST' })
-}
-
-export async function discardIndex(id: string): Promise<void> {
-  return studioFetch<void>(`/admin/indexes/${id}/discard`, { method: 'POST' })
-}
-
-// ── Node Tree API ─────────────────────────────────────────────────────────────
-
-export interface StudioNode {
-  nodeId: string
-  tenantId: string
-  name: string
-  nodeType: string
-  parentId?: string
-  metadata: Record<string, unknown>
-}
-
-export interface NodeTreeItem {
-  id: string
-  parent_id?: string
-  name: string
-  node_type: string
-  metadata: Record<string, unknown>
-  children?: NodeTreeItem[]
-}
-
-export async function listNodes(): Promise<StudioNode[]> {
-  return studioFetch<StudioNode[]>('/admin/nodes')
-}
-
-export async function getNodeTree(): Promise<StudioNode[]> {
-  return studioFetch<StudioNode[]>('/admin/nodes/tree')
-}
-
 // ── Overlay API ───────────────────────────────────────────────────────────────
 
 export interface OverlayDefinition {
@@ -274,30 +202,8 @@ export interface OverlayDefinition {
   updated_at: string
 }
 
-export interface OverlayDelta {
-  id: string
-  tenantId: string
-  artifactType: string
-  artifactKey: string
-  layer: 'platform' | 'vertical' | 'tenant' | 'node' | 'role'
-  scopeRef: string
-  deltaJson: Record<string, unknown>
-  createdAt: string
-}
-
-export async function listOverlays(artifactType: string, artifactKey: string): Promise<OverlayDelta[]> {
-  return studioFetch<OverlayDelta[]>(
-    `/admin/overlay-deltas?artifact_type=${encodeURIComponent(artifactType)}&artifact_key=${encodeURIComponent(artifactKey)}`,
-  )
-}
-
-export async function createOverlayDelta(delta: Partial<OverlayDelta>): Promise<OverlayDelta> {
-  return studioFetch<OverlayDelta>('/admin/overlay-deltas', { method: 'POST', body: JSON.stringify(delta) })
-}
-
-export async function deleteOverlayDelta(id: string): Promise<void> {
-  return studioFetch<void>(`/admin/overlay-deltas/${id}`, { method: 'DELETE' })
-}
+export const listOverlays = (params?: { entity_type?: string; layer?: string }) =>
+  studioFetch<{ items: OverlayDefinition[] }>(`/overlays?${new URLSearchParams(params as Record<string, string>).toString()}`)
 
 export const createOverlay = (body: Omit<OverlayDefinition, 'id' | 'tenant_id' | 'created_at' | 'updated_at'>) =>
   studioFetch<OverlayDefinition>('/overlays', { method: 'POST', body: JSON.stringify(body) })
@@ -305,40 +211,50 @@ export const createOverlay = (body: Omit<OverlayDefinition, 'id' | 'tenant_id' |
 export const deleteOverlay = (id: string) =>
   studioFetch<void>(`/overlays/${id}`, { method: 'DELETE' })
 
-// ── NLP API ───────────────────────────────────────────────────────────────────
+// ── Node Tree API ─────────────────────────────────────────────────────────────
 
-export interface FieldDef {
+export interface NodeTreeItem {
+  id: string
+  parent_id?: string
   name: string
-  label: string
-  fieldType: string
-  required?: boolean
-  storageType?: 'physical' | 'computed'
-  expression?: string
+  node_type: string
+  metadata: Record<string, unknown>
+  children?: NodeTreeItem[]
 }
 
-export async function nlpChat(message: string, context: unknown): Promise<{ reply: string }> {
-  return studioFetch<{ reply: string }>('/api/nlp/chat', { method: 'POST', body: JSON.stringify({ message, context }) })
+export const listNodes = () =>
+  studioFetch<{ items: NodeTreeItem[] }>('/nodes')
+
+// ── Index Queue API ───────────────────────────────────────────────────────────
+
+export interface IndexQueueItem {
+  id: string
+  entity_type: string
+  index_name: string
+  ddl: string
+  status: 'pending' | 'applied' | 'failed' | 'discarded'
+  created_at: string
+  applied_at?: string
 }
 
-export async function nlpImport(description: string): Promise<{ fields: FieldDef[] }> {
-  return studioFetch<{ fields: FieldDef[] }>('/api/nlp/import', { method: 'POST', body: JSON.stringify({ description }) })
-}
+export const listIndexQueue = (entityKey: string) =>
+  studioFetch<{ items: IndexQueueItem[] }>(`/indexes/queue?entity_type=${entityKey}`)
+
+export const applyIndex = (id: string) =>
+  studioFetch<IndexQueueItem>(`/indexes/queue/${id}/apply`, { method: 'POST' })
+
+export const discardIndex = (id: string) =>
+  studioFetch<IndexQueueItem>(`/indexes/queue/${id}/discard`, { method: 'POST' })
 
 // ── Expression API ────────────────────────────────────────────────────────────
 
-export async function evaluateExpression(
-  expr: string,
-  data: Record<string, unknown>,
-): Promise<{ result: unknown }> {
-  return studioFetch<{ result: unknown }>('/expressions/evaluate', {
-    method: 'POST',
-    body: JSON.stringify({ expression: expr, data }),
-  })
+export interface ExpressionValidationResult {
+  valid: boolean
+  error?: string
 }
 
-export async function validateExpression(expr: string): Promise<{ valid: boolean; error?: string }> {
-  return studioFetch<{ valid: boolean; error?: string }>('/expressions/validate', {
+export const validateExpression = (expression: string) =>
+  studioFetch<ExpressionValidationResult>('/expressions/validate', {
     method: 'POST',
-    body: JSON.stringify({ expression: expr }),
+    body: JSON.stringify({ expression }),
   })
-}
