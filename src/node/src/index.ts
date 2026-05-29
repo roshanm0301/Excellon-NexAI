@@ -1,0 +1,5 @@
+export { ProductionEvaluator } from './rules/evaluator.js'
+export type { RuleSet, Condition, Action, EvaluationResult, Operator, ActionType, ConditionType } from './rules/types.js'
+export { OverlayResolver } from './overlay/resolver.js'
+export { deepMerge } from './overlay/merge.js'
+export type { OverlayDefinition, OverlayLayer } from './overlay/types.js'

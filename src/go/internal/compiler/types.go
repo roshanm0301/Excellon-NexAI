@@ -1,0 +1,125 @@
+package compiler
+
+import (
+	"encoding/json"
+	"time"
+)
+
+type CompiledArtifact struct {
+	ID                string          `json:"id"`
+	ArtifactVersionID string          `json:"artifact_version_id"`
+	TenantID          string          `json:"tenant_id"`
+	EntityType        string          `json:"entity_type"`
+	CompiledSchema    json.RawMessage `json:"compiled_schema"`
+	ContentHash       string          `json:"content_hash"`
+	CompilerVersion   string          `json:"compiler_version"`
+	CreatedAt         time.Time       `json:"created_at"`
+	UpdatedAt         time.Time       `json:"updated_at"`
+}
+
+type RawEntitySchema struct {
+	Fields        []RawField        `json:"fields"`
+	Sections      []RawSection      `json:"sections"`
+	Relationships []RawRelationship `json:"relationships"`
+	Capabilities  *RawCapabilities  `json:"capabilities,omitempty"`
+	Settings      *RawSettings      `json:"settings,omitempty"`
+	Indexes       []RawIndexRule    `json:"indexes,omitempty"`
+	Retention     *RawRetention     `json:"retention,omitempty"`
+}
+
+type RawField struct {
+	Key          string           `json:"key"`
+	Label        string           `json:"label"`
+	Type         string           `json:"type"`
+	Required     bool             `json:"required"`
+	Unique       bool             `json:"unique"`
+	Indexed      bool             `json:"indexed"`
+	PII          bool             `json:"pii"`
+	DefaultValue json.RawMessage  `json:"default_value,omitempty"`
+	Options      []SelectOption   `json:"options,omitempty"`
+	Expression   string           `json:"expression,omitempty"`
+	Validation   *FieldValidation `json:"validation,omitempty"`
+}
+
+type SelectOption struct {
+	Value string `json:"value"`
+	Label string `json:"label"`
+}
+
+type FieldValidation struct {
+	MinLength *int     `json:"min_length,omitempty"`
+	MaxLength *int     `json:"max_length,omitempty"`
+	Min       *float64 `json:"min,omitempty"`
+	Max       *float64 `json:"max,omitempty"`
+	Pattern   string   `json:"pattern,omitempty"`
+}
+
+type RawSection struct {
+	Key    string   `json:"key"`
+	Label  string   `json:"label"`
+	Fields []string `json:"fields"`
+	Order  int      `json:"order"`
+}
+
+type RawRelationship struct {
+	Key        string `json:"key"`
+	Type       string `json:"type"`
+	TargetType string `json:"target_type"`
+	ForeignKey string `json:"foreign_key"`
+	Label      string `json:"label"`
+}
+
+type RawCapabilities struct {
+	SoftDelete  bool `json:"soft_delete"`
+	PII         bool `json:"pii"`
+	Audit       bool `json:"audit"`
+	Workflow    bool `json:"workflow"`
+	Expressions bool `json:"expressions"`
+}
+
+type RawSettings struct {
+	DisplayName string `json:"display_name"`
+	Icon        string `json:"icon"`
+	Description string `json:"description"`
+	Color       string `json:"color"`
+}
+
+type RawIndexRule struct {
+	Name   string   `json:"name"`
+	Fields []string `json:"fields"`
+	Unique bool     `json:"unique"`
+}
+
+type RawRetention struct {
+	RetentionDays    int    `json:"retention_days"`
+	ArchiveThreshold int    `json:"archive_threshold_days"`
+	PurgePolicy      string `json:"purge_policy"`
+}
+
+type CompiledSchema struct {
+	EntityType     string            `json:"entity_type"`
+	Version        int               `json:"version"`
+	Fields         []CompiledField   `json:"fields"`
+	FieldIndex     map[string]int    `json:"field_index"`
+	Sections       []RawSection      `json:"sections"`
+	Relationships  []RawRelationship `json:"relationships"`
+	Capabilities   RawCapabilities   `json:"capabilities"`
+	Settings       RawSettings       `json:"settings"`
+	IndexPlan      []CompiledIndex   `json:"index_plan"`
+	Retention      *RawRetention     `json:"retention,omitempty"`
+	HasPII         bool              `json:"has_pii"`
+	ComputedFields []string          `json:"computed_fields"`
+}
+
+type CompiledField struct {
+	RawField
+	CompiledType string `json:"compiled_type"`
+}
+
+type CompiledIndex struct {
+	Name    string   `json:"name"`
+	Table   string   `json:"table"`
+	Columns []string `json:"columns"`
+	Unique  bool     `json:"unique"`
+	DDL     string   `json:"ddl"`
+}
