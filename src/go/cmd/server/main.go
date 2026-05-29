@@ -17,7 +17,10 @@ import (
 	"github.com/excellon/nexai/internal/compiler"
 	"github.com/excellon/nexai/internal/db"
 	"github.com/excellon/nexai/internal/entityruntime"
+	"github.com/excellon/nexai/internal/expression"
 	"github.com/excellon/nexai/internal/middleware"
+	"github.com/excellon/nexai/internal/rules"
+	"github.com/excellon/nexai/internal/workflow"
 )
 
 func main() {
@@ -33,12 +36,34 @@ func main() {
 	}
 	defer pool.Close()
 
+	// Ensure runtime-created tables exist
+	rulesRepo := rules.NewRepo(pool)
+	if err := rulesRepo.EnsureTable(context.Background()); err != nil {
+		slog.Warn("rules table ensure failed", "error", err)
+	}
+
 	// Initialise services
 	artifactRepo := admin.NewArtifactRepo(pool)
 	compilerSvc := compiler.NewService(pool)
 	artifactHandler := admin.NewArtifactHandler(artifactRepo, compilerSvc)
+
 	entityRepo := entityruntime.NewRepo(pool)
 	entityHandler := entityruntime.NewHandler(entityRepo)
+
+	rulesEvaluator := rules.NewProductionEvaluator()
+	rulesHandler := rules.NewHandler(rulesRepo, rulesEvaluator)
+
+	workflowRuntime := workflow.NewRuntime(pool)
+	_ = workflowRuntime // used by entity handler in Phase 4 integration
+
+	// Expression engine — graceful degradation if no jsonata bundle
+	exprEngine := expression.NewEngine("")
+	_ = exprEngine // wired into entity runtime in Phase 4
+
+	// SLA worker — runs in background
+	slaWorker := workflow.NewSLAWorker(pool, 5*time.Minute)
+	workerCtx, cancelWorker := context.WithCancel(context.Background())
+	go slaWorker.Start(workerCtx)
 
 	r := chi.NewRouter()
 	r.Use(chimw.RequestID)
@@ -55,6 +80,9 @@ func main() {
 		})
 		r.Route("/entities/{entityType}", func(r chi.Router) {
 			entityHandler.RegisterRoutes(r)
+		})
+		r.Route("/rules", func(r chi.Router) {
+			rulesHandler.RegisterRoutes(r)
 		})
 	})
 
@@ -81,6 +109,9 @@ func main() {
 
 	<-stop
 	slog.Info("shutting down")
+
+	cancelWorker()
+	slaWorker.Stop()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
