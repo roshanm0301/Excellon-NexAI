@@ -107,25 +107,57 @@ func main() {
 
 	r.Get("/health", healthHandler(pool))
 
-	r.Route("/api", func(r chi.Router) {
+	r.Route("/api/v1", func(r chi.Router) {
+		// Artifact versioning
 		r.Route("/artifacts", func(r chi.Router) {
 			artifactHandler.RegisterRoutes(r)
+			r.Get("/{id}/active", notImplemented("get active artifact version"))
+			r.Get("/{id}/versions", notImplemented("list artifact versions"))
 		})
-		r.Route("/entities/{entityType}", func(r chi.Router) {
+
+		// Entity runtime CRUD
+		r.Route("/entities/{type}", func(r chi.Router) {
 			entityHandler.RegisterRoutes(r)
 		})
-		r.Route("/rules", func(r chi.Router) {
-			rulesHandler.RegisterRoutes(r)
+
+		// Admin sub-group
+		r.Route("/admin", func(r chi.Router) {
+			r.Route("/rules", func(r chi.Router) {
+				rulesHandler.RegisterRoutes(r)
+			})
+			r.Route("/overlay-deltas", func(r chi.Router) {
+				overlayHandler.RegisterRoutes(r)
+			})
+			r.Route("/nodes", func(r chi.Router) {
+				r.Get("/tree", notImplemented("get recursive node tree"))
+			})
+			r.Route("/indexes", func(r chi.Router) {
+				r.Get("/", notImplemented("list index queue"))
+				r.Post("/{id}/apply", notImplemented("apply index"))
+				r.Post("/{id}/discard", notImplemented("discard index"))
+			})
 		})
-		r.Route("/overlays", func(r chi.Router) {
-			overlayHandler.RegisterRoutes(r)
+
+		// Expression engine
+		r.Route("/expressions", func(r chi.Router) {
+			r.Post("/evaluate", notImplemented("evaluate expression"))
+			r.Post("/validate", notImplemented("validate expression syntax"))
 		})
+
+		// Business workflows
 		r.Route("/workflows", func(r chi.Router) {
 			bwHandler.RegisterRoutes(r)
 		})
+
+		// NLP
 		r.Route("/nlp", func(r chi.Router) {
 			nlpHandler.RegisterRoutes(r)
 		})
+	})
+
+	// View artifacts — runtime compiled schema read
+	r.Route("/api/view-artifacts", func(r chi.Router) {
+		r.Get("/entity-schema/{entityType}", notImplemented("get compiled entity schema"))
 	})
 
 	port := envOr("PORT", "8080")
@@ -198,6 +230,16 @@ func envOr(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// notImplemented returns an http.HandlerFunc that responds with 501 Not Implemented.
+// Used as a placeholder for routes whose handlers are not yet built.
+func notImplemented(description string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotImplemented)
+		fmt.Fprintf(w, `{"error":"not_implemented","description":%q}`, description)
+	}
 }
 
 func logLevel() slog.Level {
