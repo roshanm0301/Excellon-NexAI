@@ -225,6 +225,9 @@ export interface NodeTreeItem {
 export const listNodes = () =>
   studioFetch<{ items: NodeTreeItem[] }>('/nodes')
 
+export const createNode = (body: Omit<NodeTreeItem, 'id' | 'children'>) =>
+  studioFetch<NodeTreeItem>('/nodes', { method: 'POST', body: JSON.stringify(body) })
+
 // ── Index Queue API ───────────────────────────────────────────────────────────
 
 export interface IndexQueueItem {
@@ -248,13 +251,24 @@ export const discardIndex = (id: string) =>
 
 // ── Expression API ────────────────────────────────────────────────────────────
 
-export interface ExpressionValidationResult {
+export interface ExpressionEvalResult {
+  result: unknown
+  error?: string
+}
+
+export interface ExpressionValidateResult {
   valid: boolean
   error?: string
 }
 
+export const evaluateExpression = (expression: string, sample_data: Record<string, unknown>) =>
+  studioFetch<ExpressionEvalResult>('/expressions/evaluate', {
+    method: 'POST',
+    body: JSON.stringify({ expression, sample_data }),
+  })
+
 export const validateExpression = (expression: string) =>
-  studioFetch<ExpressionValidationResult>('/expressions/validate', {
+  studioFetch<ExpressionValidateResult>('/expressions/validate', {
     method: 'POST',
     body: JSON.stringify({ expression }),
   })
