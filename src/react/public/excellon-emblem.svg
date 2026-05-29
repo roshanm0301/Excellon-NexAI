@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 349.033 351.369" fill="none">
+  <defs>
+    <radialGradient id="excGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FBB040"></stop>
+      <stop offset="100%" stop-color="#F15A29"></stop>
+    </radialGradient>
+  </defs>
+  
+  <g transform="translate(0, 181.891)" fill="#4D555A">
+    <path d="M 316.113 96.262 C 335.742 68.975 347.75 35.867 349.033 0 L 281.958 0 L 258.083 24.421 L 0 24.421 C 2.958 41.154 8.267 57.083 15.6 71.833 L 217.933 71.833 L 194.046 96.262 L 316.113 96.262 Z"></path>
+  </g>
+  
+  <g transform="translate(66.346, 181.891) scale(1, -1) translate(0, -169.477)" fill="url(#excGrad)">
+    <path d="M 115.092 60.552 L 91.473 36.074 L 0 36.074 C 29.632 13.313 66.565 0 106.933 0 C 159.755 0 207.424 23.19 239.633 60.552 L 115.092 60.552 Z"></path>
+  </g>
+  
+  <g transform="translate(0, 0) scale(1, -1) translate(0, -169.476)" fill="#4D555A">
+    <path d="M 316.113 96.262 C 335.742 68.975 347.75 35.867 349.033 0 L 281.958 0 L 258.083 24.421 L 0 24.421 C 2.958 41.154 8.267 57.083 15.6 71.833 L 217.933 71.833 L 194.046 96.262 L 316.113 96.262 Z"></path>
+  </g>
+  
+  <g transform="translate(66.346, 0) scale(1, 1)" fill="url(#excGrad)">
+    <path d="M 115.092 60.552 L 91.473 36.074 L 0 36.074 C 29.632 13.313 66.565 0 106.933 0 C 159.755 0 207.424 23.19 239.633 60.552 L 115.092 60.552 Z"></path>
+  </g>
+</svg>
