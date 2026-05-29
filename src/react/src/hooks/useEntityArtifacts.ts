@@ -4,7 +4,7 @@ import { listArtifacts, deleteArtifact, publishArtifact } from '../config/studio
 export function useEntityArtifacts() {
   return useQuery({
     queryKey: ['entity-artifacts'],
-    queryFn: () => listArtifacts({ artifact_type: 'entity_schema' }),
+    queryFn: () => listArtifacts({ entity_type: 'entity_schema' }),
   })
 }
 

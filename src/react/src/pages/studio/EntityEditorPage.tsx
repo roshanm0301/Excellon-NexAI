@@ -766,3 +766,4 @@ export function EntityEditorPage() {
     </div>
   )
 }
+export default EntityEditorPage

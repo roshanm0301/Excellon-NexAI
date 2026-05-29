@@ -583,3 +583,4 @@ export function RuleEditorPage() {
     </div>
   )
 }
+export default RuleEditorPage

@@ -157,3 +157,4 @@ export function EntityDesignerPage() {
     </div>
   )
 }
+export default EntityDesignerPage
