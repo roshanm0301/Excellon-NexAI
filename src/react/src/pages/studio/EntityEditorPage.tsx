@@ -431,7 +431,7 @@ function SettingsTab({ payload, onChange }: { payload: EntityPayload; onChange: 
         />
       </FormRow>
       <FormRow label="Description">
-        <Textarea value={payload.description ?? ''} onChange={e => onChange({ description: e.target.value })} rows={4} placeholder="Brief description of this entity" />
+        <Textarea value={payload.description ?? ''} onChange={v => onChange({ description: v })} rows={4} placeholder="Brief description of this entity" />
       </FormRow>
     </div>
   )
