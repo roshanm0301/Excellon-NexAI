@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Excellon — Color: Brand</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 40px; background: var(--bg-secondary); font-family: var(--font-sans); color: var(--fg-primary); }
+  .card { background: var(--bg-primary); border: 1px solid var(--border-secondary); border-radius: var(--radius-2xl); box-shadow: var(--shadow-xs); padding: 40px; max-width: 1120px; margin: 0 auto; }
+  .head { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+  .title { font-size: var(--text-2xl); line-height: var(--lh-2xl); font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+  .sub { color: var(--fg-tertiary); font-size: var(--text-sm); margin: 0; }
+  .row { display: grid; grid-template-columns: 200px 1fr; gap: 24px; padding: 24px 0; border-top: 1px solid var(--border-tertiary); }
+  .row:first-of-type { border-top: 1px solid var(--border-secondary); }
+  .row-label { font-weight: 600; font-size: var(--text-md); }
+  .row-desc { color: var(--fg-tertiary); font-size: var(--text-sm); margin-top: 4px; }
+  .ramp { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; }
+  .swatch { aspect-ratio: 1; border-radius: var(--radius-md); position: relative; overflow: hidden; border: 1px solid rgba(0,0,0,0.04); }
+  .swatch .meta { position: absolute; inset: auto 0 0 0; padding: 6px 8px; background: rgba(255,255,255,0.92); font-family: var(--font-spec); font-size: 10px; line-height: 1.2; color: var(--fg-primary); display: flex; flex-direction: column; gap: 1px; }
+  .swatch.dark .meta { background: rgba(255,255,255,0.92); }
+  .step { font-weight: 600; }
+  .hex { color: var(--fg-tertiary); font-feature-settings: "tnum"; }
+  .feature {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 8px;
+  }
+  .hero {
+    border-radius: var(--radius-xl); padding: 40px; min-height: 260px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    color: white;
+  }
+  .hero.brand { background: var(--brand-500); }
+  .hero.gradient { background: var(--brand-gradient); }
+  .hero h3 { margin: 0; font-family: var(--font-display); font-size: 36px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em; }
+  .hero .lbl { font-family: var(--font-spec); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; }
+  .hero .info { display: flex; gap: 24px; font-family: var(--font-spec); font-size: 11px; opacity: 0.92; }
+  .hero .info b { display: block; font-weight: 600; opacity: 0.7; letter-spacing: 0.04em; text-transform: uppercase; font-size: 10px; }
+  .footer { margin-top: 28px; display: flex; justify-content: space-between; gap: 16px; padding-top: 20px; border-top: 1px solid var(--border-secondary); color: var(--fg-tertiary); font-size: var(--text-xs); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="head">
+    <div>
+      <p class="title">Brand color — Excellon Orange</p>
+      <p class="sub">Primary brand. Used on filled CTAs, brand emblem, active sidebar indicators, and badge accents. The radial gradient lives only inside the emblem.</p>
+    </div>
+    <div style="font-family: var(--font-spec); font-size: 11px; color: var(--fg-tertiary); text-align: right;">
+      <div style="text-transform: uppercase; letter-spacing: 0.06em;">Token family</div>
+      <div style="font-weight: 600; color: var(--fg-primary); margin-top: 2px;">--brand-{50…900}</div>
+    </div>
+  </div>
+
+  <div class="feature">
+    <div class="hero brand">
+      <div class="lbl">Brand 500 — Primary</div>
+      <h3>Built for dealers, every shift, every store.</h3>
+      <div class="info">
+        <div><b>Hex</b>#EB6A2C</div>
+        <div><b>RGB</b>235&nbsp;106&nbsp;44</div>
+        <div><b>HSL</b>18°&nbsp;83%&nbsp;55%</div>
+      </div>
+    </div>
+    <div class="hero gradient">
+      <div class="lbl">Emblem gradient</div>
+      <h3>Radial · #FBB040 → #F15A29</h3>
+      <div class="info">
+        <div><b>Use</b>Excellon emblem only</div>
+        <div><b>Avoid</b>Section bg, buttons, charts</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top: 32px;">
+    <div>
+      <div class="row-label">Brand ramp</div>
+      <div class="row-desc">10-step. 500 is base; 600/700 are hover/press for filled CTAs.</div>
+    </div>
+    <div class="ramp" id="brandramp"></div>
+  </div>
+
+  <div class="row">
+    <div>
+      <div class="row-label">Bajaj theme</div>
+      <div class="row-desc">Alternate OEM theme — applied via theme swap. Same component library, different tokens.</div>
+    </div>
+    <div class="ramp" id="bajajramp"></div>
+  </div>
+
+  <div class="footer">
+    <span>Source: <code>colors_and_type.css</code> · <code>--brand-*</code>, <code>--bajaj-*</code></span>
+    <span>Contrast on white: AAA at 600+, AA Large at 500</span>
+  </div>
+</div>
+
+<script>
+  const brand = ['50','100','200','300','400','500','600','700','800','900'];
+  const brandHex = ['#fff7f0','#ffe7d4','#ffceab','#ffb282','#f78f57','#eb6a2c','#c44b1b','#9e320e','#781e05','#521102'];
+  const bajajHex = ['#e6f2ff','#a3cdff','#7ab2ff','#5294ff','#2974ff','#0052ff','#003dd9','#002db3','#001e8c','#001366'];
+  function fillRamp(id, hex) {
+    const el = document.getElementById(id);
+    brand.forEach((s, i) => {
+      const sw = document.createElement('div');
+      sw.className = 'swatch';
+      sw.style.background = hex[i];
+      sw.innerHTML = `<div class="meta"><span class="step">${s}</span><span class="hex">${hex[i].toUpperCase()}</span></div>`;
+      el.appendChild(sw);
+    });
+  }
+  fillRamp('brandramp', brandHex);
+  fillRamp('bajajramp', bajajHex);
+</script>
+</body>
+</html>

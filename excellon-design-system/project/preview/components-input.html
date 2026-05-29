@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Excellon — Components: Inputs</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 40px; background: var(--bg-secondary); font-family: var(--font-sans); color: var(--fg-primary); }
+  .card { background: var(--bg-primary); border: 1px solid var(--border-secondary); border-radius: var(--radius-2xl); box-shadow: var(--shadow-xs); padding: 48px; max-width: 1120px; margin: 0 auto; }
+  .title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; }
+  .sub { color: var(--fg-tertiary); font-size: 14px; margin: 0 0 32px; max-width: 720px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px 48px; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 14px; font-weight: 500; color: var(--fg-secondary); }
+  .field label .opt { color: var(--fg-tertiary); font-weight: 400; }
+  .field .help { font-size: 12px; color: var(--fg-tertiary); }
+  .field .err { font-size: 12px; color: var(--error-700); }
+  .field .ok { font-size: 12px; color: var(--success-700); }
+
+  .input { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: white; border: 1px solid var(--border-primary); border-radius: var(--radius-lg); font-size: 14px; line-height: 20px; height: 40px; box-sizing: border-box; }
+  .input input { border: none; outline: none; flex: 1; font: inherit; color: var(--fg-primary); background: transparent; padding: 0; min-width: 0; }
+  .input.lead-icon::before { content: "⌕"; color: var(--fg-quaternary); font-size: 16px; }
+  .input.has-prefix > .pfx { color: var(--fg-tertiary); font-size: 14px; }
+  .input.has-trail > .trl { color: var(--fg-quaternary); font-size: 12px; padding-left: 8px; border-left: 1px solid var(--border-secondary); }
+
+  .input.focus { border-color: var(--brand-500); box-shadow: var(--focus-ring-brand); }
+  .input.error { border-color: var(--error-600); }
+  .input.error.focus { box-shadow: var(--focus-ring-error); }
+  .input.success { border-color: var(--success-500); }
+  .input.disabled { background: var(--neutral-50); border-color: var(--border-disabled); color: var(--fg-disabled); }
+  .input.disabled input { color: var(--fg-disabled); }
+
+  .select::after { content: "⌄"; color: var(--fg-quaternary); margin-left: auto; }
+
+  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: var(--brand-50); color: var(--brand-700); font-size: 12px; border-radius: 9999px; }
+
+  .grouped { display: flex; }
+  .grouped > .input { border-radius: 0; }
+  .grouped > .input:first-child { border-radius: var(--radius-lg) 0 0 var(--radius-lg); }
+  .grouped > .input:last-child { border-radius: 0 var(--radius-lg) var(--radius-lg) 0; border-left-width: 0; }
+
+  .checkbox { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; }
+  .checkbox .box { width: 18px; height: 18px; border: 1px solid var(--border-primary); border-radius: 4px; background: white; display: inline-flex; align-items: center; justify-content: center; }
+  .checkbox.on .box { background: var(--brand-500); border-color: var(--brand-500); color: white; }
+  .checkbox.on .box::after { content: "✓"; font-size: 12px; line-height: 1; }
+  .checkbox span { font-size: 14px; color: var(--fg-primary); }
+
+  .toggle { position: relative; width: 36px; height: 20px; background: var(--neutral-300); border-radius: 9999px; transition: background 150ms; }
+  .toggle::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 9999px; box-shadow: var(--shadow-sm); transition: left 150ms; }
+  .toggle.on { background: var(--brand-500); }
+  .toggle.on::after { left: 18px; }
+
+  .row { display: flex; gap: 16px; align-items: center; }
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="title">Inputs &amp; form fields</p>
+  <p class="sub">All form controls share the same 40 px height (lg), 8 px radius, 1 px border. Focus is a brand-500 border with a 4 px outer ring. Helpers sit at 12/18 below; errors swap helper text to error-700 and border to error-600.</p>
+
+  <div class="grid">
+    <div class="field">
+      <label>Chassis number <span class="opt">required</span></label>
+      <div class="input"><input value="MD2A11FZ7HWB12345" /></div>
+      <div class="help">17-character VIN as printed on the frame.</div>
+    </div>
+
+    <div class="field">
+      <label>Service advisor</label>
+      <div class="input focus"><input value="Riya Sharma — Worli WS" /></div>
+      <div class="help">Focused — brand-500 border + ring.</div>
+    </div>
+
+    <div class="field">
+      <label>Customer mobile</label>
+      <div class="input has-prefix"><span class="pfx">+91</span><input value="98201 23456" /></div>
+      <div class="help">Indian dial code locked at +91.</div>
+    </div>
+
+    <div class="field">
+      <label>Estimated cost</label>
+      <div class="input has-prefix has-trail"><span class="pfx">₹</span><input value="4,82,150.00" /><span class="trl">incl. GST</span></div>
+      <div class="help">Tabular numerals, Indian comma grouping.</div>
+    </div>
+
+    <div class="field">
+      <label>Search vehicle</label>
+      <div class="input lead-icon"><input placeholder="Search VIN, chassis, registration…" /></div>
+      <div class="help">Used in topbar global search and table filters.</div>
+    </div>
+
+    <div class="field">
+      <label>Workshop</label>
+      <div class="input select"><input value="Bajaj — Worli, Mumbai" readonly /></div>
+      <div class="help">Select. Trailing chevron, dropdown shadow-lg.</div>
+    </div>
+
+    <div class="field">
+      <label>Engine number</label>
+      <div class="input error"><input value="AB12" /></div>
+      <div class="err">Engine number must be 7–10 alphanumeric characters.</div>
+    </div>
+
+    <div class="field">
+      <label>OTP verified</label>
+      <div class="input success"><input value="3 4 9 8 1 6" /></div>
+      <div class="ok">Code accepted.</div>
+    </div>
+
+    <div class="field">
+      <label>RC number</label>
+      <div class="input disabled"><input value="MH 02 BX 4421" disabled /></div>
+      <div class="help">Disabled — read-only after registration.</div>
+    </div>
+
+    <div class="field">
+      <label>Customer + product</label>
+      <div class="grouped">
+        <div class="input has-prefix" style="flex: 0 0 96px;"><span class="pfx">+91</span></div>
+        <div class="input"><input placeholder="Mobile" /></div>
+      </div>
+      <div class="help">Grouped inputs share a vertical edge.</div>
+    </div>
+  </div>
+
+  <hr style="border: none; border-top: 1px solid var(--border-secondary); margin: 36px 0 24px;">
+
+  <div class="grid">
+    <div>
+      <h4 style="margin: 0 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-quaternary); font-weight: 600;">Checkboxes</h4>
+      <div class="checkbox on"><span class="box"></span><span>Send invoice to customer email</span></div>
+      <div class="checkbox"><span class="box"></span><span>Mark vehicle as ready for delivery</span></div>
+      <div class="checkbox"><span class="box"></span><span style="color: var(--fg-disabled);">Apply loyalty discount (none available)</span></div>
+    </div>
+    <div>
+      <h4 style="margin: 0 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-quaternary); font-weight: 600;">Toggles</h4>
+      <div class="row" style="margin-bottom: 10px;"><span class="toggle on"></span><span style="font-size: 14px;">Auto-assign technician on intake</span></div>
+      <div class="row" style="margin-bottom: 10px;"><span class="toggle"></span><span style="font-size: 14px;">SMS notifications to customer</span></div>
+      <div class="row"><span class="toggle on"></span><span style="font-size: 14px;">Print copy to spike</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

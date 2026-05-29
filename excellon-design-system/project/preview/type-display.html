@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Excellon — Type: Display</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 40px; background: var(--bg-secondary); }
+  .card { background: var(--bg-primary); border: 1px solid var(--border-secondary); border-radius: var(--radius-2xl); box-shadow: var(--shadow-xs); padding: 48px; max-width: 1120px; margin: 0 auto; }
+  .title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; }
+  .sub { color: var(--fg-tertiary); font-size: 14px; margin: 0 0 32px; max-width: 720px; }
+  .specimen { display: grid; grid-template-columns: 280px 1fr; gap: 32px; padding: 36px 0; border-top: 1px solid var(--border-secondary); align-items: baseline; }
+  .specimen:last-child { border-bottom: 1px solid var(--border-secondary); }
+  .meta { font-family: var(--font-spec); font-size: 12px; color: var(--fg-tertiary); }
+  .meta b { display: block; color: var(--fg-primary); font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .meta dl { display: grid; grid-template-columns: 110px 1fr; gap: 4px 0; margin: 12px 0 0; }
+  .meta dt { color: var(--fg-quaternary); }
+  .meta dd { margin: 0; color: var(--fg-secondary); font-feature-settings: "tnum"; }
+  .show { color: var(--fg-primary); }
+  .display { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+  .body-stack p { margin: 0 0 14px; max-width: 56ch; color: var(--fg-secondary); }
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="title">Display &amp; headings</p>
+  <p class="sub">Display surfaces use Manrope (substitute for Strawford). Product headings use Noto Sans, the same family as body, distinguished by weight and size only — to keep table-dense screens cohesive.</p>
+
+  <div class="specimen">
+    <div class="meta">
+      <b>Display · 64/56</b>
+      <dl>
+        <dt>Family</dt><dd>Manrope</dd>
+        <dt>Weight</dt><dd>800 — ExtraBold</dd>
+        <dt>Tracking</dt><dd>−0.02em</dd>
+        <dt>Use</dt><dd>Login, marketing, empty-state hero</dd>
+      </dl>
+    </div>
+    <div class="show display" style="font-size: 64px;">Built for India's<br>service floor.</div>
+  </div>
+
+  <div class="specimen">
+    <div class="meta">
+      <b>H1 · 36/44</b>
+      <dl>
+        <dt>Family</dt><dd>Noto Sans</dd>
+        <dt>Weight</dt><dd>700</dd>
+        <dt>Tracking</dt><dd>−0.02em</dd>
+        <dt>Use</dt><dd>Page titles inside the app</dd>
+      </dl>
+    </div>
+    <div class="show" style="font-family: var(--font-sans); font-size: 36px; line-height: 44px; font-weight: 700; letter-spacing: -0.02em;">Job Cards · Worli workshop</div>
+  </div>
+
+  <div class="specimen">
+    <div class="meta">
+      <b>H2 · 30/38</b>
+      <dl>
+        <dt>Family</dt><dd>Noto Sans</dd>
+        <dt>Weight</dt><dd>700</dd>
+        <dt>Use</dt><dd>Section headings, modal titles</dd>
+      </dl>
+    </div>
+    <div class="show" style="font-size: 30px; line-height: 38px; font-weight: 700;">Outstanding receipts this fortnight</div>
+  </div>
+
+  <div class="specimen">
+    <div class="meta">
+      <b>H3 · 24/32</b>
+      <dl>
+        <dt>Family</dt><dd>Noto Sans</dd>
+        <dt>Weight</dt><dd>600</dd>
+        <dt>Use</dt><dd>Card titles, sidebar headers</dd>
+      </dl>
+    </div>
+    <div class="show" style="font-size: 24px; line-height: 32px; font-weight: 600;">Vehicle delivery — pending PDI</div>
+  </div>
+
+  <div class="specimen">
+    <div class="meta">
+      <b>H4 · 20/30</b>
+      <dl>
+        <dt>Family</dt><dd>Noto Sans</dd>
+        <dt>Weight</dt><dd>600</dd>
+        <dt>Use</dt><dd>Form group titles, tab labels (large)</dd>
+      </dl>
+    </div>
+    <div class="show" style="font-size: 20px; line-height: 30px; font-weight: 600;">Customer details</div>
+  </div>
+
+  <div class="specimen">
+    <div class="meta">
+      <b>H5 · 18/28</b>
+      <dl>
+        <dt>Family</dt><dd>Noto Sans</dd>
+        <dt>Weight</dt><dd>600</dd>
+        <dt>Use</dt><dd>Sidebar section titles, KPI labels</dd>
+      </dl>
+    </div>
+    <div class="show" style="font-size: 18px; line-height: 28px; font-weight: 600;">Today's appointments</div>
+  </div>
+</div>
+</body>
+</html>

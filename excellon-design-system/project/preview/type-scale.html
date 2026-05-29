@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Excellon — Type: Body Scale</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 40px; background: var(--bg-secondary); font-family: var(--font-sans); color: var(--fg-primary); }
+  .card { background: var(--bg-primary); border: 1px solid var(--border-secondary); border-radius: var(--radius-2xl); box-shadow: var(--shadow-xs); padding: 48px; max-width: 1120px; margin: 0 auto; }
+  .title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; }
+  .sub { color: var(--fg-tertiary); font-size: 14px; margin: 0 0 32px; max-width: 720px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 14px 12px; vertical-align: baseline; border-bottom: 1px solid var(--border-tertiary); }
+  th { font-size: 11px; font-weight: 600; color: var(--fg-quaternary); text-transform: uppercase; letter-spacing: 0.06em; padding-bottom: 12px; }
+  td.token { font-family: var(--font-spec); font-size: 12px; color: var(--fg-tertiary); width: 130px; }
+  td.size { font-family: var(--font-spec); font-size: 12px; color: var(--fg-secondary); width: 110px; font-feature-settings: "tnum"; }
+  td.weight { font-family: var(--font-spec); font-size: 12px; color: var(--fg-secondary); width: 130px; }
+  td.specimen { color: var(--fg-primary); }
+  .row-eyebrow td { padding-top: 28px; padding-bottom: 4px; border-bottom: none; }
+  .row-eyebrow td span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-brand); }
+
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--border-secondary); }
+  .demo { border: 1px solid var(--border-secondary); border-radius: var(--radius-lg); padding: 24px; }
+  .demo h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-quaternary); margin: 0 0 12px; font-weight: 600; }
+  .demo .label { font-size: 14px; font-weight: 500; color: var(--fg-secondary); margin-bottom: 4px; }
+  .demo .help { font-size: 12px; color: var(--fg-tertiary); }
+  .demo .data { font-family: var(--font-sans); font-size: 14px; font-feature-settings: "tnum"; color: var(--fg-primary); }
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="title">Body, label, and data scale</p>
+  <p class="sub">Body baseline is 14/20. Tables drop to 12/18 with tabular numerals. 16/24 is reserved for dialogs and primary marketing copy. All sizes ship as both raw tokens (<code>--text-*</code>) and semantic class shortcuts.</p>
+
+  <table>
+    <thead>
+      <tr><th>Token</th><th>Size / line</th><th>Weight</th><th>Specimen</th></tr>
+    </thead>
+    <tbody>
+      <tr class="row-eyebrow"><td colspan="4"><span>Body</span></td></tr>
+      <tr><td class="token">--text-md</td><td class="size">16 / 24</td><td class="weight">400 Regular</td><td class="specimen" style="font-size:16px;line-height:24px;">Generate invoice for completed jobs in this branch.</td></tr>
+      <tr><td class="token">--text-sm</td><td class="size">14 / 20</td><td class="weight">400 Regular</td><td class="specimen" style="font-size:14px;line-height:20px;">Estimated delivery is 24 Apr 2026 by 6:30 PM.</td></tr>
+      <tr><td class="token">--text-xs</td><td class="size">12 / 18</td><td class="weight">400 Regular</td><td class="specimen" style="font-size:12px;line-height:18px;">VIN MD2A11FZ7HWB12345 · Engine no. AB12345</td></tr>
+
+      <tr class="row-eyebrow"><td colspan="4"><span>Label · UI control</span></td></tr>
+      <tr><td class="token">label / sm-medium</td><td class="size">14 / 20</td><td class="weight">500 Medium</td><td class="specimen" style="font-size:14px;line-height:20px;font-weight:500;">Chassis number</td></tr>
+      <tr><td class="token">cta / button</td><td class="size">14 / 20</td><td class="weight">500 Medium</td><td class="specimen" style="font-size:14px;line-height:20px;font-weight:500;">Add vehicle</td></tr>
+      <tr><td class="token">caption</td><td class="size">12 / 18</td><td class="weight">400 Regular</td><td class="specimen" style="font-size:12px;line-height:18px;color:var(--fg-tertiary);">Updated 2 minutes ago by Riya Sharma</td></tr>
+      <tr><td class="token">eyebrow</td><td class="size">12 / 18</td><td class="weight">600 SemiBold</td><td class="specimen" style="font-size:12px;line-height:18px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--fg-brand);">Workshop · Worli</td></tr>
+
+      <tr class="row-eyebrow"><td colspan="4"><span>Numeric · Tabular</span></td></tr>
+      <tr><td class="token">data-total</td><td class="size">24 / 32</td><td class="weight">600 SemiBold</td><td class="specimen" style="font-size:24px;line-height:32px;font-weight:600;font-feature-settings:'tnum';">₹ 4,82,150.00</td></tr>
+      <tr><td class="token">data-cell</td><td class="size">14 / 20</td><td class="weight">500 Medium</td><td class="specimen" style="font-size:14px;line-height:20px;font-weight:500;font-feature-settings:'tnum';">JC-2026-04-1042 · 31,427 km</td></tr>
+    </tbody>
+  </table>
+
+  <div class="pair">
+    <div class="demo">
+      <h4>Form pair</h4>
+      <div class="label">Estimated delivery date</div>
+      <div class="data" style="margin: 4px 0 6px;">24 Apr 2026 · 06:30 PM</div>
+      <div class="help">Customer will be notified by SMS 2 hours before.</div>
+    </div>
+    <div class="demo">
+      <h4>Table cell density</h4>
+      <div class="data">JC-2026-04-1042</div>
+      <div class="data" style="color: var(--fg-secondary);">Pulsar NS200 · 31,427 km</div>
+      <div class="help" style="margin-top: 4px;">Service Advisor: Riya Sharma</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

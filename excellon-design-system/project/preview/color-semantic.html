@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Excellon — Color: Semantic</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 40px; background: var(--bg-secondary); font-family: var(--font-sans); color: var(--fg-primary); }
+  .card { background: var(--bg-primary); border: 1px solid var(--border-secondary); border-radius: var(--radius-2xl); box-shadow: var(--shadow-xs); padding: 40px; max-width: 1120px; margin: 0 auto; }
+  .title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; }
+  .sub { color: var(--fg-tertiary); font-size: 14px; margin: 0 0 28px; max-width: 720px; }
+
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+  .col { border: 1px solid var(--border-secondary); border-radius: var(--radius-lg); overflow: hidden; }
+  .col header { padding: 16px; }
+  .col h4 { margin: 0; font-size: 14px; font-weight: 600; }
+  .col p { margin: 4px 0 0; font-size: 12px; color: var(--fg-tertiary); }
+  .stack { display: flex; flex-direction: column; }
+  .stack > div { padding: 10px 14px; font-family: var(--font-spec); font-size: 11px; display: flex; justify-content: space-between; }
+
+  .badges { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-secondary); display: flex; flex-wrap: wrap; gap: 12px; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border-secondary); color: var(--fg-tertiary); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="title">Semantic colors — status &amp; accent</p>
+  <p class="sub">Standard SaaS semantic palette — green for success, amber for warning, red for error, blue for info, purple for secondary accent. Each scale ships <code>50</code>, <code>500</code>, <code>700</code> for soft / base / strong.</p>
+
+  <div class="grid">
+    <div class="col">
+      <header><h4>Success</h4><p>Confirmations, completed jobs, paid invoices</p></header>
+      <div class="stack">
+        <div style="background:#ecfdf3;color:#027a48;"><span>50</span><span>#ECFDF3</span></div>
+        <div style="background:#12b76a;color:white;"><span>500</span><span>#12B76A</span></div>
+        <div style="background:#027a48;color:white;"><span>700</span><span>#027A48</span></div>
+      </div>
+    </div>
+    <div class="col">
+      <header><h4>Warning</h4><p>Pending approvals, low stock alerts</p></header>
+      <div class="stack">
+        <div style="background:#fffaeb;color:#b54708;"><span>50</span><span>#FFFAEB</span></div>
+        <div style="background:#f79009;color:white;"><span>500</span><span>#F79009</span></div>
+        <div style="background:#b54708;color:white;"><span>700</span><span>#B54708</span></div>
+      </div>
+    </div>
+    <div class="col">
+      <header><h4>Error</h4><p>Validation, failed transactions</p></header>
+      <div class="stack">
+        <div style="background:#fef3f2;color:#b42318;"><span>50</span><span>#FEF3F2</span></div>
+        <div style="background:#f04438;color:white;"><span>500</span><span>#F04438</span></div>
+        <div style="background:#b42318;color:white;"><span>700</span><span>#B42318</span></div>
+      </div>
+    </div>
+    <div class="col">
+      <header><h4>Info</h4><p>Help, in-progress, system notes</p></header>
+      <div class="stack">
+        <div style="background:#eff8ff;color:#175cd3;"><span>50</span><span>#EFF8FF</span></div>
+        <div style="background:#2e90fa;color:white;"><span>500</span><span>#2E90FA</span></div>
+        <div style="background:#175cd3;color:white;"><span>700</span><span>#175CD3</span></div>
+      </div>
+    </div>
+    <div class="col">
+      <header><h4>Purple</h4><p>Secondary accent — finance tags, premium</p></header>
+      <div class="stack">
+        <div style="background:#f4ebff;color:#6929c4;"><span>50</span><span>#F4EBFF</span></div>
+        <div style="background:#6929c4;color:white;"><span>500</span><span>#6929C4</span></div>
+        <div style="background:#42127d;color:white;"><span>700</span><span>#42127D</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="badges">
+    <span class="badge" style="background:#ecfdf3;color:#027a48;"><span class="dot" style="background:#12b76a;"></span>Job complete</span>
+    <span class="badge" style="background:#fffaeb;color:#b54708;"><span class="dot" style="background:#f79009;"></span>PDI pending</span>
+    <span class="badge" style="background:#fef3f2;color:#b42318;"><span class="dot" style="background:#f04438;"></span>Payment failed</span>
+    <span class="badge" style="background:#eff8ff;color:#175cd3;"><span class="dot" style="background:#2e90fa;"></span>In workshop</span>
+    <span class="badge" style="background:#f4ebff;color:#6929c4;"><span class="dot" style="background:#6929c4;"></span>Premium dealer</span>
+    <span class="badge" style="background:var(--brand-50);color:var(--brand-700);"><span class="dot" style="background:var(--brand-500);"></span>Awaiting approval</span>
+    <span class="badge" style="background:var(--neutral-100);color:var(--neutral-700);"><span class="dot" style="background:var(--neutral-500);"></span>Draft</span>
+  </div>
+
+  <div class="footer">
+    Tokens: <code>--success-*</code>, <code>--warning-*</code>, <code>--error-*</code>, <code>--info-*</code>, <code>--purple-500</code>
+  </div>
+</div>
+</body>
+</html>

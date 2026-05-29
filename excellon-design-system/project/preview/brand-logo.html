@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Excellon — Brand Logo</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 40px; background: var(--bg-secondary); font-family: var(--font-sans); color: var(--fg-primary); }
+  .card { background: var(--bg-primary); border: 1px solid var(--border-secondary); border-radius: var(--radius-2xl); box-shadow: var(--shadow-xs); padding: 48px; max-width: 1120px; margin: 0 auto; }
+  .title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; }
+  .sub { color: var(--fg-tertiary); font-size: 14px; margin: 0 0 32px; max-width: 720px; }
+
+  .hero { background: var(--bg-secondary); border-radius: var(--radius-xl); padding: 64px; display: flex; align-items: center; justify-content: center; gap: 32px; }
+  .hero img { height: 140px; }
+  .wordmark { font-family: var(--font-display); font-size: 72px; font-weight: 800; letter-spacing: -0.04em; color: var(--neutral-900); }
+  .wordmark .x { color: var(--brand-500); }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 32px; }
+  .tile { background: white; border: 1px solid var(--border-secondary); border-radius: var(--radius-lg); padding: 32px; display: flex; align-items: center; justify-content: center; min-height: 160px; }
+  .tile.dark { background: var(--neutral-900); }
+  .tile.brand { background: var(--brand-500); }
+  .tile img { max-height: 80px; max-width: 80%; }
+
+  .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 32px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-secondary); font-size: 13px; }
+  .meta dt { font-weight: 600; color: var(--fg-tertiary); font-family: var(--font-spec); font-size: 12px; }
+  .meta dd { margin: 0 0 8px; color: var(--fg-secondary); }
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="title">Excellon brand mark</p>
+  <p class="sub">The emblem is a dual-arrow geometric mark in slate gray with a radial orange-amber gradient as the central motif. The wordmark sets &ldquo;EXCELLON&rdquo; in Manrope ExtraBold (Strawford substitute) at −0.04em tracking. Always pair with adequate clear space (≥ emblem height ÷ 2 on every side).</p>
+
+  <div class="hero">
+    <img src="../assets/excellon-emblem.svg" alt="Excellon emblem">
+    <div class="wordmark">e<span class="x">x</span>cellon</div>
+  </div>
+
+  <div class="grid">
+    <div class="tile"><img src="../assets/excellon-emblem.svg" alt=""></div>
+    <div class="tile dark"><img src="../assets/excellon-emblem.svg" alt=""></div>
+    <div class="tile brand"><img src="../assets/excellon-emblem.svg" alt="" style="filter: brightness(0) invert(1);"></div>
+  </div>
+
+  <dl class="meta">
+    <dt>Construction</dt><dd>Two stacked arrowheads (slate) sandwiching a centred radial-gradient tongue.</dd>
+    <dt>Min size</dt><dd>24 px height (digital) · 12 mm height (print)</dd>
+    <dt>Clear space</dt><dd>≥ ½ × emblem height on every side</dd>
+    <dt>Wordmark font</dt><dd>Strawford ExtraBold → Manrope (substitute)</dd>
+    <dt>Slate</dt><dd>#4D555A — emblem outer arrows</dd>
+    <dt>Gradient</dt><dd>radial #FBB040 → #F15A29 — emblem core</dd>
+    <dt>Don't</dt><dd>Recolour the emblem · stretch · place on busy photos · lock to a circle frame · re-skew the gradient</dd>
+    <dt>Do</dt><dd>Use full mark on light surfaces · all-white knock-out on brand orange · all-slate on white when colour is forbidden</dd>
+  </dl>
+</div>
+</body>
+</html>

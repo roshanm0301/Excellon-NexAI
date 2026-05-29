@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Excellon — Module Logos</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 40px; background: var(--bg-secondary); font-family: var(--font-sans); color: var(--fg-primary); }
+  .card { background: var(--bg-primary); border: 1px solid var(--border-secondary); border-radius: var(--radius-2xl); box-shadow: var(--shadow-xs); padding: 48px; max-width: 1120px; margin: 0 auto; }
+  .title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; }
+  .sub { color: var(--fg-tertiary); font-size: 14px; margin: 0 0 32px; max-width: 720px; }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .mod { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .tile { width: 124px; height: 124px; border-radius: var(--radius-2xl); background: white; border: 1px solid var(--border-secondary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-xs); }
+  .tile svg { width: 64px; height: 64px; color: var(--neutral-900); }
+  .mod:hover .tile { background: var(--brand-500); border-color: var(--brand-500); }
+  .mod:hover .tile svg { color: white; }
+  .lbl { font-size: 16px; font-weight: 600; color: var(--neutral-900); }
+  .meta { font-size: 12px; color: var(--fg-tertiary); }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--border-secondary); }
+  .demo { border: 1px solid var(--border-secondary); border-radius: var(--radius-lg); padding: 20px; }
+  .demo h4 { margin: 0 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-quaternary); font-weight: 600; }
+  .demo p { font-size: 13px; color: var(--fg-secondary); margin: 0 0 8px; line-height: 1.6; }
+
+  .nav-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radius-md); }
+  .nav-row.active { background: var(--brand-50); color: var(--brand-700); border-left: 3px solid var(--brand-500); padding-left: 9px; }
+  .nav-row svg { width: 20px; height: 20px; }
+  .nav-row span { font-size: 14px; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="title">Module logos — Service · Vehicle · Spare Parts · Finance</p>
+  <p class="sub">Four product modules, four glyphs. Default state is a neutral-900 glyph on white in a 124 × 124 rounded tile. Hover/active flips to a brand-500 fill with white glyph. Glyphs are simple, geometric, line-only — no decorative detail.</p>
+
+  <div class="grid">
+    <div class="mod">
+      <div class="tile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a4.5 4.5 0 0 1-6.4 6.4L4 17l3 3 4.3-4.3a4.5 4.5 0 0 1 6.4-6.4l-2.5 2.5-2-2 2.5-2.5z"/>
+        </svg>
+      </div>
+      <div class="lbl">Service</div>
+      <div class="meta">Workshop ops &amp; job cards</div>
+    </div>
+    <div class="mod">
+      <div class="tile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12l2-5a2 2 0 0 1 1.9-1.4h10.2A2 2 0 0 1 19 7l2 5"/>
+          <path d="M3 12h18v5a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1H7v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-5z"/>
+          <circle cx="7" cy="15" r="1.2"/>
+          <circle cx="17" cy="15" r="1.2"/>
+        </svg>
+      </div>
+      <div class="lbl">Vehicle</div>
+      <div class="meta">Master, deliveries, registration</div>
+    </div>
+    <div class="mod">
+      <div class="tile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l8 4v6.2c0 4.5-3.4 8.4-8 9.6-4.6-1.2-8-5.1-8-9.6V7l8-4z"/>
+          <circle cx="12" cy="12" r="2.5"/>
+          <path d="M12 9.5V7m0 10v-2.5M14.5 12H17M7 12h2.5"/>
+        </svg>
+      </div>
+      <div class="lbl">Spare Parts</div>
+      <div class="meta">Inventory &amp; indents</div>
+    </div>
+    <div class="mod">
+      <div class="tile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="6" width="18" height="13" rx="2"/>
+          <path d="M3 10h18"/>
+          <path d="M7 15h2m2 0h6"/>
+          <path d="M16 3v3M8 3v3"/>
+        </svg>
+      </div>
+      <div class="lbl">Finance</div>
+      <div class="meta">Invoicing, GL, receipts</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="demo">
+      <h4>Sidebar usage</h4>
+      <p>Module logos shrink to 20 px and sit before the label in the primary sidebar. Active item gets a brand-500 left rail and a brand-50 background.</p>
+      <div style="background: white; border: 1px solid var(--border-secondary); border-radius: 8px; padding: 8px; margin-top: 12px;">
+        <div class="nav-row active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4.5 4.5 0 0 1-6.4 6.4L4 17l3 3 4.3-4.3a4.5 4.5 0 0 1 6.4-6.4l-2.5 2.5-2-2 2.5-2.5z"/></svg>
+          <span>Service</span>
+        </div>
+        <div class="nav-row" style="color: var(--fg-secondary);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l2-5a2 2 0 0 1 1.9-1.4h10.2A2 2 0 0 1 19 7l2 5"/><path d="M3 12h18v5a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1H7v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-5z"/></svg>
+          <span>Vehicle</span>
+        </div>
+        <div class="nav-row" style="color: var(--fg-secondary);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v6.2c0 4.5-3.4 8.4-8 9.6-4.6-1.2-8-5.1-8-9.6V7l8-4z"/></svg>
+          <span>Spare Parts</span>
+        </div>
+        <div class="nav-row" style="color: var(--fg-secondary);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>
+          <span>Finance</span>
+        </div>
+      </div>
+    </div>
+    <div class="demo">
+      <h4>Module switcher (homepage)</h4>
+      <p>Default state on Excellon home — large 124 px tiles in a 4-column grid. Hover swaps to brand-500 fill. Used as the entry point after sign-in.</p>
+      <p style="color: var(--fg-tertiary); margin-top: 14px;"><b>Substitute:</b> The Figma source uses bespoke pictograms; the SVG glyphs above are simplified, line-only stand-ins drawn from the same metaphor (workshop wrench, vehicle silhouette, parts shield, calendar/ledger).</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

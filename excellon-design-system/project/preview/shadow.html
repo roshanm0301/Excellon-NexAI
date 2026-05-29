@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Excellon — Shadows</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 40px; background: var(--bg-secondary); font-family: var(--font-sans); color: var(--fg-primary); }
+  .card { background: var(--bg-primary); border: 1px solid var(--border-secondary); border-radius: var(--radius-2xl); box-shadow: var(--shadow-xs); padding: 48px; max-width: 1120px; margin: 0 auto; }
+  .title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; }
+  .sub { color: var(--fg-tertiary); font-size: 14px; margin: 0 0 40px; max-width: 720px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px 24px; }
+  .item { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .box { width: 100%; aspect-ratio: 5/3; background: white; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-family: var(--font-spec); font-size: 12px; color: var(--fg-tertiary); }
+  .meta { text-align: center; font-family: var(--font-spec); }
+  .meta b { display: block; font-size: 13px; color: var(--fg-primary); margin-bottom: 2px; }
+  .meta span { font-size: 11px; color: var(--fg-tertiary); }
+
+  .focus { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--border-secondary); display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .demo { background: white; border: 1px solid var(--border-secondary); border-radius: var(--radius-lg); padding: 24px; }
+  .demo h4 { margin: 0 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-quaternary); font-weight: 600; }
+  .demo input { width: 100%; padding: 8px 12px; border: 1px solid var(--brand-500); border-radius: 8px; font-size: 14px; box-shadow: var(--focus-ring-brand); outline: none; }
+  .demo input.err { border-color: var(--error-600); box-shadow: var(--focus-ring-error); }
+  .demo p { font-size: 12px; color: var(--fg-tertiary); margin: 8px 0 0; }
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="title">Elevation — flat, layered shadows</p>
+  <p class="sub">Two-layer shadows scaled across seven steps. Cards rest on <code>xs</code>; popovers float at <code>lg</code>; modals lift to <code>3xl</code>. No coloured or inner shadows. Focus ring is a 4 px outer glow at brand-500 / 24%.</p>
+
+  <div class="grid">
+    <div class="item"><div class="box" style="box-shadow: var(--shadow-xs);">xs</div><div class="meta"><b>--shadow-xs</b><span>Cards, table rows</span></div></div>
+    <div class="item"><div class="box" style="box-shadow: var(--shadow-sm);">sm</div><div class="meta"><b>--shadow-sm</b><span>Sticky headers</span></div></div>
+    <div class="item"><div class="box" style="box-shadow: var(--shadow-md);">md</div><div class="meta"><b>--shadow-md</b><span>Tooltips, chips</span></div></div>
+    <div class="item"><div class="box" style="box-shadow: var(--shadow-lg);">lg</div><div class="meta"><b>--shadow-lg</b><span>Dropdowns, popovers</span></div></div>
+    <div class="item"><div class="box" style="box-shadow: var(--shadow-xl);">xl</div><div class="meta"><b>--shadow-xl</b><span>Slide-out panels</span></div></div>
+    <div class="item"><div class="box" style="box-shadow: var(--shadow-2xl);">2xl</div><div class="meta"><b>--shadow-2xl</b><span>Full modals</span></div></div>
+    <div class="item"><div class="box" style="box-shadow: var(--shadow-3xl);">3xl</div><div class="meta"><b>--shadow-3xl</b><span>Confirm dialogs</span></div></div>
+    <div class="item"><div class="box" style="box-shadow: 0 0 0 4px rgba(235,106,44,0.24); outline: 1px solid var(--brand-500);">focus</div><div class="meta"><b>--focus-ring-brand</b><span>Inputs &amp; buttons</span></div></div>
+  </div>
+
+  <div class="focus">
+    <div class="demo">
+      <h4>Focus — brand</h4>
+      <input value="Hero Splendor i-Smart" />
+      <p>Border <code>--brand-500</code> + ring <code>--focus-ring-brand</code></p>
+    </div>
+    <div class="demo">
+      <h4>Focus — error</h4>
+      <input class="err" value="Chassis number" />
+      <p>Border <code>--error-600</code> + ring <code>--focus-ring-error</code></p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

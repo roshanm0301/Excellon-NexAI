@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Excellon — Color: Neutral</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 40px; background: var(--bg-secondary); font-family: var(--font-sans); color: var(--fg-primary); }
+  .card { background: var(--bg-primary); border: 1px solid var(--border-secondary); border-radius: var(--radius-2xl); box-shadow: var(--shadow-xs); padding: 40px; max-width: 1120px; margin: 0 auto; }
+  .head { margin-bottom: 28px; }
+  .title { font-size: var(--text-2xl); line-height: var(--lh-2xl); font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+  .sub { color: var(--fg-tertiary); font-size: var(--text-sm); margin: 6px 0 0; max-width: 720px; }
+
+  .ramp { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin-bottom: 32px; }
+  .sw { aspect-ratio: 0.75; border-radius: var(--radius-md); position: relative; overflow: hidden; border: 1px solid rgba(0,0,0,0.04); }
+  .sw .meta { position: absolute; inset: auto 0 0 0; padding: 8px; background: rgba(255,255,255,0.94); font-family: var(--font-spec); font-size: 10px; }
+  .sw .step { font-weight: 600; }
+  .sw .hex { color: var(--fg-tertiary); display: block; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .demo { border: 1px solid var(--border-secondary); border-radius: var(--radius-lg); padding: 20px; }
+  .demo h4 { margin: 0 0 12px; font-size: 13px; font-weight: 600; color: var(--fg-tertiary); text-transform: uppercase; letter-spacing: 0.06em; }
+  .demo p { margin: 0 0 8px; font-size: 14px; line-height: 20px; }
+  .demo .p1 { color: var(--fg-primary); }
+  .demo .p2 { color: var(--fg-secondary); }
+  .demo .p3 { color: var(--fg-tertiary); }
+  .demo .p4 { color: var(--fg-quaternary); }
+
+  .stack { display: flex; flex-direction: column; gap: 8px; }
+  .surface-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius-md); font-size: 13px; }
+  .surface-row code { font-family: var(--font-spec); font-size: 11px; color: var(--fg-tertiary); margin-left: auto; }
+
+  .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border-secondary); color: var(--fg-tertiary); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="head">
+    <p class="title">Neutral scale — slate-blue gray</p>
+    <p class="sub">A 10-step cool gray with a faint blue cast. The bulk of every Excellon screen is built from these — page background <code>50</code>, primary text <code>900</code>, dividers <code>200</code>.</p>
+  </div>
+
+  <div class="ramp" id="ramp"></div>
+
+  <div class="grid">
+    <div class="demo">
+      <h4>Foreground tokens</h4>
+      <p class="p1"><b>fg-primary</b> · #1B1D21 — body, headings, table cells</p>
+      <p class="p2"><b>fg-secondary</b> · #505862 — secondary copy, disabled-but-readable</p>
+      <p class="p3"><b>fg-tertiary</b> · #717680 — captions, helper text, placeholders</p>
+      <p class="p4"><b>fg-quaternary</b> · #8593A3 — meta, timestamps, watermark</p>
+    </div>
+    <div class="demo">
+      <h4>Background &amp; divider tokens</h4>
+      <div class="stack">
+        <div class="surface-row" style="background: var(--bg-primary); border: 1px solid var(--border-secondary);">Surface — bg-primary <code>#FFFFFF</code></div>
+        <div class="surface-row" style="background: var(--bg-secondary);">Page — bg-secondary <code>#F4F7FA</code></div>
+        <div class="surface-row" style="background: var(--bg-tertiary);">Hover — bg-tertiary <code>#EFF2F5</code></div>
+        <div class="surface-row" style="background: var(--bg-active);">Active — bg-active <code>#DEE4EB</code></div>
+        <div class="surface-row" style="background: var(--bg-overlay); color: white;">Modal scrim — bg-overlay <code style="color: rgba(255,255,255,0.7);">rgba(0,0,0,0.6)</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Tokens: <code>--neutral-50…900</code> · <code>--fg-primary…quaternary</code> · <code>--bg-primary…active</code> · <code>--border-primary…tertiary</code>
+  </div>
+</div>
+
+<script>
+  const steps = ['50','100','200','300','400','500','600','700','800','900'];
+  const hex = ['#f4f7fa','#eff2f5','#dee4eb','#c3ccd6','#a8b5c2','#8593a3','#6a7682','#505862','#353b41','#1b1d21'];
+  const ramp = document.getElementById('ramp');
+  steps.forEach((s, i) => {
+    const sw = document.createElement('div');
+    sw.className = 'sw';
+    sw.style.background = hex[i];
+    sw.innerHTML = `<div class="meta"><span class="step" style="${i>=7?'color:white;':''}">${s}</span><span class="hex" style="${i>=7?'color:rgba(255,255,255,0.7);':''}">${hex[i].toUpperCase()}</span></div>`;
+    if (i >= 7) sw.querySelector('.meta').style.background = 'rgba(0,0,0,0.5)';
+    ramp.appendChild(sw);
+  });
+</script>
+</body>
+</html>

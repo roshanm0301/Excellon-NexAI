@@ -1,0 +1,258 @@
+/* ============================================================
+   Excellon Design System — Color + Type Tokens
+   Source of truth: Excellon Design System Specifications (Figma)
+   ============================================================ */
+
+@font-face {
+  font-family: "Noto Sans";
+  src: url("./fonts/NotoSans-VariableFont.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Noto Sans";
+  src: url("./fonts/NotoSans-Italic-VariableFont.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Inter is used in the spec sheet for labels/specimens (Figma artefact).
+   We pull it from Google Fonts so spec callouts render correctly. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* SUBSTITUTION FLAG: Excellon's spec sheet uses "Strawford" for a few
+   display headings (proprietary, not provided). We substitute Manrope —
+   closest free geometric humanist match — and document the swap. */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+
+:root {
+  /* ---------- Basic ---------- */
+  --color-white:        #ffffff;
+  --color-black:        #000000;
+  --color-overlay:      rgba(0, 0, 0, 0.6);
+  --color-transparent:  transparent;
+
+  /* ---------- Neutral scale (slate-blue) ---------- */
+  --neutral-50:   #f4f7fa;
+  --neutral-100:  #eff2f5;
+  --neutral-200:  #dee4eb;
+  --neutral-300:  #c3ccd6;
+  --neutral-400:  #a8b5c2;
+  --neutral-500:  #8593a3;  /* base */
+  --neutral-600:  #6a7682;
+  --neutral-700:  #505862;
+  --neutral-800:  #353b41;
+  --neutral-900:  #1b1d21;
+
+  /* ---------- Brand: Excellon orange ---------- */
+  --brand-50:   #fff7f0;
+  --brand-100:  #ffe7d4;
+  --brand-200:  #ffceab;
+  --brand-300:  #ffb282;
+  --brand-400:  #f78f57;
+  --brand-500:  #eb6a2c;  /* base — primary action */
+  --brand-600:  #c44b1b;
+  --brand-700:  #9e320e;
+  --brand-800:  #781e05;
+  --brand-900:  #521102;
+
+  /* Excellon emblem gradient (radial, top-left start) */
+  --brand-gradient: radial-gradient(circle at 30% 30%, #fbb040 0%, #f15a29 100%);
+  --brand-emblem-slate: #4d555a;
+
+  /* ---------- Brand alt: Bajaj blue (theme) ---------- */
+  --bajaj-50:   #e6f2ff;
+  --bajaj-100:  #a3cdff;
+  --bajaj-200:  #7ab2ff;
+  --bajaj-300:  #5294ff;
+  --bajaj-400:  #2974ff;
+  --bajaj-500:  #0052ff;
+  --bajaj-600:  #003dd9;
+  --bajaj-700:  #002db3;
+  --bajaj-800:  #001e8c;
+  --bajaj-900:  #001366;
+
+  /* ---------- Accent / status (semantic) ---------- */
+  --success-50:  #ecfdf3;
+  --success-500: #12b76a;
+  --success-700: #027a48;
+
+  --warning-50:  #fffaeb;
+  --warning-500: #f79009;
+  --warning-700: #b54708;
+
+  --error-50:   #fef3f2;
+  --error-500:  #f04438;   /* table flash, alert */
+  --error-600:  #d92d20;
+  --error-700:  #b42318;
+
+  --info-50:    #eff8ff;
+  --info-500:   #2e90fa;
+  --info-700:   #175cd3;
+
+  --purple-500: #6929c4;   /* secondary accent (badges, links) */
+
+  /* ---------- Foreground (text) ---------- */
+  --fg-primary:    #1b1d21;
+  --fg-secondary:  #505862;
+  --fg-tertiary:   #717680;
+  --fg-quaternary: #8593a3;
+  --fg-disabled:   #a8b5c2;
+  --fg-on-brand:   #ffffff;
+  --fg-brand:      #eb6a2c;
+  --fg-brand-strong: #c44b1b;
+
+  /* ---------- Background ---------- */
+  --bg-primary:    #ffffff;
+  --bg-secondary:  #f4f7fa;
+  --bg-tertiary:   #eff2f5;
+  --bg-active:     #dee4eb;
+  --bg-brand-soft: #fff7f0;
+  --bg-overlay:    rgba(0, 0, 0, 0.6);
+
+  /* ---------- Border ---------- */
+  --border-primary:    #d5d7da;
+  --border-secondary:  #dee4eb;
+  --border-tertiary:   #eaeaeb;
+  --border-disabled:   #eff2f5;
+  --border-brand:      #eb6a2c;
+  --border-error:      #fda29b;
+
+  /* ---------- Spacing scale (figma seed tokens) ---------- */
+  --space-0:   0;
+  --space-1:   2px;
+  --space-2:   4px;
+  --space-3:   6px;
+  --space-4:   8px;
+  --space-5:   10px;
+  --space-6:   12px;
+  --space-8:   16px;
+  --space-10:  20px;
+  --space-12:  24px;
+  --space-16:  32px;
+  --space-20:  40px;
+  --space-24:  48px;
+  --space-28:  56px;
+  --space-32:  64px;
+  --space-36:  72px;
+  --space-40:  80px;
+  --space-48:  96px;
+
+  /* ---------- Border radius ---------- */
+  --radius-none: 0;
+  --radius-xs:   2px;
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   8px;     /* default for buttons, inputs, cards */
+  --radius-xl:   12px;
+  --radius-2xl:  16px;
+  --radius-3xl:  20px;
+  --radius-4xl:  24px;
+  --radius-full: 9999px;
+
+  /* ---------- Shadows (lifted from figma effect-styles) ---------- */
+  --shadow-xs:  0px 1px 2px 0px rgba(10, 13, 18, 0.05);
+  --shadow-sm:  0px 1px 3px 0px rgba(16, 24, 40, 0.10), 0px 1px 2px 0px rgba(16, 24, 40, 0.06);
+  --shadow-md:  0px 4px 8px -2px rgba(16, 24, 40, 0.10), 0px 2px 4px -2px rgba(16, 24, 40, 0.06);
+  --shadow-lg:  0px 12px 16px -4px rgba(16, 24, 40, 0.08), 0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+  --shadow-xl:  0px 20px 24px -4px rgba(16, 24, 40, 0.08), 0px 8px 8px -4px rgba(16, 24, 40, 0.03);
+  --shadow-2xl: 0px 24px 48px -12px rgba(16, 24, 40, 0.18);
+  --shadow-3xl: 0px 32px 64px -12px rgba(16, 24, 40, 0.14);
+
+  /* Focus ring */
+  --focus-ring-brand: 0 0 0 4px rgba(235, 106, 44, 0.24);
+  --focus-ring-error: 0 0 0 4px rgba(217, 45, 32, 0.24);
+
+  /* ---------- Typography ---------- */
+  --font-sans: "Noto Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Manrope", "Noto Sans", system-ui, sans-serif; /* substitute for Strawford */
+  --font-spec: "Inter", "Noto Sans", sans-serif;                  /* spec/data labels */
+  --font-mono: ui-monospace, SFMono-Regular, "Menlo", Consolas, monospace;
+
+  /* Base sizes (figma table) */
+  --text-xs:   12px;     --lh-xs:  18px;
+  --text-sm:   14px;     --lh-sm:  20px;
+  --text-md:   16px;     --lh-md:  24px;
+  --text-lg:   18px;     --lh-lg:  28px;
+  --text-xl:   20px;     --lh-xl:  30px;
+  --text-2xl:  24px;     --lh-2xl: 32px;
+  --text-3xl:  30px;     --lh-3xl: 38px;
+  --text-4xl:  36px;     --lh-4xl: 44px;
+  --text-5xl:  48px;     --lh-5xl: 60px;
+  --text-6xl:  60px;     --lh-6xl: 72px;
+  --text-display: 64px;  --lh-display: 56px;
+
+  --tracking-tight:  -0.02em;
+  --tracking-normal: 0em;
+  --tracking-wide:   0.02em;
+
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+}
+
+/* ============================================================
+   Semantic typography classes — drop-in
+   ============================================================ */
+
+html { font-family: var(--font-sans); color: var(--fg-primary); }
+
+.h-display, h1.display {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-display);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg-primary);
+}
+.h1, h1 {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-4xl);
+  line-height: var(--lh-4xl);
+  letter-spacing: var(--tracking-tight);
+}
+.h2, h2 {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-3xl);
+  line-height: var(--lh-3xl);
+}
+.h3, h3 {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-2xl);
+  line-height: var(--lh-2xl);
+}
+.h4, h4 {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-xl);
+  line-height: var(--lh-xl);
+}
+.h5, h5 {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-lg);
+  line-height: var(--lh-lg);
+}
+.h6, h6 {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-md);
+  line-height: var(--lh-md);
+}
+
+.body-lg  { font-size: var(--text-md); line-height: var(--lh-md); font-weight: var(--weight-regular); }
+.body     { font-size: var(--text-sm); line-height: var(--lh-sm); font-weight: var(--weight-regular); }
+.body-sm  { font-size: var(--text-xs); line-height: var(--lh-xs); font-weight: var(--weight-regular); }
+
+.label    { font-size: var(--text-sm); line-height: var(--lh-sm); font-weight: var(--weight-medium); color: var(--fg-secondary); }
+.caption  { font-size: var(--text-xs); line-height: var(--lh-xs); font-weight: var(--weight-regular); color: var(--fg-tertiary); }
+.eyebrow  { font-size: var(--text-xs); line-height: var(--lh-xs); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-brand); }
+
+.cta      { font-family: var(--font-sans); font-weight: var(--weight-medium); font-size: var(--text-sm); line-height: 20px; }
+.code     { font-family: var(--font-mono); font-size: var(--text-sm); }

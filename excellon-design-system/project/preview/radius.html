@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Excellon — Radius</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 40px; background: var(--bg-secondary); font-family: var(--font-sans); color: var(--fg-primary); }
+  .card { background: var(--bg-primary); border: 1px solid var(--border-secondary); border-radius: var(--radius-2xl); box-shadow: var(--shadow-xs); padding: 48px; max-width: 1120px; margin: 0 auto; }
+  .title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; }
+  .sub { color: var(--fg-tertiary); font-size: 14px; margin: 0 0 32px; max-width: 720px; }
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 40px; }
+  .tile { aspect-ratio: 1; background: var(--brand-50); border: 2px solid var(--brand-500); display: flex; align-items: flex-end; justify-content: center; padding: 12px; flex-direction: column; gap: 2px; }
+  .tile .px { font-family: var(--font-spec); font-size: 13px; font-weight: 600; }
+  .tile .tk { font-family: var(--font-spec); font-size: 11px; color: var(--fg-tertiary); }
+  .matrix { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding-top: 32px; border-top: 1px solid var(--border-secondary); }
+  .ex { background: var(--bg-primary); border: 1px solid var(--border-secondary); padding: 16px; min-height: 120px; display: flex; flex-direction: column; gap: 8px; }
+  .ex .what { font-size: 12px; font-weight: 600; color: var(--fg-tertiary); text-transform: uppercase; letter-spacing: 0.05em; }
+  .ex .preview { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .pill { padding: 6px 12px; background: var(--brand-500); color: white; font-size: 12px; font-weight: 500; border-radius: 9999px; }
+  .btn-l { padding: 8px 14px; background: var(--brand-500); color: white; font-size: 13px; border-radius: var(--radius-lg); border: none; }
+  .input-l { padding: 8px 12px; border: 1px solid var(--border-primary); background: white; font-size: 13px; border-radius: var(--radius-lg); width: 100%; }
+  .modal-l { padding: 16px; background: white; border-radius: var(--radius-2xl); border: 1px solid var(--border-secondary); box-shadow: var(--shadow-lg); font-size: 12px; }
+  .avatar { width: 36px; height: 36px; border-radius: 9999px; background: var(--brand-500); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="title">Border radius scale</p>
+  <p class="sub">Sharp at the table edge, rounded at every interactive surface. Buttons + inputs sit at 8 px (lg). Cards step up to 12 (xl). Modals are 16 (2xl). Pills, avatars, and dots are full-rounded.</p>
+
+  <div class="grid">
+    <div class="tile" style="border-radius: 0;"><span class="px">0 px</span><span class="tk">--radius-none</span></div>
+    <div class="tile" style="border-radius: 4px;"><span class="px">4 px</span><span class="tk">--radius-sm</span></div>
+    <div class="tile" style="border-radius: 6px;"><span class="px">6 px</span><span class="tk">--radius-md</span></div>
+    <div class="tile" style="border-radius: 8px;"><span class="px">8 px</span><span class="tk">--radius-lg</span></div>
+    <div class="tile" style="border-radius: 12px;"><span class="px">12 px</span><span class="tk">--radius-xl</span></div>
+    <div class="tile" style="border-radius: 16px;"><span class="px">16 px</span><span class="tk">--radius-2xl</span></div>
+    <div class="tile" style="border-radius: 20px;"><span class="px">20 px</span><span class="tk">--radius-3xl</span></div>
+    <div class="tile" style="border-radius: 24px;"><span class="px">24 px</span><span class="tk">--radius-4xl</span></div>
+    <div class="tile" style="border-radius: 9999px;"><span class="px">Full</span><span class="tk">--radius-full</span></div>
+    <div class="tile" style="background: var(--bg-secondary); border-style: dashed;"><span class="px" style="font-size:11px;font-weight:400;color:var(--fg-tertiary);text-transform:uppercase;letter-spacing:0.05em;">Tables: 0</span></div>
+  </div>
+
+  <div class="matrix">
+    <div class="ex">
+      <span class="what">Table edge — 0</span>
+      <div class="preview" style="background: var(--bg-secondary); border-radius: 0; align-self: stretch;">&nbsp;</div>
+    </div>
+    <div class="ex">
+      <span class="what">Button / input — 8</span>
+      <div class="preview"><button class="btn-l">Save changes</button></div>
+    </div>
+    <div class="ex">
+      <span class="what">Card / dialog — 12</span>
+      <div class="preview" style="background: white; border: 1px solid var(--border-secondary); border-radius: 12px; box-shadow: var(--shadow-xs); padding: 12px; align-self: stretch; align-items: flex-start; flex-direction: column; gap: 4px;">
+        <div style="font-size: 13px; font-weight: 600;">JC-2026-04-1042</div>
+        <div style="font-size: 12px; color: var(--fg-tertiary);">Pulsar NS200 · 31,427 km</div>
+      </div>
+    </div>
+    <div class="ex">
+      <span class="what">Modal — 16</span>
+      <div class="preview"><div class="modal-l">Modal · 16 px<br><span style="color:var(--fg-tertiary);">Slate scrim 60% behind</span></div></div>
+    </div>
+    <div class="ex">
+      <span class="what">Pill / badge — full</span>
+      <div class="preview"><span class="pill">In workshop</span></div>
+    </div>
+    <div class="ex">
+      <span class="what">Avatar — full</span>
+      <div class="preview"><span class="avatar">RS</span></div>
+    </div>
+    <div class="ex">
+      <span class="what">Status dot — full</span>
+      <div class="preview"><span style="width:10px;height:10px;border-radius:9999px;background:var(--success-500);"></span></div>
+    </div>
+    <div class="ex">
+      <span class="what">Search — 8</span>
+      <div class="preview" style="align-self:stretch;"><input class="input-l" placeholder="Search VIN, chassis…"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

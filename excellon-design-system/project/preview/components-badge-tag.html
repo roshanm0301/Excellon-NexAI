@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Excellon — Components: Badges, Tags, Avatars</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 40px; background: var(--bg-secondary); font-family: var(--font-sans); color: var(--fg-primary); }
+  .card { background: var(--bg-primary); border: 1px solid var(--border-secondary); border-radius: var(--radius-2xl); box-shadow: var(--shadow-xs); padding: 48px; max-width: 1120px; margin: 0 auto; }
+  .title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; }
+  .sub { color: var(--fg-tertiary); font-size: 14px; margin: 0 0 32px; max-width: 720px; }
+
+  h4 { margin: 28px 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-quaternary); font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+  /* Status badges (pill, soft) */
+  .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; line-height: 1; }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .badge.success { background: #ecfdf3; color: #027a48; } .badge.success .dot { background: #12b76a; }
+  .badge.warn { background: #fffaeb; color: #b54708; } .badge.warn .dot { background: #f79009; }
+  .badge.error { background: #fef3f2; color: #b42318; } .badge.error .dot { background: #f04438; }
+  .badge.info { background: #eff8ff; color: #175cd3; } .badge.info .dot { background: #2e90fa; }
+  .badge.purple { background: #f4ebff; color: #6929c4; } .badge.purple .dot { background: #6929c4; }
+  .badge.brand { background: var(--brand-50); color: var(--brand-700); } .badge.brand .dot { background: var(--brand-500); }
+  .badge.gray { background: var(--neutral-100); color: var(--neutral-700); } .badge.gray .dot { background: var(--neutral-500); }
+
+  /* Tags (rectangular, with × close) */
+  .tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; line-height: 1; background: var(--neutral-100); color: var(--neutral-800); border: 1px solid var(--border-secondary); }
+  .tag .x { color: var(--fg-tertiary); cursor: pointer; font-size: 14px; line-height: 1; }
+  .tag.brand { background: var(--brand-50); color: var(--brand-700); border-color: var(--brand-200); }
+
+  /* Counts */
+  .count { display: inline-flex; min-width: 18px; height: 18px; padding: 0 6px; border-radius: 9999px; background: var(--brand-500); color: white; font-size: 11px; font-weight: 600; align-items: center; justify-content: center; }
+  .count.gray { background: var(--neutral-200); color: var(--neutral-800); }
+  .count.danger { background: var(--error-600); }
+
+  /* Avatars */
+  .av { width: 36px; height: 36px; border-radius: 9999px; background: var(--brand-500); color: white; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; position: relative; }
+  .av.sm { width: 28px; height: 28px; font-size: 11px; }
+  .av.lg { width: 48px; height: 48px; font-size: 16px; }
+  .av.xl { width: 64px; height: 64px; font-size: 22px; }
+  .av .pres { position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; background: var(--success-500); }
+  .av .pres.away { background: var(--warning-500); }
+  .av .pres.off { background: var(--neutral-300); }
+
+  .av.gray { background: var(--neutral-200); color: var(--neutral-700); }
+  .av.purple { background: var(--purple-500); }
+  .av.bajaj { background: var(--bajaj-500); }
+
+  .stack { display: inline-flex; }
+  .stack .av { border: 2px solid white; }
+  .stack .av + .av { margin-left: -10px; }
+
+  .ex-row { padding: 14px 16px; border: 1px solid var(--border-secondary); border-radius: var(--radius-lg); display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .ex-row .body { flex: 1; }
+  .ex-row .name { font-size: 14px; font-weight: 500; }
+  .ex-row .meta { font-size: 12px; color: var(--fg-tertiary); }
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="title">Status badges, tags &amp; avatars</p>
+  <p class="sub">Status badges are full-rounded pills with a leading dot. Tags are squared 6 px chips with optional dismiss. Avatars use a brand-500 default with white initials, plus presence dots for live agents.</p>
+
+  <h4>Status badges</h4>
+  <div class="row">
+    <span class="badge success"><span class="dot"></span>Job complete</span>
+    <span class="badge warn"><span class="dot"></span>PDI pending</span>
+    <span class="badge error"><span class="dot"></span>Payment failed</span>
+    <span class="badge info"><span class="dot"></span>In workshop</span>
+    <span class="badge purple"><span class="dot"></span>Premium dealer</span>
+    <span class="badge brand"><span class="dot"></span>Awaiting approval</span>
+    <span class="badge gray"><span class="dot"></span>Draft</span>
+  </div>
+
+  <h4>Tags</h4>
+  <div class="row">
+    <span class="tag">Two-wheeler<span class="x">×</span></span>
+    <span class="tag">Pulsar NS200<span class="x">×</span></span>
+    <span class="tag brand">Bajaj — Worli<span class="x">×</span></span>
+    <span class="tag">Free service · 1<span class="x">×</span></span>
+    <span class="tag">Insurance valid<span class="x">×</span></span>
+  </div>
+
+  <h4>Counts</h4>
+  <div class="row">
+    <span class="count">3</span>
+    <span class="count">12</span>
+    <span class="count">99+</span>
+    <span class="count gray">5</span>
+    <span class="count danger">!</span>
+  </div>
+
+  <h4>Avatars</h4>
+  <div class="row" style="align-items: flex-end;">
+    <span class="av sm">RS</span>
+    <span class="av">RS</span>
+    <span class="av lg">RS</span>
+    <span class="av xl">RS</span>
+    <span class="av gray">AK</span>
+    <span class="av purple">VM</span>
+    <span class="av bajaj">BJ</span>
+    <span class="av"><span class="pres"></span>RS</span>
+    <span class="av"><span class="pres away"></span>VM</span>
+    <span class="av"><span class="pres off"></span>AK</span>
+  </div>
+
+  <h4>Stacked group</h4>
+  <div class="row">
+    <span class="stack">
+      <span class="av sm">RS</span>
+      <span class="av sm gray">AK</span>
+      <span class="av sm purple">VM</span>
+      <span class="av sm bajaj">+4</span>
+    </span>
+    <span style="font-size: 13px; color: var(--fg-tertiary);">7 technicians on shift</span>
+  </div>
+
+  <h4>In context</h4>
+  <div class="ex-row">
+    <span class="av">RS</span>
+    <div class="body">
+      <div class="name">Riya Sharma <span class="badge success" style="margin-left: 8px;"><span class="dot"></span>On shift</span></div>
+      <div class="meta">Senior Service Advisor · Bajaj Worli · Last action 2 min ago</div>
+    </div>
+    <span class="badge brand"><span class="dot"></span>3 jobs</span>
+  </div>
+  <div class="ex-row">
+    <span class="av gray">AK</span>
+    <div class="body">
+      <div class="name">Aniket Kulkarni <span class="badge warn" style="margin-left: 8px;"><span class="dot"></span>On break</span></div>
+      <div class="meta">Technician · Last action 18 min ago</div>
+    </div>
+    <span class="badge gray"><span class="dot"></span>0 jobs</span>
+  </div>
+</div>
+</body>
+</html>
