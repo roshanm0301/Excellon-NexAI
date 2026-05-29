@@ -13,7 +13,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 
+	"github.com/excellon/nexai/internal/admin"
+	"github.com/excellon/nexai/internal/compiler"
 	"github.com/excellon/nexai/internal/db"
+	"github.com/excellon/nexai/internal/entityruntime"
 	"github.com/excellon/nexai/internal/middleware"
 )
 
@@ -30,6 +33,13 @@ func main() {
 	}
 	defer pool.Close()
 
+	// Initialise services
+	artifactRepo := admin.NewArtifactRepo(pool)
+	compilerSvc := compiler.NewService(pool)
+	artifactHandler := admin.NewArtifactHandler(artifactRepo, compilerSvc)
+	entityRepo := entityruntime.NewRepo(pool)
+	entityHandler := entityruntime.NewHandler(entityRepo)
+
 	r := chi.NewRouter()
 	r.Use(chimw.RequestID)
 	r.Use(chimw.RealIP)
@@ -38,6 +48,15 @@ func main() {
 	r.Use(middleware.DevContext)
 
 	r.Get("/health", healthHandler(pool))
+
+	r.Route("/api", func(r chi.Router) {
+		r.Route("/artifacts", func(r chi.Router) {
+			artifactHandler.RegisterRoutes(r)
+		})
+		r.Route("/entities/{entityType}", func(r chi.Router) {
+			entityHandler.RegisterRoutes(r)
+		})
+	})
 
 	port := envOr("PORT", "8080")
 	srv := &http.Server{
