@@ -49,7 +49,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		req.Payload = []byte(`{}`)
 	}
 
-	rec, err := h.repo.Create(r.Context(), tenantID, entityType, userID, req.Payload)
+	rec, err := h.repo.Create(r.Context(), tenantID, entityType, "", userID, req.Payload)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to create record")
 		return
@@ -62,13 +62,11 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 			TenantID:   tenantID,
 			EntityType: entityType,
 			EntityID:   rec.ID,
-			Action:     "create",
+			EventType:  "entity.create",
 			ActorID:    userID,
 			Role:       role,
 			After:      afterMap,
 		})
-	} else {
-		go h.repo.RecordAudit(r.Context(), tenantID, entityType, rec.ID, "create", userID, role, nil, rec.Payload)
 	}
 
 	writeJSON(w, http.StatusCreated, rec)
@@ -118,7 +116,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rec, err := h.repo.Update(r.Context(), tenantID, entityType, id, req.Payload)
+	rec, err := h.repo.Update(r.Context(), tenantID, entityType, id, userID, req.Payload)
 	if err != nil {
 		writeError(w, http.StatusNotFound, err.Error())
 		return
@@ -134,18 +132,12 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 			TenantID:   tenantID,
 			EntityType: entityType,
 			EntityID:   rec.ID,
-			Action:     "update",
+			EventType:  "entity.update",
 			ActorID:    userID,
 			Role:       role,
 			Before:     beforeMap,
 			After:      afterMap,
 		})
-	} else {
-		var beforePayload []byte
-		if before != nil {
-			beforePayload = before.Payload
-		}
-		go h.repo.RecordAudit(r.Context(), tenantID, entityType, rec.ID, "update", userID, role, beforePayload, rec.Payload)
 	}
 
 	writeJSON(w, http.StatusOK, rec)
@@ -156,7 +148,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	entityType := chi.URLParam(r, "entityType")
 	id := chi.URLParam(r, "id")
 
-	if err := h.repo.SoftDelete(r.Context(), tenantID, entityType, id); err != nil {
+	if err := h.repo.SoftDelete(r.Context(), tenantID, entityType, id, userID); err != nil {
 		writeError(w, http.StatusNotFound, err.Error())
 		return
 	}
@@ -166,12 +158,10 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 			TenantID:   tenantID,
 			EntityType: entityType,
 			EntityID:   id,
-			Action:     "delete",
+			EventType:  "entity.delete",
 			ActorID:    userID,
 			Role:       role,
 		})
-	} else {
-		go h.repo.RecordAudit(r.Context(), tenantID, entityType, id, "delete", userID, role, nil, nil)
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -194,13 +184,11 @@ func (h *Handler) restore(w http.ResponseWriter, r *http.Request) {
 			TenantID:   tenantID,
 			EntityType: entityType,
 			EntityID:   id,
-			Action:     "restore",
+			EventType:  "entity.restore",
 			ActorID:    userID,
 			Role:       role,
 			After:      afterMap,
 		})
-	} else {
-		go h.repo.RecordAudit(r.Context(), tenantID, entityType, id, "restore", userID, role, nil, rec.Payload)
 	}
 	writeJSON(w, http.StatusOK, rec)
 }

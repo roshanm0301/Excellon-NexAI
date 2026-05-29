@@ -15,7 +15,7 @@ type Event struct {
 	TenantID     string
 	EntityType   string
 	EntityID     string
-	Action       string
+	EventType    string
 	ActorID      string
 	Role         string
 	Before       map[string]any
@@ -27,16 +27,16 @@ type Event struct {
 
 // AuditRecord is the stored audit event.
 type AuditRecord struct {
-	ID            string          `json:"id"`
-	TenantID      string          `json:"tenant_id"`
-	EntityType    string          `json:"entity_type"`
-	EntityID      string          `json:"entity_id"`
-	Action        string          `json:"action"`
-	ActorID       string          `json:"actor_id"`
-	ActorRole     string          `json:"actor_role"`
-	BeforePayload json.RawMessage `json:"before_payload"`
-	AfterPayload  json.RawMessage `json:"after_payload"`
-	CreatedAt     time.Time       `json:"created_at"`
+	ID         string          `json:"id"`
+	TenantID   string          `json:"tenant_id"`
+	EventType  string          `json:"event_type"`
+	EntityType string          `json:"entity_type"`
+	EntityID   string          `json:"entity_id"`
+	ActorID    string          `json:"actor_id"`
+	BeforeData json.RawMessage `json:"before_data,omitempty"`
+	AfterData  json.RawMessage `json:"after_data,omitempty"`
+	Diff       json.RawMessage `json:"diff,omitempty"`
+	CreatedAt  time.Time       `json:"created_at"`
 }
 
 // Record writes an audit event. Always call as: go audit.Record(ctx, pool, event)
@@ -45,16 +45,22 @@ func Record(ctx context.Context, pool *db.Pool, e Event) {
 
 	beforeDiff, afterDiff := diffPayloads(e.Before, e.After)
 
-	beforeJSON, _ := json.Marshal(beforeDiff)
-	afterJSON, _ := json.Marshal(afterDiff)
+	beforeJSON, _ := json.Marshal(e.Before)
+	afterJSON, _ := json.Marshal(e.After)
+	diffJSON, _ := json.Marshal(map[string]any{"before": beforeDiff, "after": afterDiff})
+
+	eventType := e.EventType
+	if eventType == "" {
+		eventType = "entity.change"
+	}
 
 	_, err := pool.Exec(ctx, `
-		INSERT INTO audit_event (id, tenant_id, entity_type, entity_id, action, actor_id, actor_role, before_payload, after_payload)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-		id, e.TenantID, e.EntityType, e.EntityID, e.Action, e.ActorID, e.Role,
-		nullIfEmpty(beforeJSON), nullIfEmpty(afterJSON))
+		INSERT INTO audit_event (id, tenant_id, event_type, entity_type, entity_id, actor_id, before_data, after_data, diff, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
+		id, e.TenantID, eventType, e.EntityType, e.EntityID, e.ActorID,
+		nullIfEmpty(beforeJSON), nullIfEmpty(afterJSON), nullIfEmpty(diffJSON))
 	if err != nil {
-		slog.Warn("audit record failed (non-fatal)", "error", err, "entity_type", e.EntityType, "entity_id", e.EntityID, "action", e.Action)
+		slog.Warn("audit record failed (non-fatal)", "error", err, "entity_type", e.EntityType, "entity_id", e.EntityID, "event_type", eventType)
 	}
 }
 

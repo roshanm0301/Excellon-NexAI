@@ -17,18 +17,22 @@ func NewRepo(pool *db.Pool) *Repo {
 	return &Repo{pool: pool}
 }
 
-func (r *Repo) Create(ctx context.Context, tenantID, entityType, createdBy string, payload []byte) (*EntityRecord, error) {
+func (r *Repo) Create(ctx context.Context, tenantID, entityType, nodeID, createdBy string, payload []byte) (*EntityRecord, error) {
 	id := idgen.NewV7()
 	const q = `
-		INSERT INTO entity_record (id, tenant_id, entity_type, payload, status, created_by)
-		VALUES ($1, $2, $3, $4, 'active', $5)
-		RETURNING id, tenant_id, entity_type, payload, status, created_by, created_at, updated_at`
-	return scanRecord(r.pool.QueryRow(ctx, q, id, tenantID, entityType, payload, createdBy))
+		INSERT INTO entity_record (id, tenant_id, entity_type, node_id, payload, status, version_no, created_by, updated_by)
+		VALUES ($1, $2, $3, NULLIF($4,''), $5, 'DRAFT', 1, $6, $6)
+		RETURNING id, entity_type, COALESCE(entity_category,''), tenant_id, COALESCE(node_id,''),
+		          status, version_no, created_by, updated_by, created_at, updated_at,
+		          deleted_at, COALESCE(deleted_by,''), payload`
+	return scanRecord(r.pool.QueryRow(ctx, q, id, tenantID, entityType, nodeID, payload, createdBy))
 }
 
 func (r *Repo) GetByID(ctx context.Context, tenantID, entityType, id string) (*EntityRecord, error) {
 	const q = `
-		SELECT id, tenant_id, entity_type, payload, status, created_by, created_at, updated_at
+		SELECT id, entity_type, COALESCE(entity_category,''), tenant_id, COALESCE(node_id,''),
+		       status, version_no, created_by, updated_by, created_at, updated_at,
+		       deleted_at, COALESCE(deleted_by,''), payload
 		FROM entity_record
 		WHERE id = $1 AND tenant_id = $2 AND entity_type = $3 AND deleted_at IS NULL`
 	rec, err := scanRecord(r.pool.QueryRow(ctx, q, id, tenantID, entityType))
@@ -47,7 +51,9 @@ func (r *Repo) List(ctx context.Context, tenantID, entityType string, limit, off
 	}
 
 	rows, err := r.pool.Query(ctx, `
-		SELECT id, tenant_id, entity_type, payload, status, created_by, created_at, updated_at
+		SELECT id, entity_type, COALESCE(entity_category,''), tenant_id, COALESCE(node_id,''),
+		       status, version_no, created_by, updated_by, created_at, updated_at,
+		       deleted_at, COALESCE(deleted_by,''), payload
 		FROM entity_record
 		WHERE tenant_id = $1 AND entity_type = $2 AND deleted_at IS NULL
 		ORDER BY created_at DESC LIMIT $3 OFFSET $4`,
@@ -68,22 +74,25 @@ func (r *Repo) List(ctx context.Context, tenantID, entityType string, limit, off
 	return records, total, rows.Err()
 }
 
-func (r *Repo) Update(ctx context.Context, tenantID, entityType, id string, payload []byte) (*EntityRecord, error) {
+func (r *Repo) Update(ctx context.Context, tenantID, entityType, id, updatedBy string, payload []byte) (*EntityRecord, error) {
 	const q = `
-		UPDATE entity_record SET payload = $4, updated_at = now()
+		UPDATE entity_record SET payload = $5, updated_by = $6, updated_at = now(), version_no = version_no + 1
 		WHERE id = $1 AND tenant_id = $2 AND entity_type = $3 AND deleted_at IS NULL
-		RETURNING id, tenant_id, entity_type, payload, status, created_by, created_at, updated_at`
-	rec, err := scanRecord(r.pool.QueryRow(ctx, q, id, tenantID, entityType, payload))
+		RETURNING id, entity_type, COALESCE(entity_category,''), tenant_id, COALESCE(node_id,''),
+		          status, version_no, created_by, updated_by, created_at, updated_at,
+		          deleted_at, COALESCE(deleted_by,''), payload`
+	rec, err := scanRecord(r.pool.QueryRow(ctx, q, id, tenantID, entityType, nil, payload, updatedBy))
 	if err == pgx.ErrNoRows {
 		return nil, fmt.Errorf("entity %s/%s: not found", entityType, id)
 	}
 	return rec, err
 }
 
-func (r *Repo) SoftDelete(ctx context.Context, tenantID, entityType, id string) error {
+func (r *Repo) SoftDelete(ctx context.Context, tenantID, entityType, id, deletedBy string) error {
 	tag, err := r.pool.Exec(ctx,
-		`UPDATE entity_record SET deleted_at = now(), updated_at = now() WHERE id = $1 AND tenant_id = $2 AND entity_type = $3 AND deleted_at IS NULL`,
-		id, tenantID, entityType)
+		`UPDATE entity_record SET deleted_at = now(), deleted_by = $4, updated_at = now()
+		 WHERE id = $1 AND tenant_id = $2 AND entity_type = $3 AND deleted_at IS NULL`,
+		id, tenantID, entityType, deletedBy)
 	if err != nil {
 		return fmt.Errorf("entity delete: %w", err)
 	}
@@ -95,25 +104,16 @@ func (r *Repo) SoftDelete(ctx context.Context, tenantID, entityType, id string) 
 
 func (r *Repo) Restore(ctx context.Context, tenantID, entityType, id string) (*EntityRecord, error) {
 	const q = `
-		UPDATE entity_record SET deleted_at = NULL, updated_at = now()
+		UPDATE entity_record SET deleted_at = NULL, deleted_by = NULL, updated_at = now()
 		WHERE id = $1 AND tenant_id = $2 AND entity_type = $3 AND deleted_at IS NOT NULL
-		RETURNING id, tenant_id, entity_type, payload, status, created_by, created_at, updated_at`
+		RETURNING id, entity_type, COALESCE(entity_category,''), tenant_id, COALESCE(node_id,''),
+		          status, version_no, created_by, updated_by, created_at, updated_at,
+		          deleted_at, COALESCE(deleted_by,''), payload`
 	rec, err := scanRecord(r.pool.QueryRow(ctx, q, id, tenantID, entityType))
 	if err == pgx.ErrNoRows {
 		return nil, fmt.Errorf("entity %s/%s: not found in recycle bin", entityType, id)
 	}
 	return rec, err
-}
-
-func (r *Repo) RecordAudit(ctx context.Context, tenantID, entityType, entityID, action, actorID, actorRole string, before, after []byte) {
-	id := idgen.NewV4()
-	_, err := r.pool.Exec(ctx, `
-		INSERT INTO audit_event (id, tenant_id, entity_type, entity_id, action, actor_id, actor_role, before_payload, after_payload)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-		id, tenantID, entityType, entityID, action, actorID, actorRole, before, after)
-	if err != nil {
-		fmt.Printf("audit record failed (non-fatal): %v\n", err)
-	}
 }
 
 func (r *Repo) GetHistory(ctx context.Context, tenantID, entityType, entityID string, limit, offset int) ([]AuditEventRecord, int, error) {
@@ -125,7 +125,7 @@ func (r *Repo) GetHistory(ctx context.Context, tenantID, entityType, entityID st
 	}
 
 	rows, err := r.pool.Query(ctx, `
-		SELECT id, tenant_id, entity_type, entity_id, action, actor_id, actor_role, before_payload, after_payload, created_at
+		SELECT id, tenant_id, event_type, entity_type, entity_id, actor_id, before_data, after_data, diff, created_at
 		FROM audit_event
 		WHERE tenant_id = $1 AND entity_type = $2 AND entity_id = $3
 		ORDER BY created_at DESC LIMIT $4 OFFSET $5`,
@@ -138,13 +138,10 @@ func (r *Repo) GetHistory(ctx context.Context, tenantID, entityType, entityID st
 	var events []AuditEventRecord
 	for rows.Next() {
 		var e AuditEventRecord
-		var role *string
-		err := rows.Scan(&e.ID, &e.TenantID, &e.EntityType, &e.EntityID, &e.Action, &e.ActorID, &role, &e.BeforePayload, &e.AfterPayload, &e.CreatedAt)
+		err := rows.Scan(&e.ID, &e.TenantID, &e.EventType, &e.EntityType, &e.EntityID,
+			&e.ActorID, &e.BeforeData, &e.AfterData, &e.Diff, &e.CreatedAt)
 		if err != nil {
 			return nil, 0, err
-		}
-		if role != nil {
-			e.ActorRole = *role
 		}
 		events = append(events, e)
 	}
@@ -157,6 +154,10 @@ type rowScanner interface {
 
 func scanRecord(row rowScanner) (*EntityRecord, error) {
 	var e EntityRecord
-	err := row.Scan(&e.ID, &e.TenantID, &e.EntityType, &e.Payload, &e.Status, &e.CreatedBy, &e.CreatedAt, &e.UpdatedAt)
+	err := row.Scan(
+		&e.ID, &e.EntityType, &e.EntityCategory, &e.TenantID, &e.NodeID,
+		&e.Status, &e.VersionNo, &e.CreatedBy, &e.UpdatedBy,
+		&e.CreatedAt, &e.UpdatedAt, &e.DeletedAt, &e.DeletedBy, &e.Payload,
+	)
 	return &e, err
 }

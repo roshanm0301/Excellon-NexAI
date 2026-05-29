@@ -10,7 +10,7 @@ import (
 // List returns audit events for a given entity, ordered by most recent first.
 func List(ctx context.Context, pool *db.Pool, tenantID, entityType, entityID string, limit, offset int) ([]AuditRecord, error) {
 	rows, err := pool.Query(ctx, `
-		SELECT id, tenant_id, entity_type, entity_id, action, actor_id, actor_role, before_payload, after_payload, created_at
+		SELECT id, tenant_id, event_type, entity_type, entity_id, actor_id, before_data, after_data, diff, created_at
 		FROM audit_event
 		WHERE tenant_id = $1 AND entity_type = $2 AND entity_id = $3
 		ORDER BY created_at DESC
@@ -24,16 +24,11 @@ func List(ctx context.Context, pool *db.Pool, tenantID, entityType, entityID str
 	var records []AuditRecord
 	for rows.Next() {
 		var rec AuditRecord
-		var role *string
 		if err := rows.Scan(
-			&rec.ID, &rec.TenantID, &rec.EntityType, &rec.EntityID,
-			&rec.Action, &rec.ActorID, &role,
-			&rec.BeforePayload, &rec.AfterPayload, &rec.CreatedAt,
+			&rec.ID, &rec.TenantID, &rec.EventType, &rec.EntityType, &rec.EntityID,
+			&rec.ActorID, &rec.BeforeData, &rec.AfterData, &rec.Diff, &rec.CreatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("audit list scan: %w", err)
-		}
-		if role != nil {
-			rec.ActorRole = *role
 		}
 		records = append(records, rec)
 	}

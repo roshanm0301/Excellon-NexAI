@@ -112,7 +112,7 @@ func (s *Service) applyOverlays(ctx context.Context, tenantID, entityType string
 	if s.resolver == nil {
 		return raw
 	}
-	delta, err := s.resolver.Resolve(ctx, tenantID, entityType, "", "")
+	delta, err := s.resolver.Resolve(ctx, tenantID, "entity_schema", entityType, "", "")
 	if err != nil {
 		slog.Warn("overlay resolve failed (non-fatal), using raw schema", "error", err)
 		return raw
@@ -265,9 +265,9 @@ func (s *Service) enqueueIndexes(ctx context.Context, tenantID, entityType strin
 	for _, idx := range plan {
 		id := idgen.NewV4()
 		_, err := s.pool.Exec(ctx, `
-			INSERT INTO index_queue (id, tenant_id, entity_type, index_name, index_ddl, status)
-			VALUES ($1, $2, $3, $4, $5, 'pending')
-			ON CONFLICT DO NOTHING`,
+			INSERT INTO entity_index_queue (id, tenant_id, entity_key, index_name, ddl)
+			VALUES ($1, $2, $3, $4, $5)
+			ON CONFLICT (entity_key, index_name, tenant_id) DO NOTHING`,
 			id, tenantID, entityType, idx.Name, idx.DDL)
 		if err != nil {
 			return fmt.Errorf("enqueue index %s: %w", idx.Name, err)
@@ -279,34 +279,40 @@ func (s *Service) enqueueIndexes(ctx context.Context, tenantID, entityType strin
 // ── Step 6: Emit ──────────────────────────────────────────────────────────────
 
 func (s *Service) emit(ctx context.Context, artifactVersionID, tenantID, entityType string, schemaBytes []byte, hash string) (*CompiledArtifact, error) {
+	// artifact_key = entityType, artifact_type = "entity_schema"
+	artifactKey := entityType
+	artifactType := "entity_schema"
+
+	// Check for existing active artifact with same hash
 	var existingHash string
 	err := s.pool.QueryRow(ctx,
-		`SELECT content_hash FROM compiled_artifact WHERE artifact_version_id = $1`,
-		artifactVersionID).Scan(&existingHash)
+		`SELECT content_hash FROM compiled_artifact WHERE artifact_key = $1 AND tenant_id = $2 AND artifact_type = $3 AND status = 'active'`,
+		artifactKey, tenantID, artifactType).Scan(&existingHash)
 	if err == nil && existingHash == hash {
 		var ca CompiledArtifact
 		err = s.pool.QueryRow(ctx,
-			`SELECT id, artifact_version_id, tenant_id, entity_type, compiled_schema, content_hash, compiler_version, created_at, updated_at FROM compiled_artifact WHERE artifact_version_id = $1`,
-			artifactVersionID).Scan(&ca.ID, &ca.ArtifactVersionID, &ca.TenantID, &ca.EntityType, &ca.CompiledSchema, &ca.ContentHash, &ca.CompilerVersion, &ca.CreatedAt, &ca.UpdatedAt)
+			`SELECT id, tenant_id, artifact_key, artifact_type, payload, content_hash, created_at FROM compiled_artifact WHERE artifact_key = $1 AND tenant_id = $2 AND artifact_type = $3 AND status = 'active'`,
+			artifactKey, tenantID, artifactType).Scan(
+			&ca.ID, &ca.TenantID, &ca.ArtifactKey, &ca.ArtifactType, &ca.CompiledSchema, &ca.ContentHash, &ca.CreatedAt)
 		if err == nil {
 			slog.Debug("compiled artifact unchanged, skipping write", "hash", hash)
 			return &ca, nil
 		}
 	}
 
+	// Supersede previous active version
+	_, _ = s.pool.Exec(ctx,
+		`UPDATE compiled_artifact SET status = 'superseded' WHERE artifact_key = $1 AND tenant_id = $2 AND artifact_type = $3 AND status = 'active'`,
+		artifactKey, tenantID, artifactType)
+
 	id := idgen.NewV4()
 	var ca CompiledArtifact
 	err = s.pool.QueryRow(ctx, `
-		INSERT INTO compiled_artifact (id, artifact_version_id, tenant_id, entity_type, compiled_schema, content_hash, compiler_version)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
-		ON CONFLICT (artifact_version_id) DO UPDATE SET
-			compiled_schema = EXCLUDED.compiled_schema,
-			content_hash = EXCLUDED.content_hash,
-			compiler_version = EXCLUDED.compiler_version,
-			updated_at = now()
-		RETURNING id, artifact_version_id, tenant_id, entity_type, compiled_schema, content_hash, compiler_version, created_at, updated_at`,
-		id, artifactVersionID, tenantID, entityType, schemaBytes, hash, compilerVersion,
-	).Scan(&ca.ID, &ca.ArtifactVersionID, &ca.TenantID, &ca.EntityType, &ca.CompiledSchema, &ca.ContentHash, &ca.CompilerVersion, &ca.CreatedAt, &ca.UpdatedAt)
+		INSERT INTO compiled_artifact (id, artifact_key, artifact_type, tenant_id, payload, status, content_hash)
+		VALUES ($1, $2, $3, $4, $5, 'active', $6)
+		RETURNING id, tenant_id, artifact_key, artifact_type, payload, content_hash, created_at`,
+		id, artifactKey, artifactType, tenantID, schemaBytes, hash,
+	).Scan(&ca.ID, &ca.TenantID, &ca.ArtifactKey, &ca.ArtifactType, &ca.CompiledSchema, &ca.ContentHash, &ca.CreatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("emit compiled artifact: %w", err)
 	}

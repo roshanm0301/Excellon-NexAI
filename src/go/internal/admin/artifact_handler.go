@@ -27,10 +27,7 @@ func (h *ArtifactHandler) RegisterRoutes(r chi.Router) {
 	r.Get("/{id}", h.get)
 	r.Put("/{id}", h.save)
 	r.Post("/{id}/fork", h.fork)
-	r.Post("/{id}/promote", h.promote)
 	r.Post("/{id}/publish", h.publish)
-	r.Post("/{id}/deprecate", h.deprecate)
-	r.Delete("/{id}", h.delete)
 }
 
 func (h *ArtifactHandler) create(w http.ResponseWriter, r *http.Request) {
@@ -48,12 +45,12 @@ func (h *ArtifactHandler) create(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	if req.EntityType == "" {
-		writeError(w, http.StatusBadRequest, "entity_type is required")
+	if req.ArtifactName == "" || req.ArtifactType == "" {
+		writeError(w, http.StatusBadRequest, "artifact_name and artifact_type are required")
 		return
 	}
 
-	a, err := h.repo.Create(r.Context(), tenantID, req.EntityType, userID, req.Payload)
+	a, err := h.repo.Create(r.Context(), tenantID, req.ArtifactName, req.ArtifactType, req.NodeID, userID, req.Payload)
 	if err != nil {
 		slog.Error("artifact create", "error", err)
 		writeError(w, http.StatusInternalServerError, "failed to create artifact")
@@ -68,15 +65,14 @@ func (h *ArtifactHandler) list(w http.ResponseWriter, r *http.Request) {
 		tenantID = "00000000-0000-0000-0000-000000000001"
 	}
 
-	entityType := r.URL.Query().Get("entity_type")
-	status := r.URL.Query().Get("status")
+	artifactType := r.URL.Query().Get("artifact_type")
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	if limit <= 0 || limit > 100 {
 		limit = 50
 	}
 
-	items, total, err := h.repo.List(r.Context(), tenantID, entityType, status, limit, offset)
+	items, total, err := h.repo.List(r.Context(), tenantID, artifactType, limit, offset)
 	if err != nil {
 		slog.Error("artifact list", "error", err)
 		writeError(w, http.StatusInternalServerError, "failed to list artifacts")
@@ -136,26 +132,18 @@ func (h *ArtifactHandler) fork(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, a)
 }
 
-func (h *ArtifactHandler) promote(w http.ResponseWriter, r *http.Request) {
-	tenantID := middleware.TenantID(r.Context())
-	if tenantID == "" {
-		tenantID = "00000000-0000-0000-0000-000000000001"
-	}
-	a, err := h.repo.SetStatus(r.Context(), tenantID, chi.URLParam(r, "id"), StatusInReview)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	writeJSON(w, http.StatusOK, a)
-}
-
 func (h *ArtifactHandler) publish(w http.ResponseWriter, r *http.Request) {
 	tenantID := middleware.TenantID(r.Context())
+	userID := middleware.UserID(r.Context())
 	if tenantID == "" {
 		tenantID = "00000000-0000-0000-0000-000000000001"
+	}
+	if userID == "" {
+		userID = "00000000-0000-0000-0000-000000000001"
 	}
 	id := chi.URLParam(r, "id")
 
+	// First compile
 	artifact, err := h.repo.GetByID(r.Context(), tenantID, id)
 	if err != nil {
 		writeError(w, http.StatusNotFound, err.Error())
@@ -164,42 +152,18 @@ func (h *ArtifactHandler) publish(w http.ResponseWriter, r *http.Request) {
 
 	compiled, err := h.compiler.Compile(r.Context(), artifact)
 	if err != nil {
-		slog.Error("compiler failed", "artifact_id", id, "error", err)
+		slog.Error("compiler failed", "version_id", id, "error", err)
 		writeError(w, http.StatusUnprocessableEntity, err.Error())
 		return
 	}
 
-	a, err := h.repo.SetStatus(r.Context(), tenantID, id, StatusPublished)
+	// Then mark as published
+	published, err := h.repo.Publish(r.Context(), tenantID, id, userID)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"artifact": a, "compiled": compiled})
-}
-
-func (h *ArtifactHandler) deprecate(w http.ResponseWriter, r *http.Request) {
-	tenantID := middleware.TenantID(r.Context())
-	if tenantID == "" {
-		tenantID = "00000000-0000-0000-0000-000000000001"
-	}
-	a, err := h.repo.SetStatus(r.Context(), tenantID, chi.URLParam(r, "id"), StatusDeprecated)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	writeJSON(w, http.StatusOK, a)
-}
-
-func (h *ArtifactHandler) delete(w http.ResponseWriter, r *http.Request) {
-	tenantID := middleware.TenantID(r.Context())
-	if tenantID == "" {
-		tenantID = "00000000-0000-0000-0000-000000000001"
-	}
-	if err := h.repo.SoftDelete(r.Context(), tenantID, chi.URLParam(r, "id")); err != nil {
-		writeError(w, http.StatusNotFound, err.Error())
-		return
-	}
-	w.WriteHeader(http.StatusNoContent)
+	writeJSON(w, http.StatusOK, map[string]any{"artifact": published, "compiled": compiled})
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

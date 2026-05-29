@@ -6,15 +6,20 @@ import (
 )
 
 type CompiledArtifact struct {
-	ID                string          `json:"id"`
-	ArtifactVersionID string          `json:"artifact_version_id"`
-	TenantID          string          `json:"tenant_id"`
-	EntityType        string          `json:"entity_type"`
-	CompiledSchema    json.RawMessage `json:"compiled_schema"`
-	ContentHash       string          `json:"content_hash"`
-	CompilerVersion   string          `json:"compiler_version"`
-	CreatedAt         time.Time       `json:"created_at"`
-	UpdatedAt         time.Time       `json:"updated_at"`
+	ID           string          `json:"id"`
+	ArtifactKey  string          `json:"artifact_key"`
+	ArtifactType string          `json:"artifact_type"`
+	TenantID     string          `json:"tenant_id"`
+	NodeID       string          `json:"node_id,omitempty"`
+	CompiledSchema json.RawMessage `json:"payload"`
+	ContentHash  string          `json:"content_hash"`
+	CreatedAt    time.Time       `json:"created_at"`
+
+	// Legacy aliases kept for internal compatibility
+	ArtifactVersionID string `json:"artifact_version_id,omitempty"`
+	EntityType        string `json:"entity_type,omitempty"`
+	CompilerVersion   string `json:"compiler_version,omitempty"`
+	UpdatedAt         time.Time `json:"updated_at,omitempty"`
 }
 
 type RawEntitySchema struct {

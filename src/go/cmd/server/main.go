@@ -18,13 +18,17 @@ import (
 	"github.com/excellon/nexai/internal/db"
 	"github.com/excellon/nexai/internal/entityruntime"
 	"github.com/excellon/nexai/internal/expression"
+	"github.com/excellon/nexai/internal/indexmgmt"
 	"github.com/excellon/nexai/internal/middleware"
+	"github.com/excellon/nexai/internal/nlp"
 	"github.com/excellon/nexai/internal/overlay"
 	"github.com/excellon/nexai/internal/pii"
+	"github.com/excellon/nexai/internal/purge"
+	"github.com/excellon/nexai/internal/recycle"
+	"github.com/excellon/nexai/internal/retention"
 	"github.com/excellon/nexai/internal/rules"
 	"github.com/excellon/nexai/internal/workflow"
 	business_workflow "github.com/excellon/nexai/internal/business_workflow"
-	"github.com/excellon/nexai/internal/nlp"
 )
 
 func main() {
@@ -75,17 +79,16 @@ func main() {
 	rulesHandler := rules.NewHandler(rulesRepo, rulesEvaluator)
 
 	workflowRuntime := workflow.NewRuntime(pool)
-	_ = workflowRuntime // used by entity handler in Phase 4 integration
+	_ = workflowRuntime
 
-	// Expression engine — graceful degradation if no jsonata bundle
+	// Expression engine
 	exprEngine := expression.NewEngine("")
-	_ = exprEngine // wired into entity runtime in Phase 4
+	expressionHandler := expression.NewHandler(exprEngine)
 
 	// SLA worker — runs in background
 	slaWorker := workflow.NewSLAWorker(pool, 5*time.Minute)
 	workerCtx, cancelWorker := context.WithCancel(context.Background())
 	go slaWorker.Start(workerCtx)
-
 
 	// Business workflow engine
 	bwEngine := business_workflow.NewEngine(pool)
@@ -98,6 +101,19 @@ func main() {
 	// NLP handler
 	nlpHandler := nlp.NewHandler(os.Getenv("ANTHROPIC_API_KEY"), "claude-haiku-4-5-20251001")
 
+	// Index management
+	indexService := indexmgmt.NewService(pool)
+	indexHandler := indexmgmt.NewHandler(indexService)
+
+	// Recycle bin
+	recycleService := recycle.NewService(pool)
+	recycleHandler := recycle.NewHandler(recycleService)
+
+	// Retention + Purge
+	retentionService := retention.NewService()
+	purgeAgent := purge.NewAgent(pool, retentionService)
+	go purgeAgent.Start(workerCtx)
+
 	r := chi.NewRouter()
 	r.Use(chimw.RequestID)
 	r.Use(chimw.RealIP)
@@ -107,25 +123,36 @@ func main() {
 
 	r.Get("/health", healthHandler(pool))
 
-	r.Route("/api", func(r chi.Router) {
+	r.Route("/api/v1", func(r chi.Router) {
 		r.Route("/artifacts", func(r chi.Router) {
 			artifactHandler.RegisterRoutes(r)
 		})
 		r.Route("/entities/{entityType}", func(r chi.Router) {
 			entityHandler.RegisterRoutes(r)
 		})
-		r.Route("/rules", func(r chi.Router) {
-			rulesHandler.RegisterRoutes(r)
+		r.Route("/admin", func(r chi.Router) {
+			r.Route("/rules", func(r chi.Router) {
+				rulesHandler.RegisterRoutes(r)
+			})
+			r.Route("/overlay-deltas", func(r chi.Router) {
+				overlayHandler.RegisterRoutes(r)
+			})
+			r.Route("/indexes", func(r chi.Router) {
+				indexHandler.RegisterRoutes(r)
+			})
+			r.Route("/recycle-bin", func(r chi.Router) {
+				recycleHandler.RegisterRoutes(r)
+			})
 		})
-		r.Route("/overlays", func(r chi.Router) {
-			overlayHandler.RegisterRoutes(r)
+		r.Route("/expressions", func(r chi.Router) {
+			expressionHandler.RegisterRoutes(r)
 		})
-		r.Route("/workflows", func(r chi.Router) {
+		r.Route("/processes", func(r chi.Router) {
 			bwHandler.RegisterRoutes(r)
 		})
-		r.Route("/nlp", func(r chi.Router) {
-			nlpHandler.RegisterRoutes(r)
-		})
+	})
+	r.Route("/api/nlp", func(r chi.Router) {
+		nlpHandler.RegisterRoutes(r)
 	})
 
 	port := envOr("PORT", "8080")
@@ -154,6 +181,7 @@ func main() {
 
 	cancelWorker()
 	slaWorker.Stop()
+	purgeAgent.Stop()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

@@ -35,8 +35,8 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	if def.TenantID == "" || def.EntityType == "" || def.Layer == "" {
-		writeError(w, http.StatusBadRequest, "tenant_id, entity_type, and layer are required")
+	if def.TenantID == "" || def.ArtifactType == "" || def.ArtifactKey == "" || def.Layer == "" {
+		writeError(w, http.StatusBadRequest, "tenant_id, artifact_type, artifact_key, and layer are required")
 		return
 	}
 	if err := h.repo.Create(r.Context(), &def); err != nil {
@@ -49,12 +49,13 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	tenantID := r.URL.Query().Get("tenant_id")
-	entityType := r.URL.Query().Get("entity_type")
-	if tenantID == "" || entityType == "" {
-		writeError(w, http.StatusBadRequest, "tenant_id and entity_type query params required")
+	artifactType := r.URL.Query().Get("artifact_type")
+	artifactKey := r.URL.Query().Get("artifact_key")
+	if tenantID == "" || artifactType == "" || artifactKey == "" {
+		writeError(w, http.StatusBadRequest, "tenant_id, artifact_type, and artifact_key query params required")
 		return
 	}
-	defs, err := h.repo.List(r.Context(), tenantID, entityType)
+	defs, err := h.repo.List(r.Context(), tenantID, artifactType, artifactKey)
 	if err != nil {
 		slog.Error("overlay list", "error", err)
 		writeError(w, http.StatusInternalServerError, "failed to list overlays")

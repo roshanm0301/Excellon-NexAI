@@ -22,10 +22,10 @@ func NewResolver(pool *db.Pool, cache *Cache) *Resolver {
 	return &Resolver{pool: pool, cache: cache}
 }
 
-// Resolve returns the merged overlay for the given tenant/entity/node/role context.
+// Resolve returns the merged overlay for the given tenant/artifactType/artifactKey/node/role context.
 // Order: platform → vertical → tenant → node → role
-func (r *Resolver) Resolve(ctx context.Context, tenantID, entityType, nodeID, role string) (map[string]any, error) {
-	cacheKey := fmt.Sprintf("overlay:%s:%s:%s:%s", tenantID, entityType, nodeID, role)
+func (r *Resolver) Resolve(ctx context.Context, tenantID, artifactType, artifactKey, nodeID, role string) (map[string]any, error) {
+	cacheKey := fmt.Sprintf("overlay:%s:%s:%s:%s:%s", tenantID, artifactType, artifactKey, nodeID, role)
 
 	// Try cache first
 	if r.cache != nil {
@@ -39,9 +39,9 @@ func (r *Resolver) Resolve(ctx context.Context, tenantID, entityType, nodeID, ro
 
 	// Load all overlay layers from DB
 	rows, err := r.pool.Query(ctx, `
-		SELECT layer, delta
-		FROM overlay_definition
-		WHERE tenant_id = $1 AND entity_type = $2 AND deleted_at IS NULL
+		SELECT layer, delta_json
+		FROM artifact_overlay_delta
+		WHERE tenant_id = $1 AND artifact_type = $2 AND artifact_key = $3
 		ORDER BY CASE layer
 			WHEN 'platform' THEN 1
 			WHEN 'vertical' THEN 2
@@ -49,7 +49,7 @@ func (r *Resolver) Resolve(ctx context.Context, tenantID, entityType, nodeID, ro
 			WHEN 'node'     THEN 4
 			WHEN 'role'     THEN 5
 		END`,
-		tenantID, entityType)
+		tenantID, artifactType, artifactKey)
 	if err != nil {
 		return nil, fmt.Errorf("overlay resolve query: %w", err)
 	}

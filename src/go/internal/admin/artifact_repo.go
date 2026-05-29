@@ -9,6 +9,7 @@ import (
 	"github.com/excellon/nexai/internal/idgen"
 )
 
+// ArtifactRepo handles CRUD for artifact_header + artifact_version.
 type ArtifactRepo struct {
 	pool *db.Pool
 }
@@ -17,56 +18,116 @@ func NewArtifactRepo(pool *db.Pool) *ArtifactRepo {
 	return &ArtifactRepo{pool: pool}
 }
 
-func (r *ArtifactRepo) Create(ctx context.Context, tenantID, entityType, createdBy string, payload []byte) (*ArtifactVersion, error) {
-	id := idgen.NewV4()
+// Create inserts an artifact_header (upsert) and a new artifact_version draft.
+func (r *ArtifactRepo) Create(ctx context.Context, tenantID, artifactName, artifactType, nodeID, createdBy string, payload []byte) (*ArtifactVersion, error) {
 	if payload == nil {
 		payload = []byte(`{"fields":[],"sections":[],"relationships":[]}`)
 	}
-	const q = `
-		INSERT INTO artifact_version (id, tenant_id, entity_type, version, status, payload, created_by)
-		VALUES ($1, $2, $3, 1, 'draft', $4, $5)
-		RETURNING id, tenant_id, entity_type, version, status, payload, content_hash, created_by, created_at, updated_at`
-	row := r.pool.QueryRow(ctx, q, id, tenantID, entityType, payload, createdBy)
-	return scanArtifact(row)
+
+	headerID := idgen.NewV4()
+
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("artifact create tx: %w", err)
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+
+	// Upsert header
+	var actualHeaderID string
+	err = tx.QueryRow(ctx, `
+		INSERT INTO artifact_header (artifact_id, artifact_name, artifact_type, tenant_id, node_id, created_by)
+		VALUES ($1, $2, $3, $4, NULLIF($5,''), $6)
+		ON CONFLICT (artifact_name, artifact_type, tenant_id, node_id)
+		DO UPDATE SET updated_at = NOW()
+		RETURNING artifact_id`,
+		headerID, artifactName, artifactType, tenantID, nodeID, createdBy,
+	).Scan(&actualHeaderID)
+	if err != nil {
+		return nil, fmt.Errorf("artifact header upsert: %w", err)
+	}
+
+	// Get next version_no
+	var nextVersionNo int
+	err = tx.QueryRow(ctx,
+		`SELECT COALESCE(MAX(version_no), 0) + 1 FROM artifact_version WHERE artifact_id = $1`,
+		actualHeaderID,
+	).Scan(&nextVersionNo)
+	if err != nil {
+		return nil, fmt.Errorf("artifact version_no: %w", err)
+	}
+
+	// Insert version
+	av := &ArtifactVersion{
+		ArtifactID:   actualHeaderID,
+		ArtifactName: artifactName,
+		ArtifactType: artifactType,
+		TenantID:     tenantID,
+		NodeID:       nodeID,
+	}
+	err = tx.QueryRow(ctx, `
+		INSERT INTO artifact_version (artifact_id, version_no, payload, is_active, is_draft, created_by)
+		VALUES ($1, $2, $3, FALSE, TRUE, $4)
+		RETURNING version_id, artifact_id, version_no, payload, is_active, is_draft, created_by, created_at`,
+		actualHeaderID, nextVersionNo, payload, createdBy,
+	).Scan(&av.VersionID, &av.ArtifactID, &av.VersionNo, &av.Payload, &av.IsActive, &av.IsDraft, &av.CreatedBy, &av.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("artifact version insert: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("artifact create commit: %w", err)
+	}
+	return av, nil
 }
 
-func (r *ArtifactRepo) GetByID(ctx context.Context, tenantID, id string) (*ArtifactVersion, error) {
+// GetByID loads an artifact_version joined with its header.
+func (r *ArtifactRepo) GetByID(ctx context.Context, tenantID, versionID string) (*ArtifactVersion, error) {
 	const q = `
-		SELECT id, tenant_id, entity_type, version, status, payload, content_hash, created_by, created_at, updated_at
-		FROM artifact_version
-		WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL`
-	row := r.pool.QueryRow(ctx, q, id, tenantID)
-	a, err := scanArtifact(row)
+		SELECT av.version_id, av.artifact_id, av.version_no, av.payload, av.is_active, av.is_draft,
+		       av.created_by, av.created_at, av.published_at, av.published_by,
+		       ah.artifact_name, ah.artifact_type, ah.tenant_id, COALESCE(ah.node_id,'')
+		FROM artifact_version av
+		JOIN artifact_header ah ON ah.artifact_id = av.artifact_id
+		WHERE av.version_id = $1 AND ah.tenant_id = $2`
+	av := &ArtifactVersion{}
+	err := r.pool.QueryRow(ctx, q, versionID, tenantID).Scan(
+		&av.VersionID, &av.ArtifactID, &av.VersionNo, &av.Payload, &av.IsActive, &av.IsDraft,
+		&av.CreatedBy, &av.CreatedAt, &av.PublishedAt, &av.PublishedBy,
+		&av.ArtifactName, &av.ArtifactType, &av.TenantID, &av.NodeID,
+	)
 	if err == pgx.ErrNoRows {
-		return nil, fmt.Errorf("artifact %s: not found", id)
+		return nil, fmt.Errorf("artifact %s: not found", versionID)
 	}
-	return a, err
+	return av, err
 }
 
-func (r *ArtifactRepo) List(ctx context.Context, tenantID, entityType, status string, limit, offset int) ([]ArtifactVersion, int, error) {
+// List returns active (published) versions per artifact matching the filter.
+func (r *ArtifactRepo) List(ctx context.Context, tenantID, artifactType string, limit, offset int) ([]ArtifactVersion, int, error) {
 	args := []any{tenantID}
-	where := "tenant_id = $1 AND deleted_at IS NULL"
+	where := "ah.tenant_id = $1"
 	n := 2
-	if entityType != "" {
-		where += fmt.Sprintf(" AND entity_type = $%d", n)
-		args = append(args, entityType)
-		n++
-	}
-	if status != "" {
-		where += fmt.Sprintf(" AND status = $%d", n)
-		args = append(args, status)
+	if artifactType != "" {
+		where += fmt.Sprintf(" AND ah.artifact_type = $%d", n)
+		args = append(args, artifactType)
 		n++
 	}
 
 	var total int
-	if err := r.pool.QueryRow(ctx, fmt.Sprintf(`SELECT COUNT(*) FROM artifact_version WHERE %s`, where), args...).Scan(&total); err != nil {
+	if err := r.pool.QueryRow(ctx, fmt.Sprintf(
+		`SELECT COUNT(*) FROM artifact_version av JOIN artifact_header ah ON ah.artifact_id = av.artifact_id WHERE %s AND av.is_active = TRUE`,
+		where), args...).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("artifact list count: %w", err)
 	}
 
 	args = append(args, limit, offset)
 	rows, err := r.pool.Query(ctx, fmt.Sprintf(`
-		SELECT id, tenant_id, entity_type, version, status, payload, content_hash, created_by, created_at, updated_at
-		FROM artifact_version WHERE %s ORDER BY updated_at DESC LIMIT $%d OFFSET $%d`, where, n, n+1), args...)
+		SELECT av.version_id, av.artifact_id, av.version_no, av.payload, av.is_active, av.is_draft,
+		       av.created_by, av.created_at, av.published_at, av.published_by,
+		       ah.artifact_name, ah.artifact_type, ah.tenant_id, COALESCE(ah.node_id,'')
+		FROM artifact_version av
+		JOIN artifact_header ah ON ah.artifact_id = av.artifact_id
+		WHERE %s AND av.is_active = TRUE
+		ORDER BY av.created_at DESC LIMIT $%d OFFSET $%d`, where, n, n+1), args...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("artifact list: %w", err)
 	}
@@ -74,87 +135,115 @@ func (r *ArtifactRepo) List(ctx context.Context, tenantID, entityType, status st
 
 	var artifacts []ArtifactVersion
 	for rows.Next() {
-		a, err := scanArtifact(rows)
-		if err != nil {
+		av := ArtifactVersion{}
+		if err := rows.Scan(
+			&av.VersionID, &av.ArtifactID, &av.VersionNo, &av.Payload, &av.IsActive, &av.IsDraft,
+			&av.CreatedBy, &av.CreatedAt, &av.PublishedAt, &av.PublishedBy,
+			&av.ArtifactName, &av.ArtifactType, &av.TenantID, &av.NodeID,
+		); err != nil {
 			return nil, 0, err
 		}
-		artifacts = append(artifacts, *a)
+		artifacts = append(artifacts, av)
 	}
 	return artifacts, total, rows.Err()
 }
 
-func (r *ArtifactRepo) Save(ctx context.Context, tenantID, id string, payload []byte) (*ArtifactVersion, error) {
+// Save updates the payload of a draft version.
+func (r *ArtifactRepo) Save(ctx context.Context, tenantID, versionID string, payload []byte) (*ArtifactVersion, error) {
 	const q = `
-		UPDATE artifact_version SET payload = $3, updated_at = now()
-		WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL AND status IN ('draft','in-review')
-		RETURNING id, tenant_id, entity_type, version, status, payload, content_hash, created_by, created_at, updated_at`
-	row := r.pool.QueryRow(ctx, q, id, tenantID, payload)
-	a, err := scanArtifact(row)
+		UPDATE artifact_version av SET payload = $3
+		FROM artifact_header ah
+		WHERE av.version_id = $1 AND ah.artifact_id = av.artifact_id AND ah.tenant_id = $2
+		  AND av.is_draft = TRUE
+		RETURNING av.version_id, av.artifact_id, av.version_no, av.payload, av.is_active, av.is_draft,
+		          av.created_by, av.created_at, av.published_at, av.published_by`
+	av := &ArtifactVersion{}
+	err := r.pool.QueryRow(ctx, q, versionID, tenantID, payload).Scan(
+		&av.VersionID, &av.ArtifactID, &av.VersionNo, &av.Payload, &av.IsActive, &av.IsDraft,
+		&av.CreatedBy, &av.CreatedAt, &av.PublishedAt, &av.PublishedBy,
+	)
 	if err == pgx.ErrNoRows {
-		return nil, fmt.Errorf("artifact %s: not found or not editable", id)
+		return nil, fmt.Errorf("artifact %s: not found or not a draft", versionID)
 	}
-	return a, err
+	return av, err
 }
 
-func (r *ArtifactRepo) Fork(ctx context.Context, tenantID, id, createdBy string) (*ArtifactVersion, error) {
-	src, err := r.GetByID(ctx, tenantID, id)
+// Publish marks a version as active (published) and clears is_draft.
+func (r *ArtifactRepo) Publish(ctx context.Context, tenantID, versionID, publishedBy string) (*ArtifactVersion, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("publish tx: %w", err)
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+
+	// Find artifact_id for this version
+	var artifactID string
+	if err := tx.QueryRow(ctx,
+		`SELECT av.artifact_id FROM artifact_version av WHERE av.version_id = $1`, versionID,
+	).Scan(&artifactID); err != nil {
+		return nil, fmt.Errorf("publish: find artifact_id: %w", err)
+	}
+
+	// Deactivate previously active versions
+	_, err = tx.Exec(ctx,
+		`UPDATE artifact_version SET is_active = FALSE WHERE artifact_id = $1 AND is_active = TRUE`,
+		artifactID)
+	if err != nil {
+		return nil, fmt.Errorf("publish: deactivate old: %w", err)
+	}
+
+	av := &ArtifactVersion{}
+	err = tx.QueryRow(ctx, `
+		UPDATE artifact_version SET is_active = TRUE, is_draft = FALSE,
+		       published_at = NOW(), published_by = $2
+		WHERE version_id = $1
+		RETURNING version_id, artifact_id, version_no, payload, is_active, is_draft,
+		          created_by, created_at, published_at, published_by`,
+		versionID, publishedBy,
+	).Scan(
+		&av.VersionID, &av.ArtifactID, &av.VersionNo, &av.Payload, &av.IsActive, &av.IsDraft,
+		&av.CreatedBy, &av.CreatedAt, &av.PublishedAt, &av.PublishedBy,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("publish update: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("publish commit: %w", err)
+	}
+	return av, nil
+}
+
+// Fork creates a new draft version based on an existing version.
+func (r *ArtifactRepo) Fork(ctx context.Context, tenantID, versionID, createdBy string) (*ArtifactVersion, error) {
+	src, err := r.GetByID(ctx, tenantID, versionID)
 	if err != nil {
 		return nil, err
 	}
-	newID := idgen.NewV4()
-	const q = `
-		INSERT INTO artifact_version (id, tenant_id, entity_type, version, status, payload, created_by)
-		VALUES ($1, $2, $3, $4, 'draft', $5, $6)
-		RETURNING id, tenant_id, entity_type, version, status, payload, content_hash, created_by, created_at, updated_at`
-	row := r.pool.QueryRow(ctx, q, newID, tenantID, src.EntityType, src.Version+1, src.Payload, createdBy)
-	return scanArtifact(row)
-}
 
-func (r *ArtifactRepo) SetStatus(ctx context.Context, tenantID, id string, status ArtifactStatus) (*ArtifactVersion, error) {
-	const q = `
-		UPDATE artifact_version SET status = $3, updated_at = now()
-		WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL
-		RETURNING id, tenant_id, entity_type, version, status, payload, content_hash, created_by, created_at, updated_at`
-	row := r.pool.QueryRow(ctx, q, id, tenantID, status)
-	a, err := scanArtifact(row)
-	if err == pgx.ErrNoRows {
-		return nil, fmt.Errorf("artifact %s: not found", id)
+	var nextVersionNo int
+	if err := r.pool.QueryRow(ctx,
+		`SELECT COALESCE(MAX(version_no), 0) + 1 FROM artifact_version WHERE artifact_id = $1`,
+		src.ArtifactID,
+	).Scan(&nextVersionNo); err != nil {
+		return nil, fmt.Errorf("fork version_no: %w", err)
 	}
-	return a, err
-}
 
-func (r *ArtifactRepo) SoftDelete(ctx context.Context, tenantID, id string) error {
-	tag, err := r.pool.Exec(ctx,
-		`UPDATE artifact_version SET deleted_at = now() WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL`,
-		id, tenantID)
+	av := &ArtifactVersion{
+		ArtifactID:   src.ArtifactID,
+		ArtifactName: src.ArtifactName,
+		ArtifactType: src.ArtifactType,
+		TenantID:     src.TenantID,
+		NodeID:       src.NodeID,
+	}
+	err = r.pool.QueryRow(ctx, `
+		INSERT INTO artifact_version (artifact_id, version_no, payload, is_active, is_draft, created_by)
+		VALUES ($1, $2, $3, FALSE, TRUE, $4)
+		RETURNING version_id, artifact_id, version_no, payload, is_active, is_draft, created_by, created_at`,
+		src.ArtifactID, nextVersionNo, src.Payload, createdBy,
+	).Scan(&av.VersionID, &av.ArtifactID, &av.VersionNo, &av.Payload, &av.IsActive, &av.IsDraft, &av.CreatedBy, &av.CreatedAt)
 	if err != nil {
-		return fmt.Errorf("artifact delete: %w", err)
+		return nil, fmt.Errorf("fork insert: %w", err)
 	}
-	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("artifact %s: not found", id)
-	}
-	return nil
-}
-
-func (r *ArtifactRepo) SetContentHash(ctx context.Context, id, hash string) error {
-	_, err := r.pool.Exec(ctx, `UPDATE artifact_version SET content_hash = $2, updated_at = now() WHERE id = $1`, id, hash)
-	return err
-}
-
-// rowScanner works for both pgx.Row and pgx.Rows
-type rowScanner interface {
-	Scan(dest ...any) error
-}
-
-func scanArtifact(row rowScanner) (*ArtifactVersion, error) {
-	var a ArtifactVersion
-	var hash *string
-	err := row.Scan(&a.ID, &a.TenantID, &a.EntityType, &a.Version, &a.Status, &a.Payload, &hash, &a.CreatedBy, &a.CreatedAt, &a.UpdatedAt)
-	if err != nil {
-		return nil, err
-	}
-	if hash != nil {
-		a.ContentHash = *hash
-	}
-	return &a, nil
+	return av, nil
 }
