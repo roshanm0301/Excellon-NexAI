@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Upload } from 'lucide-react'
 import {
-  Button, StatusBadge, SearchInput, DataTable, EmptyState,
+  Button, StatusBadge, SearchInput, DataTable,
   ConfirmDialog, useToast, type Column,
 } from '../../design-system'
 import { listArtifacts, createArtifact, publishArtifact, deleteArtifact, type Artifact } from '../../config/studioApi'
@@ -103,9 +103,9 @@ export function EntityDesignerPage() {
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        rows={filtered}
+      <DataTable<Artifact & Record<string, unknown>>
+        columns={columns as Column<Artifact & Record<string, unknown>>[]}
+        rows={filtered as (Artifact & Record<string, unknown>)[]}
         loading={isLoading}
         emptyTitle="No entities yet"
         emptyDescription='Create your first entity to get started. Click "New Entity" above.'

@@ -29,7 +29,7 @@ export function DataTable<T extends Record<string, unknown>>({
 
   const sorted = sort
     ? [...rows].sort((a, b) => {
-        const av = a[sort.key]; const bv = b[sort.key]
+        const av = a[sort.key] as string | number; const bv = b[sort.key] as string | number
         if (av < bv) return sort.dir === 'asc' ? -1 : 1
         if (av > bv) return sort.dir === 'asc' ? 1 : -1
         return 0

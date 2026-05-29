@@ -618,7 +618,7 @@ export function EntityEditorPage() {
     JSON.stringify(draft) !== JSON.stringify(artifact.payload)
 
   const saveMut = useMutation({
-    mutationFn: (p: EntityPayload) => saveArtifact(artifactId, p as Record<string, unknown>),
+    mutationFn: (p: EntityPayload) => saveArtifact(artifactId, p as unknown as Record<string, unknown>),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['artifact', artifactId] })
       success('Saved', 'Changes saved successfully')
