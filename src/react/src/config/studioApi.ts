@@ -224,3 +224,37 @@ export interface NodeTreeItem {
 
 export const listNodes = () =>
   studioFetch<{ items: NodeTreeItem[] }>('/nodes')
+
+// ── Index Queue API ───────────────────────────────────────────────────────────
+
+export interface IndexQueueItem {
+  id: string
+  entity_type: string
+  index_name: string
+  ddl: string
+  status: 'pending' | 'applied' | 'failed' | 'discarded'
+  created_at: string
+  applied_at?: string
+}
+
+export const listIndexQueue = (entityKey: string) =>
+  studioFetch<{ items: IndexQueueItem[] }>(`/indexes/queue?entity_type=${entityKey}`)
+
+export const applyIndex = (id: string) =>
+  studioFetch<IndexQueueItem>(`/indexes/queue/${id}/apply`, { method: 'POST' })
+
+export const discardIndex = (id: string) =>
+  studioFetch<IndexQueueItem>(`/indexes/queue/${id}/discard`, { method: 'POST' })
+
+// ── Expression API ────────────────────────────────────────────────────────────
+
+export interface ExpressionValidationResult {
+  valid: boolean
+  error?: string
+}
+
+export const validateExpression = (expression: string) =>
+  studioFetch<ExpressionValidationResult>('/expressions/validate', {
+    method: 'POST',
+    body: JSON.stringify({ expression }),
+  })
