@@ -67,4 +67,4 @@ jobs:
 
       - name: Deploy to Vercel
         working-directory: src/react
-        run: vercel deploy dist --prod --yes --token=$VERCEL_TOKEN
+        run: vercel ./dist --prod --yes --token=$VERCEL_TOKEN
