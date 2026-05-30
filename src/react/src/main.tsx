@@ -1,6 +1,11 @@
 import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+if (import.meta.env.VITE_MSW === 'true') {
+  const { setupMocks } = await import('./mocks')
+  await setupMocks()
+}
 import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom'
 import { ToastProvider } from './design-system/components/Toast'
 import { Spinner } from './design-system'

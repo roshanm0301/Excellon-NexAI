@@ -16,6 +16,7 @@ import {
 } from '../../design-system'
 import {
   saveArtifact,
+  createArtifact,
   publishArtifact,
   type NLPImportedField,
 } from '../../config/studioApi'
@@ -149,6 +150,23 @@ export function EntityEditorPage() {
     onError: () => toastError('Save failed', 'Could not save changes'),
   })
 
+  const createMut = useMutation({
+    mutationFn: (payload: Record<string, unknown>) =>
+      createArtifact({
+        entity_type: (settings.displayName ?? 'new-entity')
+          .toLowerCase()
+          .replace(/\s+/g, '_'),
+        payload,
+      }),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ['artifacts'] })
+      success('Saved', 'Entity created successfully')
+      setIsDirty(false)
+      navigate(`/admin/entities/${result.id}/edit`)
+    },
+    onError: () => toastError('Save failed', 'Could not create entity'),
+  })
+
   function buildPayload(): Record<string, unknown> {
     return {
       ...settings,
@@ -165,8 +183,11 @@ export function EntityEditorPage() {
   }
 
   function handleSaveDraft() {
-    if (!id) return
-    saveMut.mutate(buildPayload())
+    if (isNew) {
+      createMut.mutate(buildPayload())
+    } else {
+      saveMut.mutate(buildPayload())
+    }
   }
 
   async function handlePublish() {
@@ -219,7 +240,7 @@ export function EntityEditorPage() {
       statusBadge={!isNew && artifact ? <StatusBadge status={artifact.status} /> : undefined}
       isDirty={isDirty}
       onSaveDraft={handleSaveDraft}
-      saving={saveMut.isPending}
+      saving={saveMut.isPending || createMut.isPending}
       onPublish={() => setConfirmPublish(true)}
       publishing={publishing}
       extraActions={
