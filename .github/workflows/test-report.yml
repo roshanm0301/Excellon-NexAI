@@ -1,0 +1,45 @@
+name: Test Report
+
+on:
+  push:
+    branches: [main, claude/exciting-keller-ZhAFS]
+  pull_request:
+
+jobs:
+  go-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Run Go tests
+        working-directory: src/go
+        run: go test ./... -v -coverprofile=coverage.out 2>&1 | tee test-results.txt
+      - name: Upload Go test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: go-test-results
+          path: src/go/test-results.txt
+
+  react-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: src/react/package-lock.json
+      - run: npm ci
+        working-directory: src/react
+      - name: Run React tests with coverage
+        working-directory: src/react
+        run: npm run test:coverage
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: react-coverage
+          path: src/react/coverage/
