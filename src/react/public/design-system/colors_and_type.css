@@ -94,6 +94,17 @@
 
   --purple-500: #6929c4;   /* secondary accent (badges, links) */
 
+  /* ---------- Layer badge colours ---------- */
+  --layer-platform: #7c3aed;
+  --layer-vertical: #0d9488;
+  --layer-tenant:   #16a34a;
+  --layer-node:     #d97706;
+  --layer-role:     #dc2626;
+
+  /* ---------- Surface tokens ---------- */
+  --surface-system: rgba(0, 0, 0, 0.025);
+  --border-subtle:  rgba(0, 0, 0, 0.06);
+
   /* ---------- Foreground (text) ---------- */
   --fg-primary:    #1b1d21;
   --fg-secondary:  #505862;

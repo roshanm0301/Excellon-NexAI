@@ -232,6 +232,9 @@ export function EntityEditorPage() {
 
   const fieldNames = fields.map(f => f.name).filter(Boolean)
 
+  // Compute warnings for context bar
+  const warnings = fields.filter(f => !f.name || !f.type || (f.storageType === 'computed' && !f.computeExpression)).length
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
@@ -253,6 +256,34 @@ export function EntityEditorPage() {
         </IconButton>
       }
     >
+      {/* Context bar */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0,
+        padding: '0 24px',
+        height: 36,
+        background: 'var(--bg-secondary)',
+        borderBottom: '1px solid var(--border-secondary)',
+        fontSize: 12,
+        color: 'var(--fg-tertiary)',
+        flexShrink: 0,
+      }}>
+        <ContextBarItem label="Layer" value={settings.category ?? 'Tenant'} />
+        <ContextBarSep />
+        <ContextBarItem label="Fields" value={String(fields.length)} />
+        <ContextBarSep />
+        <ContextBarItem label="Sections" value={String(sections.length)} />
+        {warnings > 0 && (
+          <>
+            <ContextBarSep />
+            <span style={{ color: 'var(--warning-700)', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
+              ⚠ {warnings} warning{warnings !== 1 ? 's' : ''}
+            </span>
+          </>
+        )}
+      </div>
+
       <div style={{ padding: '0 24px' }}>
         <TabGroup tabs={TABS} active={activeTab} onChange={setActiveTab} />
       </div>
@@ -412,6 +443,19 @@ export function EntityEditorPage() {
       />
     </EditorLayout>
   )
+}
+
+function ContextBarItem({ label, value }: { label: string; value: string }) {
+  return (
+    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <span style={{ color: 'var(--fg-quaternary)' }}>{label}:</span>
+      <span style={{ fontWeight: 600, color: 'var(--fg-secondary)' }}>{value}</span>
+    </span>
+  )
+}
+
+function ContextBarSep() {
+  return <span style={{ margin: '0 10px', color: 'var(--border-primary)' }}>|</span>
 }
 
 export default EntityEditorPage

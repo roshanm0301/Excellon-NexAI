@@ -10,6 +10,17 @@ import { createArtifact, forkArtifact, type Artifact } from '../../config/studio
 import { useNavigate } from 'react-router-dom'
 import { useEntityArtifacts, useDeleteArtifact } from '../../hooks/useEntityArtifacts'
 
+function relativeDate(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 30) return `${days}d ago`
+  return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
 export function EntityDesignerPage() {
   const navigate = useNavigate()
   const { success, error } = useToast()
@@ -50,21 +61,31 @@ export function EntityDesignerPage() {
   const columns: VirtualGridColumn<Artifact>[] = [
     {
       key: 'entity_type',
-      label: 'Entity Type',
-      width: 260,
-      render: row => (
-        <span style={{ fontWeight: 600, color: 'var(--brand-600)' }}>
-          {row.entity_type.replace(/^entity\./, '')}
-        </span>
-      ),
+      label: 'Entity',
+      width: 300,
+      render: row => {
+        const displayName = (row.payload?.displayName as string) || row.entity_type.replace(/^entity\./, '')
+        const entityKey = row.entity_type
+        const fieldCount = Array.isArray(row.payload?.fields) ? (row.payload.fields as unknown[]).length : 0
+        return (
+          <div>
+            <div style={{ fontWeight: 600, color: 'var(--fg-primary)', marginBottom: 2 }}>{displayName}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <code style={{ fontSize: 11, color: 'var(--fg-tertiary)', fontFamily: 'var(--font-mono)' }}>{entityKey}</code>
+              <span style={{ fontSize: 11, color: 'var(--fg-disabled)' }}>·</span>
+              <span style={{ fontSize: 11, color: 'var(--fg-tertiary)' }}>{fieldCount} field{fieldCount !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+        )
+      },
     },
     {
       key: 'category',
       label: 'Category',
-      width: 160,
+      width: 140,
       render: row => {
         const category = (row.payload?.category as string) ?? '—'
-        return <span style={{ color: 'var(--fg-secondary)' }}>{category}</span>
+        return <span style={{ color: 'var(--fg-secondary)', fontSize: 13 }}>{category}</span>
       },
     },
     {
@@ -76,13 +97,12 @@ export function EntityDesignerPage() {
     {
       key: 'updated_at',
       label: 'Last Updated',
-      width: 160,
-      render: row =>
-        new Date(row.updated_at).toLocaleDateString('en-IN', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        }),
+      width: 140,
+      render: row => (
+        <span style={{ color: 'var(--fg-tertiary)', fontSize: 13 }} title={new Date(row.updated_at).toLocaleString()}>
+          {relativeDate(row.updated_at)}
+        </span>
+      ),
     },
   ]
 
