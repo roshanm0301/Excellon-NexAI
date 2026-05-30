@@ -11,6 +11,10 @@ jobs:
   deploy:
     name: Deploy React app to Vercel
     runs-on: ubuntu-latest
+    env:
+      # Project IDs are not sensitive - only VERCEL_TOKEN is secret
+      VERCEL_ORG_ID: team_DxCwvHD5aDLjvdLkKc6qyFK0
+      VERCEL_PROJECT_ID: prj_fs6owHfBqr17Eusgn8EgZSgnVkH2
     steps:
       - uses: actions/checkout@v4
 
@@ -30,9 +34,21 @@ jobs:
         env:
           VITE_MSW: 'true'
 
-      - name: Deploy dist to Vercel
+      - name: Prepare Vercel Build Output (v3)
         working-directory: src/react
-        run: npx vercel deploy ./dist --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          mkdir -p .vercel/output/static
+          cp -r dist/. .vercel/output/static/
+          cat > .vercel/output/config.json << 'VCONFIG'
+          {
+            "version": 3,
+            "routes": [
+              { "handle": "filesystem" },
+              { "src": "/(.*)", "dest": "/index.html" }
+            ]
+          }
+          VCONFIG
+
+      - name: Deploy prebuilt output to Vercel
+        working-directory: src/react
+        run: npx vercel deploy --prebuilt --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
