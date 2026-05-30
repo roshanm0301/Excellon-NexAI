@@ -2,44 +2,35 @@ import type { ReactNode } from 'react'
 
 export interface PageLayoutProps {
   title: string
+  subtitle?: string
   breadcrumb?: ReactNode
   headerActions?: ReactNode
   children: ReactNode
 }
 
-export function PageLayout({ title, breadcrumb, headerActions, children }: PageLayoutProps) {
+export function PageLayout({ title, subtitle, breadcrumb, headerActions, children }: PageLayoutProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <div
-        className="ex-page-header"
-        style={{
-          position: 'sticky',
-          top: 0,
-          background: 'var(--bg-primary)',
-          borderBottom: '1px solid var(--border-secondary)',
-          padding: '0 40px',
-          zIndex: 10,
-        }}
-      >
-        <div className="ex-page-head-row" style={{ marginBottom: breadcrumb ? 8 : 0 }}>
-          <h1 className="ex-h1">{title}</h1>
+      {/* Sticky page header */}
+      <div className="ex-page-sticky-header">
+        {breadcrumb && (
+          <div className="ex-breadcrumbs" style={{ paddingTop: 16, paddingBottom: 4 }}>
+            {breadcrumb}
+          </div>
+        )}
+        <div className="ex-page-head-row">
+          <div>
+            <h1 className="ex-h1">{title}</h1>
+            {subtitle && <p className="ex-page-sub">{subtitle}</p>}
+          </div>
           {headerActions && (
             <div className="ex-page-actions">{headerActions}</div>
           )}
         </div>
-        {breadcrumb && (
-          <div
-            className="ex-breadcrumbs"
-            style={{ paddingBottom: 12 }}
-          >
-            {breadcrumb}
-          </div>
-        )}
       </div>
-      <div
-        className="ex-content"
-        style={{ flex: 1, background: 'var(--bg-secondary)' }}
-      >
+
+      {/* Body */}
+      <div className="ex-page-body">
         {children}
       </div>
     </div>

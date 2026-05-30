@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline-brand' | 'brand-link'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -14,7 +14,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export function Button({
   variant = 'secondary',
-  size: _size = 'md',
+  size = 'md',
   icon,
   iconPosition = 'left',
   loading = false,
@@ -23,18 +23,15 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const variantClass = variant === 'primary' ? 'primary'
-    : variant === 'ghost' ? 'ghost'
-    : variant === 'danger' ? 'danger'
-    : 'secondary'
+  const classes = ['ex-btn', variant, size, className].filter(Boolean).join(' ')
 
   return (
     <button
-      className={`ex-btn ${variantClass}${className ? ` ${className}` : ''}`}
+      className={classes}
       disabled={disabled || loading}
       {...props}
     >
-      {loading && <Spinner size={16} />}
+      {loading && <BtnSpinner />}
       {!loading && icon && iconPosition === 'left' && icon}
       {children}
       {!loading && icon && iconPosition === 'right' && icon}
@@ -54,22 +51,21 @@ export function IconButton({
   )
 }
 
-// Spinner inline to avoid circular import
-function Spinner({ size = 20 }: { size?: number }) {
+// Inline spinner — avoids circular import
+function BtnSpinner() {
   return (
     <svg
-      width={size}
-      height={size}
+      width={16}
+      height={16}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2}
-      style={{
-        animation: 'spin 1.4s linear infinite',
-      }}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      className="ex-spinner"
+      aria-hidden="true"
     >
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
+      <path d="M12 2a10 10 0 0 1 10 10" />
     </svg>
   )
 }
