@@ -15,6 +15,7 @@ export default defineConfig({
     },
   },
   base: '/Excellon-NexAI/',
+  build: { target: 'esnext' },
   plugins: [react()],
   server: {
     port: 5173,
