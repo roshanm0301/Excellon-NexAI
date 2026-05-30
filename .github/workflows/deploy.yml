@@ -11,6 +11,7 @@ jobs:
   deploy:
     name: Deploy React app to Vercel
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       VERCEL_ORG_ID: team_DxCwvHD5aDLjvdLkKc6qyFK0
       VERCEL_PROJECT_ID: prj_fs6owHfBqr17Eusgn8EgZSgnVkH2
@@ -37,14 +38,17 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
-      - name: Create Vercel Build Output structure
+      - name: Prepare Vercel Build Output
         run: |
+          # Write project.json so CLI knows which project without interactive linking
           mkdir -p src/react/.vercel/output/static
+          echo '{"projectId":"prj_fs6owHfBqr17Eusgn8EgZSgnVkH2","orgId":"team_DxCwvHD5aDLjvdLkKc6qyFK0"}' \
+            > src/react/.vercel/project.json
+          # Copy built files into Build Output API v3 structure
           cp -r src/react/dist/. src/react/.vercel/output/static/
-          cat > src/react/.vercel/output/config.json << 'EOF'
-          {"version":3,"routes":[{"src":"/(.*)\\.(.+)","dest":"/$1.$2"},{"src":"(.*)","dest":"/index.html"}]}
-          EOF
+          echo '{"version":3,"routes":[{"src":"/(.*)\\.(.+)","dest":"/$1.$2"},{"src":"(.*)","dest":"/index.html"}]}' \
+            > src/react/.vercel/output/config.json
 
-      - name: Deploy prebuilt to Vercel
+      - name: Deploy to Vercel
         working-directory: src/react
         run: vercel deploy --prebuilt --prod --yes --token=$VERCEL_TOKEN
