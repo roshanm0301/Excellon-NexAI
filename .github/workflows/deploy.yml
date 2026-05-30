@@ -12,8 +12,9 @@ jobs:
     name: Deploy React app to Vercel
     runs-on: ubuntu-latest
     env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_ORG_ID: team_DxCwvHD5aDLjvdLkKc6qyFK0
+      VERCEL_PROJECT_ID: prj_fs6owHfBqr17Eusgn8EgZSgnVkH2
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -27,19 +28,23 @@ jobs:
         working-directory: src/react
         run: npm ci
 
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
-
-      - name: Pull Vercel project settings
+      - name: Build
         working-directory: src/react
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build project
-        working-directory: src/react
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: npm run build
         env:
           VITE_MSW: 'true'
 
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Clear Vercel rootDirectory setting
+        run: |
+          curl -sf -X PATCH \
+            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory":null,"outputDirectory":null,"buildCommand":null}' \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print('Project updated:', d.get('name','unknown'))"
+
       - name: Deploy to Vercel
-        working-directory: src/react
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy ./src/react/dist --prod --yes --token=$VERCEL_TOKEN
