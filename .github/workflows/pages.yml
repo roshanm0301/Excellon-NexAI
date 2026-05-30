@@ -26,6 +26,9 @@ jobs:
           cache: npm
           cache-dependency-path: src/react/package-lock.json
 
+      - name: Debug - Node and npm versions
+        run: node --version && npm --version
+
       - name: Install dependencies
         working-directory: src/react
         run: npm ci
