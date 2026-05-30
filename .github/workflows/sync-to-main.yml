@@ -1,25 +1,14 @@
-name: Sync claude branch to main
+# Disabled — pages.yml now deploys directly from the feature branch.
+# GITHUB_TOKEN-based pushes do not cascade to trigger downstream workflows,
+# which was causing the need for manual trigger commits.
+# This file is kept as a placeholder to avoid git conflicts.
+name: Sync claude branch to main (disabled)
 
 on:
-  push:
-    branches:
-      - claude/exciting-keller-ZhAFS
+  workflow_dispatch:  # manual only — not triggered automatically
 
 jobs:
-  sync:
+  noop:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Merge claude branch into main
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout main
-          git merge origin/claude/exciting-keller-ZhAFS --no-edit
-          git push origin main
+      - run: echo 'This workflow is disabled. pages.yml deploys directly from the feature branch.'

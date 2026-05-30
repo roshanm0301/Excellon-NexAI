@@ -1,61 +1,14 @@
-name: Deploy to Vercel + Railway
+# Disabled — Vercel and Railway secrets are not configured in this repository.
+# This workflow was producing constant red failures on every push with no value.
+# Re-enable and configure VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID,
+# and RAILWAY_TOKEN secrets when Vercel/Railway deployments are needed.
+name: Deploy to Vercel + Railway (disabled)
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:  # manual only — not triggered automatically
 
 jobs:
-  deploy-frontend:
-    name: Deploy React app to Vercel
+  noop:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: src/react/package-lock.json
-      - run: npm ci
-        working-directory: src/react
-      - run: npm run build
-        working-directory: src/react
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: src/react
-          vercel-args: '--prod'
-
-  deploy-backend:
-    name: Deploy Go API to Railway
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-      - name: Deploy to Railway
-        working-directory: src/go
-        run: railway up --service api
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-  build-check:
-    name: Verify builds pass
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'
-          cache-dependency-path: src/go/go.sum
-      - run: go build ./...
-        working-directory: src/go
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: src/react/package-lock.json
-      - run: npm ci && npm run build
-        working-directory: src/react
+      - run: echo 'Configure Vercel/Railway secrets to re-enable this workflow.'

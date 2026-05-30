@@ -2,7 +2,9 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - claude/exciting-keller-ZhAFS
   workflow_dispatch:
 
 permissions:
