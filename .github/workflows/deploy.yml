@@ -12,7 +12,6 @@ jobs:
     name: Deploy React app to Vercel
     runs-on: ubuntu-latest
     env:
-      # Project IDs are not sensitive - only VERCEL_TOKEN is secret
       VERCEL_ORG_ID: team_DxCwvHD5aDLjvdLkKc6qyFK0
       VERCEL_PROJECT_ID: prj_fs6owHfBqr17Eusgn8EgZSgnVkH2
     steps:
@@ -34,21 +33,50 @@ jobs:
         env:
           VITE_MSW: 'true'
 
-      - name: Prepare Vercel Build Output (v3)
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Debug and Deploy
         working-directory: src/react
         run: |
-          mkdir -p .vercel/output/static
-          cp -r dist/. .vercel/output/static/
-          cat > .vercel/output/config.json << 'VCONFIG'
-          {
-            "version": 3,
-            "routes": [
-              { "handle": "filesystem" },
-              { "src": "/(.*)", "dest": "/index.html" }
-            ]
-          }
-          VCONFIG
+          set -x
+          echo "--- Vercel version ---"
+          vercel --version
 
-      - name: Deploy prebuilt output to Vercel
-        working-directory: src/react
-        run: npx vercel deploy --prebuilt --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+          echo "--- Checking env vars ---"
+          echo "VERCEL_ORG_ID=$VERCEL_ORG_ID"
+          echo "VERCEL_PROJECT_ID=$VERCEL_PROJECT_ID"
+
+          echo "--- Config project via API ---"
+          curl -sf -X PATCH \
+            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory":"src/react","buildCommand":"npm run build","outputDirectory":"dist","framework":"vite"}' \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print('Project updated:', d.get('name','error'), d.get('error','ok'))" \
+            || echo "API config step failed (non-fatal)"
+
+          echo "--- Adding VITE_MSW env var ---"
+          curl -sf -X POST \
+            "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '[{"key":"VITE_MSW","value":"true","type":"plain","target":["production","preview"]}]' \
+            || echo "Env var step failed (non-fatal, may already exist)"
+
+          echo "--- Deploying ---"
+          vercel deploy ./dist --prod --yes --token=$VERCEL_TOKEN 2>&1 | tee /tmp/vercel-output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+
+          echo "--- Vercel output ---"
+          cat /tmp/vercel-output.txt
+          exit $EXIT_CODE
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Upload deploy log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vercel-deploy-log
+          path: /tmp/vercel-output.txt
