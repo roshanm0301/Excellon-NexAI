@@ -1,0 +1,25 @@
+name: Fetch Vercel IDs (one-time setup)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fetch-ids:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Vercel Org ID and Project ID
+        run: |
+          echo "=== Fetching Vercel user/org ID ==="
+          curl -s https://api.vercel.com/v2/user \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print('VERCEL_ORG_ID =', d.get('user',{}).get('id','not found'))"
+
+          echo "=== Fetching Vercel projects ==="
+          curl -s https://api.vercel.com/v9/projects \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+for p in d.get('projects', []):
+    print(f\"Project: {p['name']}  =>  VERCEL_PROJECT_ID = {p['id']}\")
+"
