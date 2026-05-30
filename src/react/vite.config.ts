@@ -14,7 +14,7 @@ export default defineConfig({
       exclude: ['src/mocks/**', 'src/test/**', '**/*.d.ts'],
     },
   },
-  base: '/Excellon-NexAI/',
+  base: process.env.VITE_BASE_PATH ?? '/Excellon-NexAI/',
   build: { target: 'esnext' },
   plugins: [react()],
   server: {
