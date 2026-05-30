@@ -33,6 +33,8 @@ jobs:
       - name: Build
         working-directory: src/react
         run: npm run build
+        env:
+          VITE_MSW: 'true'
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
