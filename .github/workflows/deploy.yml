@@ -20,44 +20,51 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: src/react/package-lock.json
+
+      - name: Install dependencies
+        working-directory: src/react
+        run: npm ci
+
+      - name: Build
+        working-directory: src/react
+        run: npm run build
+        env:
+          VITE_MSW: 'true'
+          VITE_BASE_PATH: '/'
+
+      - name: Verify build output
+        run: |
+          echo "=== Build output ==="
+          ls -la src/react/dist/
+          echo "=== index.html head ==="
+          head -5 src/react/dist/index.html
+
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
-      - name: Configure Vercel project settings
+      - name: Verify token and project
         run: |
-          # Set rootDirectory, build command, output dir, framework
-          curl -sf -X PATCH "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
+          echo "=== Token check ==="
+          curl -s "https://api.vercel.com/v2/user" \
             -H "Authorization: Bearer $VERCEL_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "rootDirectory": "src/react",
-              "buildCommand": "vite build",
-              "outputDirectory": "dist",
-              "installCommand": "npm ci",
-              "framework": "vite"
-            }' | python3 -c "import sys,json; d=json.load(sys.stdin); print('Configured:', d.get('name','error'))"
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print('User:', d.get('user',{}).get('email', d.get('error','AUTH FAILED')))"
+          echo "=== Project check ==="
+          curl -s "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print('Project:', d.get('name', d.get('error','NOT FOUND')))"
 
-      - name: Set Vercel environment variables
-        run: |
-          # VITE_MSW enables mock API (no backend needed)
-          curl -s -X POST "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env" \
-            -H "Authorization: Bearer $VERCEL_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{"key":"VITE_MSW","value":"true","type":"plain","target":["production","preview"]}' \
-            | python3 -c "import sys,json; d=json.load(sys.stdin); print('VITE_MSW:', d.get('key', d.get('error','?')))"
-          # VITE_BASE_PATH=/ for Vercel (not /Excellon-NexAI/ which is GitHub Pages only)
-          curl -s -X POST "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env" \
-            -H "Authorization: Bearer $VERCEL_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{"key":"VITE_BASE_PATH","value":"/","type":"plain","target":["production","preview"]}' \
-            | python3 -c "import sys,json; d=json.load(sys.stdin); print('VITE_BASE_PATH:', d.get('key', d.get('error','?')))"
-
-      - name: Write Vercel project.json
+      - name: Write project.json
         run: |
           mkdir -p src/react/.vercel
           echo '{"projectId":"prj_fs6owHfBqr17Eusgn8EgZSgnVkH2","orgId":"team_DxCwvHD5aDLjvdLkKc6qyFK0"}' \
             > src/react/.vercel/project.json
+          cat src/react/.vercel/project.json
 
-      - name: Deploy to Vercel (Vercel builds from source)
+      - name: Deploy to Vercel
         working-directory: src/react
-        run: vercel --prod --yes --token=$VERCEL_TOKEN
+        run: vercel deploy dist --prod --yes --token=$VERCEL_TOKEN
