@@ -1,43 +1,12 @@
-name: Fetch Vercel IDs (one-time setup)
+# One-time setup workflow — no longer needed.
+# Kept as a placeholder. Delete this file if desired.
+name: Fetch Vercel IDs (completed)
 
 on:
   workflow_dispatch:
 
 jobs:
-  fetch-ids:
+  noop:
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch Vercel Org ID and Project ID
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          echo "=== Fetching user/org ID ==="
-          curl -s https://api.vercel.com/v2/user \
-            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
-            -o /tmp/user.json
-          python3 << 'PYEOF'
-          import json
-          with open('/tmp/user.json') as f:
-              d = json.load(f)
-          user = d.get('user', {})
-          print('VERCEL_ORG_ID =', user.get('id', 'NOT FOUND'))
-          print('username      =', user.get('username', 'NOT FOUND'))
-          PYEOF
-
-          echo "=== Fetching projects ==="
-          curl -s https://api.vercel.com/v9/projects \
-            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
-            -o /tmp/projects.json
-          python3 << 'PYEOF'
-          import json
-          with open('/tmp/projects.json') as f:
-              d = json.load(f)
-          projects = d.get('projects', [])
-          if not projects:
-              print('No projects found - create a project on vercel.com first')
-          for p in projects:
-              print('Project name     =', p.get('name'))
-              print('VERCEL_PROJECT_ID=', p.get('id'))
-              print('Account ID       =', p.get('accountId'))
-              print('---')
-          PYEOF
+      - run: echo 'Setup complete. Vercel IDs have been added as GitHub secrets.'

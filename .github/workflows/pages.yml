@@ -1,58 +1,12 @@
-name: Deploy to GitHub Pages
+# Disabled — Vercel is now the live deployment target.
+# Re-enable this if you need GitHub Pages as a fallback.
+name: Deploy to GitHub Pages (disabled)
 
 on:
-  push:
-    branches:
-      - main
-      - claude/exciting-keller-ZhAFS
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
-  build:
+  noop:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-          cache-dependency-path: src/react/package-lock.json
-
-      - name: Install dependencies
-        working-directory: src/react
-        run: npm ci
-
-      - name: Build
-        working-directory: src/react
-        run: npm run build
-        env:
-          VITE_MSW: 'true'
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: src/react/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - run: echo 'GitHub Pages deployment is disabled. Vercel handles all deployments.'

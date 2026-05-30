@@ -1,14 +1,45 @@
-# Disabled — Vercel and Railway secrets are not configured in this repository.
-# This workflow was producing constant red failures on every push with no value.
-# Re-enable and configure VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID,
-# and RAILWAY_TOKEN secrets when Vercel/Railway deployments are needed.
-name: Deploy to Vercel + Railway (disabled)
+name: Deploy to Vercel
 
 on:
-  workflow_dispatch:  # manual only — not triggered automatically
+  push:
+    branches:
+      - main
+      - claude/exciting-keller-ZhAFS
+  workflow_dispatch:
 
 jobs:
-  noop:
+  deploy:
+    name: Deploy React app to Vercel
     runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      - run: echo 'Configure Vercel/Railway secrets to re-enable this workflow.'
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: src/react/package-lock.json
+
+      - name: Install dependencies
+        working-directory: src/react
+        run: npm ci
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel project settings
+        working-directory: src/react
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build project
+        working-directory: src/react
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VITE_MSW: 'true'
+
+      - name: Deploy to Vercel
+        working-directory: src/react
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
