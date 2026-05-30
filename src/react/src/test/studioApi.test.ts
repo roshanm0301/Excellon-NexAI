@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 import { studioFetch, listArtifacts, createArtifact, publishArtifact, ApiError } from '../config/studioApi'
 
-const BASE = '/api'
+const BASE = '/api/v1'
 
 function mockFetch(status: number, body: unknown) {
   const jsonBody = JSON.stringify(body)

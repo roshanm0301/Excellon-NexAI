@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL ?? '/api'
+const BASE_URL = import.meta.env.VITE_API_URL ?? '/api/v1'
 
 // Dev-mode headers — no auth in initial build
 const DEV_HEADERS: Record<string, string> = {
