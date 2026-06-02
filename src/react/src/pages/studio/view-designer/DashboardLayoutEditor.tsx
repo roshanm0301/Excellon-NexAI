@@ -11,7 +11,6 @@ import { useCallback } from 'react'
 import { LayoutDashboard, Plus, Trash2 } from 'lucide-react'
 import { Button } from '../../../design-system'
 import { useCanvasStore } from './useCanvasStore'
-import type { ComponentNode } from '../../../types/viewStudio'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -57,7 +56,7 @@ export function DashboardLayoutEditor() {
     updateNodeProps(tree.component_key, { __dashboard_config: updated })
   }, [tree.component_key, updateNodeProps])
 
-  const childKeys = (tree.children ?? []).map(c => c.component_key)
+  const childKeys = (tree.children ?? []).map((c: any) => c.component_key)
 
   const handleAddWidget = useCallback((childKey: string) => {
     const existing = config.widgets.find(w => w.component_key === childKey)
@@ -82,7 +81,7 @@ export function DashboardLayoutEditor() {
   }, [config, handleUpdateConfig])
 
   const handleRemoveWidget = useCallback((idx: number) => {
-    handleUpdateConfig({ ...config, widgets: config.widgets.filter((_, i) => i !== idx) })
+    handleUpdateConfig({ ...config, widgets: config.widgets.filter((_: any, i: number) => i !== idx) })
   }, [config, handleUpdateConfig])
 
   const unmappedChildren = childKeys.filter(k => !config.widgets.some(w => w.component_key === k))

@@ -65,13 +65,13 @@ export function EventEditor({ registryEntry }: { registryEntry?: ComponentRegist
   const setEvents = useCanvasStore(s => s.setEvents)
   const { selectedKey } = useCanvasStore()
 
-  const events = payload?.events ?? []
-  const componentEvents = events.filter(e => e.source_field === selectedKey)
-  const emits = registryEntry?.event_support?.emits ?? []
+  const events = (payload?.events ?? []) as EventDefinition[]
+  const componentEvents = events.filter((e: EventDefinition) => e.source_field === selectedKey)
+  const emits = (registryEntry?.event_support?.emits ?? []) as EventType[]
 
   const handleAddEvent = useCallback(() => {
     const newEvent: EventDefinition = {
-      event_type: emits[0] ?? 'on_click',
+      event_type: (emits[0] ?? 'on_click') as EventType,
       source_field: selectedKey ?? undefined,
       actions: [],
       priority: 100,
@@ -81,9 +81,8 @@ export function EventEditor({ registryEntry }: { registryEntry?: ComponentRegist
   }, [events, emits, selectedKey, setEvents])
 
   const handleUpdateEvent = useCallback((index: number, updated: EventDefinition) => {
-    const globalIndex = events.findIndex((e, i) => {
-      // Match by checking it's one of the component's events
-      const compEvents = events.filter(ev => ev.source_field === selectedKey)
+    const globalIndex = events.findIndex((e: EventDefinition, i: number) => {
+      const compEvents = events.filter((ev: EventDefinition) => ev.source_field === selectedKey)
       return e === compEvents[index] || i === events.indexOf(compEvents[index])
     })
     if (globalIndex === -1) return

@@ -6,13 +6,14 @@
  * representation in the canvas.
  */
 
+import React from 'react'
 import type { ComponentNode } from '../../../types/viewStudio'
 
-export type PreviewRenderer = (props: PreviewProps) => JSX.Element
+export type PreviewRenderer = (props: PreviewProps) => React.ReactNode
 
 export interface PreviewProps {
   node: ComponentNode
-  children?: JSX.Element[]
+  children?: React.ReactNode[]
   isSelected?: boolean
 }
 
@@ -38,7 +39,7 @@ function Section({ node, children }: PreviewProps) {
 function Card({ node, children }: PreviewProps) {
   return (
     <div className="prev-card" data-key={node.component_key}>
-      {node.props?.title && <div className="prev-card__title">{node.props.title as string}</div>}
+      {!!node.props?.title && <div className="prev-card__title">{node.props.title as string}</div>}
       <div className="prev-card__body">{children}</div>
     </div>
   )
@@ -174,7 +175,7 @@ function FileUpload({ node }: PreviewProps) {
 
 function Heading({ node }: PreviewProps) {
   const level = (node.props?.level as number) ?? 2
-  const Tag = `h${level}` as keyof JSX.IntrinsicElements
+  const Tag = `h${level}` as React.ElementType
   return <Tag className="prev-heading" data-key={node.component_key}>{node.props?.text as string || 'Heading'}</Tag>
 }
 

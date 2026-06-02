@@ -7,7 +7,7 @@
  * - Required / Optional
  */
 
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { Plus, Trash2, Shield } from 'lucide-react'
 import { Button } from '../../../design-system'
 import { useCanvasStore } from './useCanvasStore'

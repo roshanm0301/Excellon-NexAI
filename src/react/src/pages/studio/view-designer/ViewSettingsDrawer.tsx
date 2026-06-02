@@ -11,8 +11,8 @@
  * - Plugins
  */
 
-import { useState } from 'react'
-import { X, Database, History, FileJson, Shield, ShieldCheck, LayoutDashboard, Wand2, Puzzle } from 'lucide-react'
+import React, { useState } from 'react'
+import { X, Database, History, FileJson, Shield, ShieldCheck, LayoutDashboard, Puzzle } from 'lucide-react'
 import { Button } from '../../../design-system'
 import { DataSourceEditor } from './DataSourceEditor'
 import { VersionHistoryPanel } from './VersionHistoryPanel'
@@ -36,7 +36,7 @@ interface DrawerProps {
   initialTab?: DrawerTab
 }
 
-const TABS: { value: DrawerTab; label: string; icon: JSX.Element }[] = [
+const TABS: { value: DrawerTab; label: string; icon: React.ReactNode }[] = [
   { value: 'datasources', label: 'Data', icon: <Database size={14} /> },
   { value: 'versions', label: 'History', icon: <History size={14} /> },
   { value: 'import-export', label: 'I/O', icon: <FileJson size={14} /> },

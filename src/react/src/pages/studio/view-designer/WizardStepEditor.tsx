@@ -50,7 +50,7 @@ export function WizardStepEditor() {
     updateNodeProps(tree.component_key, { __wizard_config: updated })
   }, [tree.component_key, updateNodeProps])
 
-  const childKeys = (tree.children ?? []).map(c => ({
+  const childKeys = (tree.children ?? []).map((c: any) => ({
     key: c.component_key,
     label: c.label || c.component_code,
   }))
@@ -210,7 +210,7 @@ function WizardStepRow({
             onChange={e => onUpdate({ ...step, component_key: e.target.value })}
           >
             <option value="">Select component…</option>
-            {childKeys.map(c => (
+            {childKeys.map((c: any) => (
               <option key={c.key} value={c.key}>{c.label} ({c.key})</option>
             ))}
           </select>

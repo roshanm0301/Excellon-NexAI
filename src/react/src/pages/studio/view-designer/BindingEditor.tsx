@@ -28,7 +28,7 @@ const SOURCE_OPTIONS: { value: BindingSource; label: string }[] = [
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function BindingEditor({ registryEntry }: { registryEntry?: ComponentRegistryEntry | null }) {
-  const { selectedKey, getNode, payload } = useCanvasStore()
+  const { selectedKey, getNode } = useCanvasStore()
   const updateNodeBindings = useCanvasStore(s => s.updateNodeBindings)
   const node = selectedKey ? getNode(selectedKey) : null
 
@@ -38,7 +38,6 @@ export function BindingEditor({ registryEntry }: { registryEntry?: ComponentRegi
 
   const bindings = node.bindings ?? {}
   const bindableProps = registryEntry?.supported_bindings ?? []
-  const primaryEntity = payload?.meta?.description ? undefined : undefined // placeholder
   const unboundProps = bindableProps.filter(p => !bindings[p])
 
   const handleUpdateBinding = useCallback((prop: string, binding: FieldBinding) => {

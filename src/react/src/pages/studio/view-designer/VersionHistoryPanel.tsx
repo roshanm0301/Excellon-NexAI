@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback } from 'react'
-import { History, RotateCcw, ChevronDown, ChevronRight, Clock, User } from 'lucide-react'
+import { History, RotateCcw, Clock, User } from 'lucide-react'
 import { Button, Spinner } from '../../../design-system'
 import { useViewVersions, useRollbackView } from '../../../hooks/useViewStudio'
 import type { ViewVersion, ComponentNode } from '../../../types/viewStudio'
@@ -35,7 +35,7 @@ export function VersionHistoryPanel({ viewId }: { viewId: string }) {
 
   const handleRollback = useCallback(() => {
     if (!selectedVersion) return
-    rollbackMut.mutate({})
+    rollbackMut.mutate(selectedVersion)
   }, [selectedVersion, rollbackMut])
 
   const selectedVersionData = sortedVersions.find(v => v.version_id === selectedVersion)

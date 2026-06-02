@@ -56,7 +56,7 @@ export function ViewDesignerListPage() {
     {
       key: 'view_label',
       label: 'View',
-      width: '250px',
+      width: 250,
       render: (row) => (
         <div>
           <div style={{ fontWeight: 500 }}>{row.view_label || row.artifact_name}</div>
@@ -67,19 +67,19 @@ export function ViewDesignerListPage() {
     {
       key: 'surface_type',
       label: 'Surface',
-      width: '140px',
+      width: 140,
       render: (row) => <StatusBadge status={row.surface_type ?? 'unknown'} />,
     },
     {
       key: 'primary_entity',
       label: 'Entity',
-      width: '140px',
+      width: 140,
       render: (row) => <span>{row.primary_entity ?? '—'}</span>,
     },
     {
       key: 'status',
       label: 'Status',
-      width: '100px',
+      width: 100,
       render: (row) => (
         <StatusBadge status={row.is_active ? 'published' : row.is_draft ? 'draft' : 'inactive'} />
       ),
@@ -87,13 +87,13 @@ export function ViewDesignerListPage() {
     {
       key: 'version',
       label: 'Version',
-      width: '80px',
+      width: 80,
       render: (row) => <span>v{row.latest_version_no ?? 0}</span>,
     },
     {
       key: 'updated_at',
       label: 'Modified',
-      width: '120px',
+      width: 120,
       render: (row) => <span>{relativeDate(row.updated_at)}</span>,
     },
   ]
@@ -105,7 +105,7 @@ export function ViewDesignerListPage() {
     },
     {
       label: 'Archive',
-      danger: true,
+      variant: 'danger',
       onClick: (row) => setDeleteTarget(row),
     },
   ]

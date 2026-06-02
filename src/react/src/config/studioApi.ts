@@ -389,7 +389,7 @@ export const getComponentEntry = (code: string) =>
   studioFetch<ComponentRegistryEntry>(`${STUDIO_PREFIX}/component-registry/${code}`)
 
 // Plugins
-export const listPlugins = (params?: Record<string, never>) =>
+export const listPlugins = () =>
   studioFetch<Plugin[]>(`${STUDIO_PREFIX}/plugins`)
 
 export const registerPlugin = (body: RegisterPluginRequest) =>

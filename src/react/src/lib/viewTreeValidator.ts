@@ -83,8 +83,8 @@ export function validateTree(
     }
 
     // Surface compatibility
-    const surfaces = entry.supported_surfaces
-    if (!surfaces.includes('all' as SurfaceType) && !surfaces.includes(surfaceType)) {
+    const surfaces = entry.supported_surfaces as string[]
+    if (!surfaces.includes('all') && !surfaces.includes(surfaceType)) {
       warnings.push({
         code: 'SURFACE_INCOMPATIBLE',
         message: `Component "${node.component_code}" does not support surface "${surfaceType}"`,

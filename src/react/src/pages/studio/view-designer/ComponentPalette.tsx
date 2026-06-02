@@ -73,7 +73,7 @@ export function ComponentPalette() {
       <div className="cp-panel__search">
         <SearchInput
           value={search}
-          onChange={setSearch}
+          onChange={e => setSearch(e.target.value)}
           placeholder="Search components..."
         />
       </div>

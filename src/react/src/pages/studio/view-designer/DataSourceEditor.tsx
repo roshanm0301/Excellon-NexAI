@@ -57,7 +57,7 @@ export function DataSourceEditor() {
   }, [datasources, setDataSources])
 
   const handleRemove = useCallback((index: number) => {
-    setDataSources(datasources.filter((_, i) => i !== index))
+    setDataSources(datasources.filter((_: any, i: number) => i !== index))
   }, [datasources, setDataSources])
 
   return (
@@ -218,7 +218,7 @@ function FiltersSection({
   }
 
   const removeFilter = (idx: number) => {
-    onChange(filters.filter((_, i) => i !== idx))
+    onChange(filters.filter((_: any, i: number) => i !== idx))
   }
 
   return (
