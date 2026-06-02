@@ -88,6 +88,15 @@ jobs:
 
           print(f'Uploaded {len(files_payload)} files. Creating deployment...')
 
+          # Clear any saved build command so Vercel does not try to rebuild
+          # the pre-built static files we just uploaded.
+          api('PATCH', f'/v9/projects/{PROJECT_ID}', body={
+              'buildCommand': '',
+              'installCommand': '',
+              'outputDirectory': '',
+              'framework': None,
+          })
+
           result = api('POST', f'/v13/deployments?projectId={PROJECT_ID}', body={
               'name': 'excellon-nex-ai',
               'target': 'production',
