@@ -307,3 +307,93 @@ export const nlpImport = (text: string) =>
     method: 'POST',
     body: JSON.stringify({ text }),
   })
+
+// ── View Studio API ───────────────────────────────────────────────────────────
+
+import type {
+  View,
+  ViewWithPayload,
+  ViewVersion,
+  ViewListResponse,
+  VersionListResponse,
+  CreateViewRequest,
+  SaveDraftRequest,
+  PublishViewRequest,
+  RollbackViewRequest,
+  ComponentRegistryEntry,
+  ComponentListParams,
+  ViewListParams,
+  Plugin,
+  RegisterPluginRequest,
+} from '../types/viewStudio'
+
+const STUDIO_PREFIX = '/studio'
+
+// Designer APIs
+export const listViews = (params?: ViewListParams) => {
+  const qs = new URLSearchParams()
+  if (params?.surface) qs.set('surface', params.surface)
+  if (params?.entity) qs.set('entity', params.entity)
+  if (params?.status) qs.set('status', params.status)
+  if (params?.limit) qs.set('limit', String(params.limit))
+  if (params?.offset) qs.set('offset', String(params.offset))
+  return studioFetch<ViewListResponse>(`${STUDIO_PREFIX}/views?${qs.toString()}`)
+}
+
+export const createView = (body: CreateViewRequest) =>
+  studioFetch<View>(`${STUDIO_PREFIX}/views`, { method: 'POST', body: JSON.stringify(body) })
+
+export const getView = (viewKey: string) =>
+  studioFetch<ViewWithPayload>(`${STUDIO_PREFIX}/views/${viewKey}`)
+
+export const saveDraft = (viewKey: string, body: SaveDraftRequest) =>
+  studioFetch<ViewVersion>(`${STUDIO_PREFIX}/views/${viewKey}/draft`, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  })
+
+export const publishView = (viewKey: string, body?: PublishViewRequest) =>
+  studioFetch<ViewVersion>(`${STUDIO_PREFIX}/views/${viewKey}/publish`, {
+    method: 'POST',
+    body: JSON.stringify(body ?? {}),
+  })
+
+export const rollbackView = (viewKey: string, versionID: string, body?: RollbackViewRequest) =>
+  studioFetch<ViewVersion>(`${STUDIO_PREFIX}/views/${viewKey}/rollback/${versionID}`, {
+    method: 'POST',
+    body: JSON.stringify(body ?? {}),
+  })
+
+export const archiveView = (viewKey: string) =>
+  studioFetch<void>(`${STUDIO_PREFIX}/views/${viewKey}`, { method: 'DELETE' })
+
+export const listViewVersions = (viewKey: string) =>
+  studioFetch<VersionListResponse>(`${STUDIO_PREFIX}/views/${viewKey}/versions`)
+
+// Runtime APIs (only returns published/active views)
+export const getRuntimeView = (viewKey: string) =>
+  studioFetch<ViewVersion>(`${STUDIO_PREFIX}/runtime/views/${viewKey}`)
+
+export const getRuntimeViewByCode = (viewCode: string) =>
+  studioFetch<ViewVersion>(`${STUDIO_PREFIX}/runtime/views/by-code/${viewCode}`)
+
+// Component Registry
+export const listComponentRegistry = (params?: ComponentListParams) => {
+  const qs = new URLSearchParams()
+  if (params?.surface) qs.set('surface', params.surface)
+  if (params?.category) qs.set('category', params.category)
+  return studioFetch<ComponentRegistryEntry[]>(`${STUDIO_PREFIX}/component-registry?${qs.toString()}`)
+}
+
+export const getComponentEntry = (code: string) =>
+  studioFetch<ComponentRegistryEntry>(`${STUDIO_PREFIX}/component-registry/${code}`)
+
+// Plugins
+export const listPlugins = (params?: Record<string, never>) =>
+  studioFetch<Plugin[]>(`${STUDIO_PREFIX}/plugins`)
+
+export const registerPlugin = (body: RegisterPluginRequest) =>
+  studioFetch<Plugin>(`${STUDIO_PREFIX}/plugins`, { method: 'POST', body: JSON.stringify(body) })
+
+export const removePlugin = (pluginID: string) =>
+  studioFetch<void>(`${STUDIO_PREFIX}/plugins/${pluginID}`, { method: 'DELETE' })

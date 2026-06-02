@@ -27,6 +27,7 @@ import (
 	"github.com/excellon/nexai/internal/recycle"
 	"github.com/excellon/nexai/internal/retention"
 	"github.com/excellon/nexai/internal/rules"
+	"github.com/excellon/nexai/internal/viewstudio"
 	"github.com/excellon/nexai/internal/workflow"
 	business_workflow "github.com/excellon/nexai/internal/business_workflow"
 )
@@ -101,6 +102,10 @@ func main() {
 	// NLP handler
 	nlpHandler := nlp.NewHandler(os.Getenv("ANTHROPIC_API_KEY"), "claude-haiku-4-5-20251001")
 
+	// View Studio
+	viewStudioRepo := viewstudio.NewRepo(pool)
+	viewStudioHandler := viewstudio.NewHandler(viewStudioRepo)
+
 	// Index management
 	indexService := indexmgmt.NewService(pool)
 	indexHandler := indexmgmt.NewHandler(indexService)
@@ -149,6 +154,9 @@ func main() {
 		})
 		r.Route("/processes", func(r chi.Router) {
 			bwHandler.RegisterRoutes(r)
+		})
+		r.Route("/studio", func(r chi.Router) {
+			viewStudioHandler.RegisterRoutes(r)
 		})
 	})
 	r.Route("/api/nlp", func(r chi.Router) {
