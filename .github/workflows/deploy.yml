@@ -63,7 +63,7 @@ jobs:
           RESULT=$(curl -s -X PATCH "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
             -H "Authorization: Bearer $VERCEL_TOKEN" \
             -H "Content-Type: application/json" \
-            -d '{"rootDirectory":null,"outputDirectory":"dist","buildCommand":"npm run build","installCommand":"npm ci","framework":"vite"}')
+            -d '{"rootDirectory":null,"outputDirectory":"dist","buildCommand":"vite build","installCommand":"npm ci","framework":"vite"}')
           echo "API response: $(echo $RESULT | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get(\"name\", d.get(\"error\",\"unknown\")))')"
 
       - name: Set Vercel env vars
