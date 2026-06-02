@@ -11,11 +11,11 @@ jobs:
   deploy:
     name: Deploy React app to Vercel
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     env:
-      VERCEL_ORG_ID: team_DxCwvHD5aDLjvdLkKc6qyFK0
-      VERCEL_PROJECT_ID: prj_fs6owHfBqr17Eusgn8EgZSgnVkH2
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_PROJECT_ID: prj_fs6owHfBqr17Eusgn8EgZSgnVkH2
+      VERCEL_TEAM_ID: team_DxCwvHD5aDLjvdLkKc6qyFK0
 
     steps:
       - uses: actions/checkout@v4
@@ -37,51 +37,75 @@ jobs:
           VITE_MSW: 'true'
           VITE_BASE_PATH: '/'
 
-      - name: Verify build output
+      - name: Deploy via Vercel REST API
         run: |
-          echo "=== Build output ==="
-          ls -la src/react/dist/
-          echo "=== index.html head ==="
-          head -5 src/react/dist/index.html
+          python3 << 'PYEOF'
+          import os, hashlib, json, urllib.request, urllib.error
+          from pathlib import Path
 
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
+          TOKEN      = os.environ['VERCEL_TOKEN']
+          PROJECT_ID = os.environ['VERCEL_PROJECT_ID']
+          TEAM_ID    = os.environ['VERCEL_TEAM_ID']
+          DIST       = Path('src/react/dist')
 
-      - name: Verify token and project
-        run: |
-          echo "=== Token check ==="
-          curl -s "https://api.vercel.com/v2/user" \
-            -H "Authorization: Bearer $VERCEL_TOKEN" \
-            | python3 -c "import sys,json; d=json.load(sys.stdin); print('User:', d.get('user',{}).get('email', d.get('error','AUTH FAILED')))"
-          echo "=== Project check ==="
-          curl -s "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
-            -H "Authorization: Bearer $VERCEL_TOKEN" \
-            | python3 -c "import sys,json; d=json.load(sys.stdin); print('Project:', d.get('name', d.get('error','NOT FOUND')))"
+          def api(method, path, body=None, extra_headers=None):
+              url = f'https://api.vercel.com{path}?teamId={TEAM_ID}'
+              headers = {'Authorization': f'Bearer {TOKEN}'}
+              if extra_headers:
+                  headers.update(extra_headers)
+              data = None
+              if body is not None:
+                  if isinstance(body, (bytes, bytearray)):
+                      data = body
+                  else:
+                      data = json.dumps(body).encode()
+                      headers['Content-Type'] = 'application/json'
+              req = urllib.request.Request(url, data=data, headers=headers, method=method)
+              try:
+                  with urllib.request.urlopen(req) as r:
+                      return json.loads(r.read())
+              except urllib.error.HTTPError as e:
+                  body_text = e.read().decode()
+                  if e.code == 409:
+                      return {'already': True}
+                  raise Exception(f'HTTP {e.code}: {body_text}')
 
-      - name: Fix Vercel project settings (clear rootDirectory)
-        run: |
-          RESULT=$(curl -s -X PATCH "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
-            -H "Authorization: Bearer $VERCEL_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{"rootDirectory":null,"outputDirectory":"dist","buildCommand":"vite build","installCommand":"npm ci","framework":"vite"}')
-          echo "API response: $(echo $RESULT | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get(\"name\", d.get(\"error\",\"unknown\")))')"
+          # Collect and upload files
+          files_payload = []
+          all_files = [p for p in DIST.rglob('*') if p.is_file()]
+          print(f'Uploading {len(all_files)} files...')
 
-      - name: Set Vercel env vars
-        run: |
-          curl -s -X POST "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env" \
-            -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
-            -d '{"key":"VITE_MSW","value":"true","type":"plain","target":["production"]}' > /dev/null
-          curl -s -X POST "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env" \
-            -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
-            -d '{"key":"VITE_BASE_PATH","value":"/","type":"plain","target":["production"]}' > /dev/null
-          echo "Env vars set"
+          for path in all_files:
+              data  = path.read_bytes()
+              sha   = hashlib.sha1(data).hexdigest()
+              rel   = str(path.relative_to(DIST))
+              api('POST', '/v2/files', body=data, extra_headers={
+                  'x-vercel-digest': sha,
+                  'Content-Length': str(len(data)),
+                  'Content-Type': 'application/octet-stream'
+              })
+              files_payload.append({'file': rel, 'sha': sha, 'size': len(data)})
 
-      - name: Write project.json
-        run: |
-          mkdir -p src/react/.vercel
-          echo '{"projectId":"prj_fs6owHfBqr17Eusgn8EgZSgnVkH2","orgId":"team_DxCwvHD5aDLjvdLkKc6qyFK0"}' \
-            > src/react/.vercel/project.json
+          print(f'Uploaded {len(files_payload)} files. Creating deployment...')
 
-      - name: Deploy to Vercel
-        working-directory: src/react
-        run: vercel --prod --yes --token=$VERCEL_TOKEN
+          result = api('POST', '/v13/deployments', body={
+              'name': 'excellon-nex-ai',
+              'projectId': PROJECT_ID,
+              'target': 'production',
+              'files': files_payload,
+              'projectSettings': {'framework': None, 'buildCommand': None, 'outputDirectory': None},
+              'routes': [
+                  {'src': '/assets/(.*)', 'dest': '/assets/$1'},
+                  {'src': '/(.*)\\.(.+)', 'dest': '/$1.$2'},
+                  {'src': '(.*)', 'dest': '/index.html'}
+              ]
+          })
+
+          url  = result.get('url', '')
+          state = result.get('readyState', result.get('status', ''))
+          print(f'Deployment created: https://{url}')
+          print(f'State: {state}')
+          if not url:
+              print('ERROR: no URL in response:', json.dumps(result, indent=2))
+              exit(1)
+          PYEOF
