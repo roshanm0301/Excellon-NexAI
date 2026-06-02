@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { ComponentNode, ViewPayload, EventDefinition, DataSourceConfig, FieldBinding, VisibilityRule } from '../../types/viewStudio'
+import type { ComponentNode, ViewPayload, EventDefinition, DataSourceConfig, FieldBinding, VisibilityRule } from '../../../types/viewStudio'
 
 // ─── Canvas State Types ──────────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import {
   Button, StatusBadge, SearchInput, Select,
@@ -25,7 +25,7 @@ function relativeDate(iso: string) {
 export function ViewDesignerListPage() {
   const navigate = useNavigate()
   const { success, error } = useToast()
-  const qc = useQueryClient()
+  useQueryClient()
 
   const [search, setSearch] = useState('')
   const [surfaceFilter, setSurfaceFilter] = useState<string>('')
@@ -55,8 +55,8 @@ export function ViewDesignerListPage() {
   const columns: VirtualGridColumn<View>[] = [
     {
       key: 'view_label',
-      header: 'View',
-      width: 250,
+      label: 'View',
+      width: '250px',
       render: (row) => (
         <div>
           <div style={{ fontWeight: 500 }}>{row.view_label || row.artifact_name}</div>
@@ -66,34 +66,34 @@ export function ViewDesignerListPage() {
     },
     {
       key: 'surface_type',
-      header: 'Surface',
-      width: 140,
+      label: 'Surface',
+      width: '140px',
       render: (row) => <StatusBadge status={row.surface_type ?? 'unknown'} />,
     },
     {
       key: 'primary_entity',
-      header: 'Entity',
-      width: 140,
+      label: 'Entity',
+      width: '140px',
       render: (row) => <span>{row.primary_entity ?? '—'}</span>,
     },
     {
       key: 'status',
-      header: 'Status',
-      width: 100,
+      label: 'Status',
+      width: '100px',
       render: (row) => (
         <StatusBadge status={row.is_active ? 'published' : row.is_draft ? 'draft' : 'inactive'} />
       ),
     },
     {
       key: 'version',
-      header: 'Version',
-      width: 80,
+      label: 'Version',
+      width: '80px',
       render: (row) => <span>v{row.latest_version_no ?? 0}</span>,
     },
     {
       key: 'updated_at',
-      header: 'Modified',
-      width: 120,
+      label: 'Modified',
+      width: '120px',
       render: (row) => <span>{relativeDate(row.updated_at)}</span>,
     },
   ]
@@ -105,7 +105,7 @@ export function ViewDesignerListPage() {
     },
     {
       label: 'Archive',
-      variant: 'danger',
+      danger: true,
       onClick: (row) => setDeleteTarget(row),
     },
   ]
@@ -154,7 +154,7 @@ export function ViewDesignerListPage() {
     <PageLayout
       title="View Designer"
       subtitle={`${data?.total ?? 0} views`}
-      actions={
+      headerActions={
         <Button onClick={() => setCreating(true)} size="sm">
           <Plus size={14} /> New View
         </Button>
@@ -163,18 +163,18 @@ export function ViewDesignerListPage() {
       <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
         <SearchInput
           value={search}
-          onChange={setSearch}
+          onChange={e => setSearch(e.target.value)}
           placeholder="Search views..."
           style={{ width: 260 }}
         />
         <Select
           value={surfaceFilter}
-          onChange={(v) => setSurfaceFilter(v)}
+          onChange={(e) => setSurfaceFilter(e.target.value)}
           options={[{ value: '', label: 'All surfaces' }, ...SURFACE_TYPES.map(s => ({ value: s, label: s.replace(/_/g, ' ') }))]}
         />
         <Select
           value={statusFilter}
-          onChange={(v) => setStatusFilter(v)}
+          onChange={(e) => setStatusFilter(e.target.value)}
           options={[
             { value: '', label: 'All statuses' },
             { value: 'draft', label: 'Draft' },
@@ -188,7 +188,6 @@ export function ViewDesignerListPage() {
         columns={columns}
         rowActions={rowActions}
         loading={isLoading}
-        rowKey={(row) => row.artifact_id}
         onRowClick={(row) => navigate(`/studio/views/${row.artifact_id}/edit`)}
         emptyMessage="No views found. Create your first view to get started."
       />
@@ -220,7 +219,7 @@ export function ViewDesignerListPage() {
             <label style={{ display: 'block', marginBottom: 4, fontWeight: 500, fontSize: '0.875rem' }}>Surface Type</label>
             <Select
               value={newSurface}
-              onChange={(v) => setNewSurface(v as SurfaceType)}
+              onChange={(e) => setNewSurface(e.target.value as unknown as SurfaceType)}
               options={SURFACE_TYPES.map(s => ({ value: s, label: s.replace(/_/g, ' ') }))}
             />
           </div>
@@ -254,7 +253,7 @@ export function ViewDesignerListPage() {
         title="Archive View"
         message={`Are you sure you want to archive "${deleteTarget?.view_label ?? deleteTarget?.artifact_name}"? This will deactivate the published version.`}
         confirmLabel="Archive"
-        variant="danger"
+        danger={true}
       />
     </PageLayout>
   )
