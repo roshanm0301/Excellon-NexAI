@@ -713,11 +713,8 @@ export default function DemoSetupPage() {
 
   const handleReset = () => {
     ;['msw_artifacts', 'msw_nodes', 'msw_overlays', 'msw_views'].forEach(k => localStorage.removeItem(k))
-    setStepStatuses(Array(6).fill('idle'))
-    setDone(false)
-    setLogs([])
-    setProgress(0)
-    success('Reset complete', 'All demo data cleared. Refresh other pages to see the effect.')
+    // Reload the page so MSW in-memory stores re-initialize from empty localStorage
+    window.location.reload()
   }
 
   const runSetup = async () => {
@@ -786,8 +783,8 @@ export default function DemoSetupPage() {
       // Step 5: Views
       setStep(5, 'running')
       for (const vCfg of VIEW_CONFIGS) {
-        const v = await createView({ view_key: vCfg.view_key, view_label: vCfg.view_label, surface_type: vCfg.surface_type, primary_entity: vCfg.primary_entity } as CreateViewRequest)
-        const viewKey = (v as { view_key?: string }).view_key ?? vCfg.view_key
+        const v = await createView({ view_label: vCfg.view_label, surface_type: vCfg.surface_type, primary_entity: vCfg.primary_entity } as CreateViewRequest)
+        const viewKey = v.artifact_id
         await saveDraft(viewKey, { payload: vCfg.payload as unknown as import('../../types/viewStudio').ViewPayload })
         await publishView(viewKey)
         addLog(`Created view: ${vCfg.view_label}`)
