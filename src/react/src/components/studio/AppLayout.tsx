@@ -14,7 +14,7 @@ interface NavItem {
 
 const STUDIO_NAV: NavItem[] = [
   { path: '/admin/entities', label: 'Entity Designer', icon: <LayoutGrid size={18} /> },
-  { path: '/studio/views', label: 'View Designer', icon: <PanelTop size={18} /> },
+  { path: '/studio/views', label: 'UI Studio', icon: <PanelTop size={18} /> },
   { path: '/admin/expressions', label: 'Expressions', icon: <Code2 size={18} /> },
   { path: '/workflow', label: 'Workflow', icon: <GitBranch size={18} /> },
 ]

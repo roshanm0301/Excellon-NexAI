@@ -10,8 +10,10 @@
 
 import { useState, useCallback } from 'react'
 import { Plus, Trash2, Link2 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '../../../design-system'
 import { useCanvasStore } from './useCanvasStore'
+import { listArtifacts } from '../../../config/studioApi'
 import type { FieldBinding, ComponentRegistryEntry } from '../../../types/viewStudio'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -33,6 +35,17 @@ export function BindingEditor({ registryEntry }: { registryEntry?: ComponentRegi
   const node = selectedKey ? getNode(selectedKey) : null
 
   const [addingProp, setAddingProp] = useState<string | null>(null)
+
+  const primaryEntity = (payload as { primaryEntity?: string } | undefined)?.primaryEntity
+  const { data: artifactData } = useQuery({
+    queryKey: ['artifacts'],
+    queryFn: () => listArtifacts({}),
+    enabled: !!primaryEntity,
+  })
+  const entityArtifact = artifactData?.items?.find(
+    (a: { entity_type: string }) => a.entity_type?.toLowerCase() === primaryEntity?.toLowerCase()
+  )
+  const entityFields: string[] = (entityArtifact as { payload?: { fields?: Array<{ name: string }> } } | undefined)?.payload?.fields?.map((f: { name: string }) => f.name) ?? []
 
   if (!node) return null
 
@@ -86,6 +99,7 @@ export function BindingEditor({ registryEntry }: { registryEntry?: ComponentRegi
           key={prop}
           prop={prop}
           binding={binding as FieldBinding}
+          entityFields={entityFields}
           onUpdate={(b) => handleUpdateBinding(prop, b)}
           onRemove={() => handleRemoveBinding(prop)}
         />
@@ -134,11 +148,13 @@ export function BindingEditor({ registryEntry }: { registryEntry?: ComponentRegi
 function BindingRow({
   prop,
   binding,
+  entityFields,
   onUpdate,
   onRemove,
 }: {
   prop: string
   binding: FieldBinding
+  entityFields: string[]
   onUpdate: (b: FieldBinding) => void
   onRemove: () => void
 }) {
@@ -167,7 +183,7 @@ function BindingRow({
 
       {/* Source-specific fields */}
       {binding.source === 'field' && (
-        <FieldSourceInputs binding={binding} onUpdate={onUpdate} />
+        <FieldSourceInputs binding={binding} entityFields={entityFields} onUpdate={onUpdate} />
       )}
       {binding.source === 'computed' && (
         <ComputedSourceInputs binding={binding} onUpdate={onUpdate} />
@@ -184,7 +200,7 @@ function BindingRow({
 
 // ─── Source Input Variants ───────────────────────────────────────────────────
 
-function FieldSourceInputs({ binding, onUpdate }: { binding: FieldBinding; onUpdate: (b: FieldBinding) => void }) {
+function FieldSourceInputs({ binding, entityFields, onUpdate }: { binding: FieldBinding; entityFields: string[]; onUpdate: (b: FieldBinding) => void }) {
   return (
     <>
       <div className="pp-field">
@@ -199,13 +215,24 @@ function FieldSourceInputs({ binding, onUpdate }: { binding: FieldBinding; onUpd
       </div>
       <div className="pp-field">
         <label className="pp-field__label">Field Key</label>
-        <input
-          type="text"
-          className="pp-field__input"
-          value={binding.field_key ?? ''}
-          onChange={e => onUpdate({ ...binding, field_key: e.target.value || undefined })}
-          placeholder="e.g., first_name"
-        />
+        {entityFields.length > 0 ? (
+          <select
+            className="pp-field__input"
+            value={binding.field_key ?? ''}
+            onChange={e => onUpdate({ ...binding, field_key: e.target.value || undefined })}
+          >
+            <option value="">Select field…</option>
+            {entityFields.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
+        ) : (
+          <input
+            type="text"
+            className="pp-field__input"
+            value={binding.field_key ?? ''}
+            onChange={e => onUpdate({ ...binding, field_key: e.target.value || undefined })}
+            placeholder="e.g., first_name"
+          />
+        )}
       </div>
     </>
   )

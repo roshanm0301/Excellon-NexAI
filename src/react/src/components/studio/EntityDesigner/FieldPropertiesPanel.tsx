@@ -98,6 +98,54 @@ function VisibilityToggle({ value, onChange }: {
   )
 }
 
+function EnumValuesEditor({ values, onChange }: {
+  values: Array<{ code: string; label: string; sortOrder?: number }>
+  onChange: (v: Array<{ code: string; label: string; sortOrder?: number }>) => void
+}) {
+  const add = () => onChange([...values, { code: '', label: '', sortOrder: values.length }])
+  const remove = (i: number) => onChange(values.filter((_, idx) => idx !== i))
+  const update = (i: number, patch: { code?: string; label?: string }) =>
+    onChange(values.map((v, idx) => idx === i ? { ...v, ...patch } : v))
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--fg-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        Enum Values
+      </div>
+      {values.map((v, i) => (
+        <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <input
+            type="text"
+            value={v.code}
+            onChange={e => update(i, { code: e.target.value })}
+            placeholder="code"
+            style={{ flex: 1, fontSize: 12, padding: '4px 8px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-primary)', color: 'var(--fg-primary)' }}
+          />
+          <input
+            type="text"
+            value={v.label}
+            onChange={e => update(i, { label: e.target.value })}
+            placeholder="label"
+            style={{ flex: 1, fontSize: 12, padding: '4px 8px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-primary)', color: 'var(--fg-primary)' }}
+          />
+          <button
+            onClick={() => remove(i)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-tertiary)', padding: 2, flexShrink: 0 }}
+          >
+            <X size={12} />
+          </button>
+        </div>
+      ))}
+      <button
+        onClick={add}
+        style={{ alignSelf: 'flex-start', fontSize: 11, padding: '3px 10px', border: '1px dashed var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'transparent', color: 'var(--fg-secondary)', cursor: 'pointer' }}
+      >
+        + Add Value
+      </button>
+    </div>
+  )
+}
+
 export function FieldPropertiesPanel({ field, onChange, onClose, onOpenFullEditor }: FieldPropertiesPanelProps) {
   const layer = (field as FieldDef & { layer?: Layer }).layer
 
@@ -191,6 +239,16 @@ export function FieldPropertiesPanel({ field, onChange, onClose, onOpenFullEdito
           </div>
         </div>
       </div>
+
+      {/* Enum values editor */}
+      {field.type === 'enum' && (
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-secondary)', flexShrink: 0 }}>
+          <EnumValuesEditor
+            values={(field as FieldDef & { enumValues?: Array<{ code: string; label: string; sortOrder?: number }> }).enumValues ?? []}
+            onChange={vals => onChange({ enumValues: vals } as Partial<FieldDef>)}
+          />
+        </div>
+      )}
 
       {/* Collapsible sections */}
       <div style={{ flex: 1 }}>

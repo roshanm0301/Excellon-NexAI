@@ -38,6 +38,7 @@ export interface FieldDef {
   visibility?: 'all' | 'auth' | 'admin'
   classification?: string
   searchable?: boolean
+  enumValues?: Array<{ code: string; label: string; sortOrder?: number }>
 }
 
 interface FieldBuilderProps {
