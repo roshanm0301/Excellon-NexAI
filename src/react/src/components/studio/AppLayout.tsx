@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutGrid, Shield, GitBranch, Search, Bell, ChevronDown,
-  Menu, HelpCircle, Network, Layers, Code2, PanelTop,
+  Menu, HelpCircle, Network, Layers, Code2, PanelTop, PlayCircle,
 } from 'lucide-react'
 
 interface NavItem {
@@ -23,6 +23,7 @@ const ADMIN_NAV: NavItem[] = [
   { path: '/admin/rules', label: 'Rule Builder', icon: <Shield size={18} /> },
   { path: '/admin/overlays', label: 'Overlays', icon: <Layers size={18} /> },
   { path: '/admin/nodes', label: 'Nodes', icon: <Network size={18} /> },
+  { path: '/admin/setup', label: 'Demo Setup', icon: <PlayCircle size={18} /> },
 ]
 
 const ALL_NAV = [...STUDIO_NAV, ...ADMIN_NAV]

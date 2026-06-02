@@ -19,6 +19,7 @@ const ExpressionStudioPage = lazy(() => import('./pages/studio/ExpressionStudioP
 const ViewDesignerListPage = lazy(() => import('./pages/admin/ViewDesignerListPage'))
 const ViewDesignerPage = lazy(() => import('./pages/studio/view-designer/ViewDesignerPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
+const DemoSetupPage = lazy(() => import('./pages/admin/DemoSetupPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,6 +53,7 @@ const router = createBrowserRouter(
         { path: 'admin/expressions', element: wrap(<ExpressionStudioPage />) },
         { path: 'studio/views', element: wrap(<ViewDesignerListPage />) },
         { path: 'studio/views/:viewId/edit', element: wrap(<ViewDesignerPage />) },
+        { path: 'admin/setup', element: wrap(<DemoSetupPage />) },
         { path: 'workflow', element: wrap(<WorkflowPage />) },
         { path: '*', element: wrap(<NotFoundPage />) },
       ],
