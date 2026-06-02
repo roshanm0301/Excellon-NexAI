@@ -58,7 +58,7 @@ const router = createBrowserRouter(
       ],
     },
   ],
-  { basename: '/Excellon-NexAI' },
+  { basename: import.meta.env.BASE_URL.replace(/\/$/, '') || '/' },
 )
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
