@@ -88,9 +88,8 @@ jobs:
 
           print(f'Uploaded {len(files_payload)} files. Creating deployment...')
 
-          result = api('POST', '/v13/deployments', body={
+          result = api('POST', f'/v13/deployments?projectId={PROJECT_ID}', body={
               'name': 'excellon-nex-ai',
-              'projectId': PROJECT_ID,
               'target': 'production',
               'files': files_payload,
               'projectSettings': {'framework': None, 'buildCommand': None, 'outputDirectory': None},
