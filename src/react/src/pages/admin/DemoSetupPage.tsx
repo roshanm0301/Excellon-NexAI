@@ -1,13 +1,13 @@
 import { useState, useRef } from 'react'
 import { PlayCircle, RotateCcw, CheckCircle2, XCircle, Clock } from 'lucide-react'
-import { PageLayout, Button, ProgressBar, Spinner, useToast } from '../../../design-system'
+import { PageLayout, Button, ProgressBar, Spinner, useToast } from '../../design-system'
 import {
   createArtifact, publishArtifact,
   createNode,
   createOverlay,
   createView, saveDraft, publishView,
-} from '../../../config/studioApi'
-import type { CreateViewRequest } from '../../../types/viewStudio'
+} from '../../config/studioApi'
+import type { CreateViewRequest } from '../../types/viewStudio'
 
 // ── Entity Configs ─────────────────────────────────────────────────────────────
 
@@ -586,7 +586,7 @@ const VIEW_CONFIGS = [
           ]},
           { component_key: 'table', component_code: 'DataTable', props: { columns: ['documentNumber', 'customer', 'salesExecutive', 'documentDate', 'status', 'netAmount'] }, bindings: { data: { source: 'field', field_key: 'records' } }, children: [] },
         ],
-        bindings: {}, props: {},
+        bindings: {},
       },
       datasources: [{ key: 'records', entity: 'sale_order', type: 'list' }],
       events: [],
@@ -605,12 +605,12 @@ const VIEW_CONFIGS = [
             { component_key: 'exec-field', component_code: 'ReferenceSelect', props: { label: 'Sales Executive' }, bindings: { value: { source: 'field', field_key: 'salesExecutive' } }, children: [] },
             { component_key: 'payment-mode', component_code: 'Dropdown', props: { label: 'Payment Mode' }, bindings: { value: { source: 'field', field_key: 'paymentMode' } }, children: [] },
             { component_key: 'place-supply', component_code: 'Dropdown', props: { label: 'Place of Supply' }, bindings: { value: { source: 'field', field_key: 'placeOfSupply' } }, children: [] },
-          ], bindings: {}, props: {}},
+          ], bindings: {}},
           { component_key: 'lines-section', component_code: 'Section', props: { title: 'Order Lines' }, children: [
             { component_key: 'lines-table', component_code: 'DataTable', props: { columns: ['productCode', 'uom', 'orderQuantity', 'rate', 'lineAmount'] }, bindings: { data: { source: 'field', field_key: 'lines' } }, children: [] },
-          ], bindings: {}, props: {}},
+          ], bindings: {}},
         ],
-        bindings: {}, props: {},
+        bindings: {},
       },
       datasources: [{ key: 'record', entity: 'sale_order', type: 'single' }],
       events: [],
@@ -626,7 +626,7 @@ const VIEW_CONFIGS = [
         component_key: 'root', component_code: 'PageRoot', props: { title: 'Customer Master' }, children: [
           { component_key: 'table', component_code: 'DataTable', props: { columns: ['customerCode', 'firstName', 'lastName', 'customerType', 'primaryPhone', 'email', 'gstin'] }, bindings: { data: { source: 'field', field_key: 'records' } }, children: [] },
         ],
-        bindings: {}, props: {},
+        bindings: {},
       },
       datasources: [{ key: 'records', entity: 'customer', type: 'list' }],
       events: [],
@@ -642,7 +642,7 @@ const VIEW_CONFIGS = [
         component_key: 'root', component_code: 'PageRoot', props: { title: 'Vehicle Catalog' }, children: [
           { component_key: 'table', component_code: 'DataTable', props: { columns: ['vehicleCode', 'modelName', 'manufacturer', 'variant', 'fuelType', 'basePrice'] }, bindings: { data: { source: 'field', field_key: 'records' } }, children: [] },
         ],
-        bindings: {}, props: {},
+        bindings: {},
       },
       datasources: [{ key: 'records', entity: 'vehicle', type: 'list' }],
       events: [],
@@ -661,10 +661,10 @@ const VIEW_CONFIGS = [
             { component_key: 'm2', component_code: 'MetricComparison', props: { label: 'This Month', value: '0', trend: 'neutral' }, bindings: {}, children: [] },
             { component_key: 'm3', component_code: 'MetricComparison', props: { label: 'Open Orders', value: '0', trend: 'neutral' }, bindings: {}, children: [] },
             { component_key: 'm4', component_code: 'MetricComparison', props: { label: 'Invoiced', value: '0', trend: 'neutral' }, bindings: {}, children: [] },
-          ], bindings: {}, props: {}},
+          ], bindings: {}},
           { component_key: 'open-orders', component_code: 'DataTable', props: { title: 'Open Sale Orders', columns: ['documentNumber', 'customer', 'netAmount', 'status'] }, bindings: {}, children: [] },
         ],
-        bindings: {}, props: {},
+        bindings: {},
       },
       datasources: [],
       events: [],
@@ -776,9 +776,9 @@ export default function DemoSetupPage() {
 
       // Step 4: Overlays
       setStep(4, 'running')
-      await createOverlay({ layer: 'platform', artifact_type: 'entity_schema', artifact_key: 'sale_order', scope_key: 'global', delta: { settings: { auditRetentionDays: 2555, softDelete: true } } } as Parameters<typeof createOverlay>[0])
+      await createOverlay({ entity_type: 'entity_schema', layer: 'platform', artifact_type: 'entity_schema', artifact_key: 'sale_order', scope_key: 'global', delta: { settings: { auditRetentionDays: 2555, softDelete: true } } } as unknown as Parameters<typeof createOverlay>[0])
       addLog('Created overlay: Platform base (sale_order)')
-      await createOverlay({ layer: 'vertical', artifact_type: 'entity_schema', artifact_key: 'sale_order', scope_key: 'india-automobile', delta: { fields: { gstin: { required: true, label: 'Customer GSTIN (India GST)' }, placeOfSupply: { required: true, label: 'Place of Supply (State)' } }, settings: { currencyCode: 'INR', taxSystem: 'GST', verticalLabel: 'India Automobile' } } } as Parameters<typeof createOverlay>[0])
+      await createOverlay({ entity_type: 'entity_schema', layer: 'vertical', artifact_type: 'entity_schema', artifact_key: 'sale_order', scope_key: 'india-automobile', delta: { fields: { gstin: { required: true, label: 'Customer GSTIN (India GST)' }, placeOfSupply: { required: true, label: 'Place of Supply (State)' } }, settings: { currencyCode: 'INR', taxSystem: 'GST', verticalLabel: 'India Automobile' } } } as unknown as Parameters<typeof createOverlay>[0])
       addLog('Created overlay: India Automobile vertical (sale_order)')
       setStep(4, 'done')
       setProgress(80)
@@ -788,7 +788,7 @@ export default function DemoSetupPage() {
       for (const vCfg of VIEW_CONFIGS) {
         const v = await createView({ view_key: vCfg.view_key, view_label: vCfg.view_label, surface_type: vCfg.surface_type, primary_entity: vCfg.primary_entity } as CreateViewRequest)
         const viewKey = (v as { view_key?: string }).view_key ?? vCfg.view_key
-        await saveDraft(viewKey, { payload: vCfg.payload as Record<string, unknown> })
+        await saveDraft(viewKey, { payload: vCfg.payload as unknown as import('../../types/viewStudio').ViewPayload })
         await publishView(viewKey)
         addLog(`Created view: ${vCfg.view_label}`)
       }
