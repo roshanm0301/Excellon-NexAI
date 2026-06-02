@@ -58,13 +58,30 @@ jobs:
             -H "Authorization: Bearer $VERCEL_TOKEN" \
             | python3 -c "import sys,json; d=json.load(sys.stdin); print('Project:', d.get('name', d.get('error','NOT FOUND')))"
 
+      - name: Fix Vercel project settings (clear rootDirectory)
+        run: |
+          RESULT=$(curl -s -X PATCH "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory":null,"outputDirectory":"dist","buildCommand":"npm run build","installCommand":"npm ci","framework":"vite"}')
+          echo "API response: $(echo $RESULT | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get(\"name\", d.get(\"error\",\"unknown\")))')"
+
+      - name: Set Vercel env vars
+        run: |
+          curl -s -X POST "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
+            -d '{"key":"VITE_MSW","value":"true","type":"plain","target":["production"]}' > /dev/null
+          curl -s -X POST "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
+            -d '{"key":"VITE_BASE_PATH","value":"/","type":"plain","target":["production"]}' > /dev/null
+          echo "Env vars set"
+
       - name: Write project.json
         run: |
           mkdir -p src/react/.vercel
           echo '{"projectId":"prj_fs6owHfBqr17Eusgn8EgZSgnVkH2","orgId":"team_DxCwvHD5aDLjvdLkKc6qyFK0"}' \
             > src/react/.vercel/project.json
-          cat src/react/.vercel/project.json
 
       - name: Deploy to Vercel
         working-directory: src/react
-        run: vercel ./dist --prod --yes --token=$VERCEL_TOKEN
+        run: vercel --prod --yes --token=$VERCEL_TOKEN
