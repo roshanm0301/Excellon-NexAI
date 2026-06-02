@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutGrid, Shield, GitBranch, Search, Bell, ChevronDown,
-  Menu, HelpCircle, Network, Layers, Code2,
+  Menu, HelpCircle, Network, Layers, Code2, PanelTop,
 } from 'lucide-react'
 
 interface NavItem {
@@ -14,6 +14,7 @@ interface NavItem {
 
 const STUDIO_NAV: NavItem[] = [
   { path: '/admin/entities', label: 'Entity Designer', icon: <LayoutGrid size={18} /> },
+  { path: '/studio/views', label: 'View Designer', icon: <PanelTop size={18} /> },
   { path: '/admin/expressions', label: 'Expressions', icon: <Code2 size={18} /> },
   { path: '/workflow', label: 'Workflow', icon: <GitBranch size={18} /> },
 ]
