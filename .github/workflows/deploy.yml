@@ -100,11 +100,33 @@ jobs:
               ]
           })
 
-          url  = result.get('url', '')
-          state = result.get('readyState', result.get('status', ''))
-          print(f'Deployment created: https://{url}')
-          print(f'State: {state}')
-          if not url:
-              print('ERROR: no URL in response:', json.dumps(result, indent=2))
+          dep_id = result.get('id', '')
+          dep_url = result.get('url', '')
+          if not dep_id:
+              print('ERROR: no deployment id in response:', json.dumps(result, indent=2))
               exit(1)
+
+          print(f'Deployment created: https://{dep_url}  id={dep_id}')
+
+          # Poll until READY (static file deploys usually take 5-15s)
+          import time
+          for attempt in range(30):
+              time.sleep(3)
+              status = api('GET', f'/v13/deployments/{dep_id}')
+              state  = status.get('readyState', status.get('status', ''))
+              print(f'  [{attempt+1}] state={state}')
+              if state == 'READY':
+                  break
+              if state in ('ERROR', 'CANCELED'):
+                  print('ERROR: deployment failed:', json.dumps(status, indent=2))
+                  exit(1)
+          else:
+              print('ERROR: deployment did not become READY within 90s')
+              exit(1)
+
+          # Explicitly assign the production alias so the domain always points here
+          alias_result = api('POST', f'/v2/deployments/{dep_id}/aliases',
+                             body={'alias': 'excellon-nex-ai.vercel.app'})
+          print(f'Alias assigned: {alias_result}')
+          print(f'Production URL: https://excellon-nex-ai.vercel.app')
           PYEOF
