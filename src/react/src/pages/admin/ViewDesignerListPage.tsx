@@ -152,7 +152,7 @@ export function ViewDesignerListPage() {
 
   return (
     <PageLayout
-      title="View Designer"
+      title="UI Studio"
       subtitle={`${data?.total ?? 0} views`}
       headerActions={
         <Button onClick={() => setCreating(true)} size="sm">

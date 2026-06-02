@@ -114,7 +114,7 @@ export const viewHandlers = [
   http.get('/api/v1/studio/views/:key', ({ params }) => {
     const view = viewStore.find(v => v.view_key === params.key || v.view_id === params.key)
     if (!view) return new HttpResponse(null, { status: 404 })
-    return HttpResponse.json(view)
+    return HttpResponse.json({ ...view, latest_payload: view.current_draft?.payload ?? {} })
   }),
 
   // Save draft
