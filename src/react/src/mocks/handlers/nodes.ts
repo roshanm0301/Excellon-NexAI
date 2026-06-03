@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import type { NodeTreeItem } from '../../config/studioApi'
+import { seedNodes } from '../data/nodes'
 
 const NODE_KEY = 'msw_nodes'
 
@@ -8,7 +9,7 @@ function loadNodes(): NodeTreeItem[] {
     const raw = localStorage.getItem(NODE_KEY)
     if (raw) return JSON.parse(raw) as NodeTreeItem[]
   } catch { /* ignore */ }
-  return []
+  return seedNodes.map(n => ({ ...n }))
 }
 
 function saveNodes(nodes: NodeTreeItem[]) {

@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw'
+import { seedViews } from '../data/views'
 
 const VIEWS_KEY = 'msw_views'
 
@@ -42,7 +43,7 @@ function loadViews(): ViewRecord[] {
     const raw = localStorage.getItem(VIEWS_KEY)
     if (raw) return JSON.parse(raw) as ViewRecord[]
   } catch { /* ignore */ }
-  return []
+  return seedViews.map(v => ({ ...v }))
 }
 
 function saveViews(views: ViewRecord[]) {

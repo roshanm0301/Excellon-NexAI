@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw'
+import { seedOverlays } from '../data/overlays'
 
 const OVERLAY_KEY = 'msw_overlays'
 
@@ -18,7 +19,7 @@ function loadOverlays(): OverlayRecord[] {
     const raw = localStorage.getItem(OVERLAY_KEY)
     if (raw) return JSON.parse(raw) as OverlayRecord[]
   } catch { /* ignore */ }
-  return []
+  return seedOverlays.map(o => ({ ...o }))
 }
 
 function saveOverlays(overlays: OverlayRecord[]) {
