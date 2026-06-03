@@ -37,7 +37,7 @@ export default function RuleEditorPageV2() {
   const { toast } = useToast()
 
   const [jsonMode, setJsonMode] = useState(false)
-  const [activeTab, setActiveTab] = useState(0)
+  const [activeTab, setActiveTab] = useState('conditions')
 
   // Server state
   const { data: ruleSet, isLoading, error } = useQuery({
@@ -88,8 +88,8 @@ export default function RuleEditorPageV2() {
   // ─── Loading / Error states ─────────────────────────────────────────────────
 
   if (isLoading) return <div style={{ padding: 40, textAlign: 'center' }}><Spinner /></div>
-  if (error) return <Banner variant="error">Failed to load rule set</Banner>
-  if (!rule) return <Banner variant="error">Rule not found</Banner>
+  if (error) return <Banner variant="error" title="Failed to load rule set" />
+  if (!rule) return <Banner variant="error" title="Rule not found" />
 
   // ─── JSON mode ──────────────────────────────────────────────────────────────
 
@@ -120,10 +120,10 @@ export default function RuleEditorPageV2() {
   // ─── Visual mode ────────────────────────────────────────────────────────────
 
   const tabs = [
-    { label: rule.content_type === 'decision_table' ? 'Decision Table' : 'Conditions' },
-    { label: 'Actions' },
-    { label: 'Conflicts' },
-    { label: 'Simulator' },
+    { id: 'conditions', label: rule.content_type === 'decision_table' ? 'Decision Table' : 'Conditions' },
+    { id: 'actions', label: 'Actions' },
+    { id: 'conflicts', label: 'Conflicts' },
+    { id: 'simulator', label: 'Simulator' },
   ]
 
   return (
@@ -151,11 +151,11 @@ export default function RuleEditorPageV2() {
             value={rule.name}
             onChange={(e) => updateRule({ name: e.target.value })}
           />
-          <Badge variant="neutral">{rule.entity_type}</Badge>
+          <Badge variant="gray">{rule.entity_type}</Badge>
           <Badge variant="info">{rule.content_type}</Badge>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-tertiary)' }}>Enabled</span>
-            <Toggle checked={rule.enabled} onChange={(v) => updateRule({ enabled: v })} size="sm" />
+            <Toggle checked={rule.enabled} onChange={(v) => updateRule({ enabled: v })} />
           </div>
         </div>
 
@@ -206,13 +206,13 @@ export default function RuleEditorPageV2() {
       <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '0 24px', borderBottom: '1px solid var(--border-primary)' }}>
           <TabGroup
-            tabs={tabs.map(t => t.label)}
-            activeIndex={activeTab}
+            tabs={tabs}
+            active={activeTab}
             onChange={setActiveTab}
           />
         </div>
         <div style={{ flex: 1, padding: 24, overflow: 'auto' }}>
-          {activeTab === 0 && (
+          {activeTab === 'conditions' && (
             rule.content_type === 'decision_table' ? (
               <DecisionTableEditor
                 table={rule.decision_table ?? createBlankDecisionTable()}
@@ -225,16 +225,16 @@ export default function RuleEditorPageV2() {
               />
             )
           )}
-          {activeTab === 1 && (
+          {activeTab === 'actions' && (
             <ActionsEditor
               actions={rule.actions ?? []}
               onChange={(actions) => updateRule({ actions })}
             />
           )}
-          {activeTab === 2 && (
+          {activeTab === 'conflicts' && (
             <ConflictMatrixPanel ruleSetKey={rule.id} />
           )}
-          {activeTab === 3 && (
+          {activeTab === 'simulator' && (
             <RuleSimulator entityType={rule.entity_type} />
           )}
         </div>

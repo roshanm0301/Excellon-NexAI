@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  BarChart3, TrendingUp, TrendingDown, AlertTriangle, Zap, Shield, Clock,
+  BarChart3, TrendingUp, AlertTriangle, Zap, Shield, Clock,
 } from 'lucide-react'
-import { Badge, Spinner, Banner, Select } from '../../../design-system'
+import { Badge, Spinner, Select } from '../../../design-system'
 import {
   getRuleCoverage, getTopFiredRules, getDeadRules, getRuleExecutionStats,
-  type RuleCoverageRow, type TopFiredRule, type DeadRule, type RuleExecStatBucket,
+  type RuleCoverageRow, type TopFiredRule, type RuleExecStatBucket,
 } from '../../../config/studioApi'
 
 export function RuleCoverageDashboard() {
@@ -129,7 +129,7 @@ export function RuleCoverageDashboard() {
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {deadItems.map((d) => (
-              <Badge key={`${d.rule_key}-${d.entity_type}`} variant="warning">
+              <Badge key={`${d.rule_key}-${d.entity_type}`} variant="warn">
                 {d.entity_type}/{d.rule_key}
               </Badge>
             ))}

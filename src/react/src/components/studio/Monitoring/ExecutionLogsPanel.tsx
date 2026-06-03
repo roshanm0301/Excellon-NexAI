@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { FileText, Filter, RefreshCw } from 'lucide-react'
+import { Filter, RefreshCw } from 'lucide-react'
 import { Badge, Spinner, Button, Input, Select, Toggle } from '../../../design-system'
 import {
   getRuleExecutionLog, getWorkflowExecutionLog,
-  type RuleLogEntry, type WorkflowLogEntry,
 } from '../../../config/studioApi'
 
 type LogSource = 'rules' | 'workflow' | 'all'
@@ -66,7 +65,7 @@ export function ExecutionLogsPanel() {
         <Filter size={14} color="var(--fg-tertiary)" />
         <Select
           value={source}
-          onChange={(v) => setSource(v as LogSource)}
+          onChange={(e) => setSource((e.target as HTMLSelectElement).value as LogSource)}
           options={[
             { label: 'All Sources', value: 'all' },
             { label: 'Rules Only', value: 'rules' },
@@ -92,7 +91,7 @@ export function ExecutionLogsPanel() {
         {(source === 'workflow' || source === 'all') && (
           <Select
             value={statusFilter}
-            onChange={(v) => setStatusFilter(v)}
+            onChange={(e) => setStatusFilter((e.target as HTMLSelectElement).value)}
             options={[
               { label: 'All Statuses', value: '' },
               { label: 'Completed', value: 'completed' },
