@@ -35,12 +35,16 @@ export function EntityDesignerPage() {
 
   const createMut = useMutation({
     mutationFn: (entityType: string) =>
-      createArtifact({ entity_type: entityType, payload: { fields: [], sections: [], relationships: [] } }),
+      createArtifact({ 
+        artifact_name: entityType, 
+        artifact_type: 'entity_schema', 
+        payload: { entity_type: entityType, fields: [], sections: [], relationships: [] } 
+      }),
     onSuccess: (artifact) => {
       qc.invalidateQueries({ queryKey: ['entity-artifacts'] })
-      success('Entity created', `${artifact.entity_type} draft created`)
+      success('Entity created', `${artifact.artifact_name} draft created`)
       setCreating(false)
-      navigate(`/admin/entities/${artifact.id}/edit`)
+      navigate(`/admin/entities/${artifact.version_id}/edit`)
     },
     onError: () => error('Failed to create entity'),
   })

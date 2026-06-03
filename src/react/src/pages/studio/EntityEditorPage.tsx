@@ -151,13 +151,16 @@ export function EntityEditorPage() {
   })
 
   const createMut = useMutation({
-    mutationFn: (payload: Record<string, unknown>) =>
-      createArtifact({
-        entity_type: (settings.displayName ?? 'new-entity')
-          .toLowerCase()
-          .replace(/\s+/g, '_'),
+    mutationFn: (payload: Record<string, unknown>) => {
+      const entityName = (settings.displayName ?? 'new-entity')
+        .toLowerCase()
+        .replace(/\s+/g, '_')
+      return createArtifact({
+        artifact_name: entityName,
+        artifact_type: 'entity_schema',
         payload,
-      }),
+      })
+    },
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['artifacts'] })
       success('Saved', 'Entity created successfully')

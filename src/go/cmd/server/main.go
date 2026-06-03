@@ -27,6 +27,7 @@ import (
 	"github.com/excellon/nexai/internal/recycle"
 	"github.com/excellon/nexai/internal/retention"
 	"github.com/excellon/nexai/internal/rules"
+	"github.com/excellon/nexai/internal/monitoring"
 	"github.com/excellon/nexai/internal/viewstudio"
 	"github.com/excellon/nexai/internal/workflow"
 	business_workflow "github.com/excellon/nexai/internal/business_workflow"
@@ -106,6 +107,9 @@ func main() {
 	viewStudioRepo := viewstudio.NewRepo(pool)
 	viewStudioHandler := viewstudio.NewHandler(viewStudioRepo)
 
+	// Monitoring
+	monitoringHandler := monitoring.NewHandler(pool)
+
 	// Index management
 	indexService := indexmgmt.NewService(pool)
 	indexHandler := indexmgmt.NewHandler(indexService)
@@ -157,6 +161,9 @@ func main() {
 		})
 		r.Route("/studio", func(r chi.Router) {
 			viewStudioHandler.RegisterRoutes(r)
+		})
+		r.Route("/monitoring", func(r chi.Router) {
+			monitoringHandler.RegisterRoutes(r)
 		})
 	})
 	r.Route("/api/nlp", func(r chi.Router) {

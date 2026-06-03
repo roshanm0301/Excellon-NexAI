@@ -27,14 +27,17 @@ export function DataTable<T extends Record<string, unknown>>({
 }: DataTableProps<T>) {
   const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null)
 
+  // Handle undefined or null rows
+  const safeRows = rows ?? []
+
   const sorted = sort
-    ? [...rows].sort((a, b) => {
+    ? [...safeRows].sort((a, b) => {
         const av = a[sort.key] as string | number; const bv = b[sort.key] as string | number
         if (av < bv) return sort.dir === 'asc' ? -1 : 1
         if (av > bv) return sort.dir === 'asc' ? 1 : -1
         return 0
       })
-    : rows
+    : safeRows
 
   const toggleSort = (key: string) => {
     setSort(s => s?.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' })
@@ -47,10 +50,10 @@ export function DataTable<T extends Record<string, unknown>>({
           <Spinner />
         </div>
       )}
-      {!loading && rows.length === 0 && (
+      {!loading && safeRows.length === 0 && (
         <EmptyState title={emptyTitle} description={emptyDescription} />
       )}
-      {!loading && rows.length > 0 && (
+      {!loading && safeRows.length > 0 && (
         <table className="ex-table">
           <thead>
             <tr>
