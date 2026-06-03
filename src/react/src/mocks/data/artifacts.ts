@@ -1627,4 +1627,993 @@ export const seedArtifacts: Artifact[] = [
       { name: 'fiscalYear', type: 'parent', targetEntity: 'fiscal_year', foreignKey: 'fiscalYear' },
     ],
   }),
+
+  // ── ACCOUNTS MODULE ──────────────────────────────────────────────────────────
+
+  a('00000000-0000-0000-0003-000000000001', 'account_template_type', {
+    displayName: 'Account Template Type', pluralName: 'Account Template Types', category: 'master', icon: 'tag', color: '#6366F1',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000002', 'account_type', {
+    displayName: 'Account Type', pluralName: 'Account Types', category: 'master', icon: 'layers', color: '#8B5CF6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000003', 'business_type', {
+    displayName: 'Business Type', pluralName: 'Business Types', category: 'master', icon: 'briefcase', color: '#3B82F6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000004', 'period_type', {
+    displayName: 'Period Type', pluralName: 'Period Types', category: 'master', icon: 'calendar', color: '#14B8A6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'daysCount', label: 'Days Count', type: 'integer', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'daysCount', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000005', 'reason', {
+    displayName: 'Reason', pluralName: 'Reasons', category: 'master', icon: 'info', color: '#F59E0B',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000006', 'reason_type', {
+    displayName: 'Reason Type', pluralName: 'Reason Types', category: 'master', icon: 'tag', color: '#EC4899',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000007', 'recurring_period_type', {
+    displayName: 'Recurring Period Type', pluralName: 'Recurring Period Types', category: 'master', icon: 'refresh-cw', color: '#10B981',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'intervalDays', label: 'Interval Days', type: 'integer', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'intervalDays', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000008', 'account_template', {
+    displayName: 'Account Template', pluralName: 'Account Templates', category: 'master', icon: 'file-text', color: '#6366F1',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'templateTypeId', label: 'Template Type', type: 'reference', referenceEntity: 'account_template_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'templateTypeId', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000009', 'business_unit_account', {
+    displayName: 'Business Unit Account', pluralName: 'Business Unit Accounts', category: 'master', icon: 'building', color: '#3B82F6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'businessTypeId', label: 'Business Type', type: 'reference', referenceEntity: 'business_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'businessTypeId', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000010', 'fiscal_year', {
+    displayName: 'Fiscal Year', pluralName: 'Fiscal Years', category: 'master', icon: 'calendar', color: '#14B8A6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'periodTypeId', label: 'Period Type', type: 'reference', referenceEntity: 'period_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'startDate', label: 'Start Date', type: 'datetime', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'endDate', label: 'End Date', type: 'datetime', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isCurrent', label: 'Is Current', type: 'boolean', required: false, unique: false, indexed: false, default: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'periodTypeId', 'startDate', 'endDate', 'isCurrent', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000011', 'master_entity_lookup_value', {
+    displayName: 'Master Entity Lookup Value', pluralName: 'Master Entity Lookup Values', category: 'master', icon: 'database', color: '#8B5CF6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'entityType', label: 'Entity Type', type: 'string', required: true, unique: false, indexed: true, storageType: 'physical' },
+      { name: 'entityId', label: 'Entity ID', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'displayValue', label: 'Display Value', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'secondaryValue', label: 'Secondary Value', type: 'string', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['entityType', 'entityId', 'displayValue', 'secondaryValue', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000012', 'account_posting_type', {
+    displayName: 'Account Posting Type', pluralName: 'Account Posting Types', category: 'master', icon: 'arrow-right-left', color: '#F59E0B',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'businessUnitAccountId', label: 'Business Unit Account', type: 'reference', referenceEntity: 'business_unit_account', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'businessUnitAccountId', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000013', 'fiscal_period', {
+    displayName: 'Fiscal Period', pluralName: 'Fiscal Periods', category: 'master', icon: 'calendar-range', color: '#14B8A6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'fiscalYearId', label: 'Fiscal Year', type: 'reference', referenceEntity: 'fiscal_year', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'periodTypeId', label: 'Period Type', type: 'reference', referenceEntity: 'period_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'startDate', label: 'Start Date', type: 'datetime', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'endDate', label: 'End Date', type: 'datetime', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'periodNumber', label: 'Period Number', type: 'integer', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isClosed', label: 'Is Closed', type: 'boolean', required: false, unique: false, indexed: false, default: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'fiscalYearId', 'periodTypeId', 'startDate', 'endDate', 'periodNumber', 'isClosed', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000014', 'scheduler_configuration', {
+    displayName: 'Scheduler Configuration', pluralName: 'Scheduler Configurations', category: 'master', icon: 'clock', color: '#10B981',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'fiscalYearId', label: 'Fiscal Year', type: 'reference', referenceEntity: 'fiscal_year', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'schedulerDate', label: 'Scheduler Date', type: 'datetime', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'frequency', label: 'Frequency', type: 'string', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'fiscalYearId', 'schedulerDate', 'frequency', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000015', 'master_account_template', {
+    displayName: 'Master Account Template', pluralName: 'Master Account Templates', category: 'master', icon: 'file-template', color: '#6366F1',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'accountTypeId', label: 'Account Type', type: 'reference', referenceEntity: 'account_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'accountTemplateId', label: 'Account Template', type: 'reference', referenceEntity: 'account_template', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'entitySubLedgerIds', label: 'Entity Sub Ledger IDs', type: 'json', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'accountTypeId', 'accountTemplateId', 'entitySubLedgerIds', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000016', 'tenant_chart_of_account', {
+    displayName: 'Tenant Chart of Account', pluralName: 'Tenant Chart of Accounts', category: 'master', icon: 'list-tree', color: '#3B82F6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'accountTypeId', label: 'Account Type', type: 'reference', referenceEntity: 'account_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'accountTemplateId', label: 'Account Template', type: 'reference', referenceEntity: 'account_template', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'businessUnitAccountId', label: 'Business Unit Account', type: 'reference', referenceEntity: 'business_unit_account', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'entitySubLedgerIds', label: 'Entity Sub Ledger IDs', type: 'json', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'accountTypeId', 'accountTemplateId', 'businessUnitAccountId', 'entitySubLedgerIds', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000017', 'posting_type_template', {
+    displayName: 'Posting Type Template', pluralName: 'Posting Type Templates', category: 'master', icon: 'copy', color: '#8B5CF6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'accountTemplateId', label: 'Account Template', type: 'reference', referenceEntity: 'account_template', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'masterAccountTemplateId', label: 'Master Account Template', type: 'reference', referenceEntity: 'master_account_template', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'accountTypeId', label: 'Account Type', type: 'reference', referenceEntity: 'account_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'accountTemplateId', 'masterAccountTemplateId', 'accountTypeId', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000018', 'account_posting_metadata', {
+    displayName: 'Account Posting Metadata', pluralName: 'Account Posting Metadata', category: 'master', icon: 'settings', color: '#F59E0B',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'accountPostingTypeId', label: 'Account Posting Type', type: 'reference', referenceEntity: 'account_posting_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'postingTypeTemplateId', label: 'Posting Type Template', type: 'reference', referenceEntity: 'posting_type_template', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'tenantChartOfAccountId', label: 'Tenant Chart of Account', type: 'reference', referenceEntity: 'tenant_chart_of_account', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'action', label: 'Action', type: 'json', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'conditionJson', label: 'Condition JSON', type: 'json', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'bankDetails', label: 'Bank Details', type: 'json', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'accountPostingTypeId', 'postingTypeTemplateId', 'tenantChartOfAccountId', 'action', 'conditionJson', 'bankDetails', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000019', 'bank_organization_mapping', {
+    displayName: 'Bank Organization Mapping', pluralName: 'Bank Organization Mappings', category: 'master', icon: 'bank', color: '#0EA5E9',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'tenantChartOfAccountId', label: 'Tenant Chart of Account', type: 'reference', referenceEntity: 'tenant_chart_of_account', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'branches', label: 'Branches', type: 'json', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'tenantChartOfAccountId', 'branches', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000020', 'default_accounts_setup', {
+    displayName: 'Default Accounts Setup', pluralName: 'Default Accounts Setups', category: 'master', icon: 'settings-2', color: '#10B981',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'accountObject', label: 'Account Object', type: 'json', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'accountObject', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0003-000000000021', 'recurring_journal', {
+    displayName: 'Recurring Journal', pluralName: 'Recurring Journals', category: 'master', icon: 'repeat', color: '#EC4899',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'fiscalYearId', label: 'Fiscal Year', type: 'reference', referenceEntity: 'fiscal_year', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'daysOfWeek', label: 'Days of Week', type: 'json', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'postingDetails', label: 'Posting Details', type: 'json', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'fiscalYearId', 'daysOfWeek', 'postingDetails', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  // ── TAX MODULE ───────────────────────────────────────────────────────────────
+
+  a('00000000-0000-0000-0004-000000000001', 'tax_definition', {
+    displayName: 'Tax Definition', pluralName: 'Tax Definitions', category: 'master', icon: 'shield', color: '#6366F1',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'regimeType', label: 'Regime Type', type: 'enum', enumValues: [{ code: 'GST', label: 'GST' }, { code: 'VAT', label: 'VAT' }, { code: 'TDS', label: 'TDS' }, { code: 'US_SALES_TAX', label: 'US Sales Tax' }, { code: 'CUSTOM', label: 'Custom' }], required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'regimeType', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000002', 'data_type', {
+    displayName: 'Data Type', pluralName: 'Data Types', category: 'master', icon: 'code', color: '#8B5CF6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'dataTypeEnum', label: 'Data Type Enum', type: 'enum', enumValues: [{ code: 'TEXT', label: 'Text' }, { code: 'INTEGER', label: 'Integer' }, { code: 'DECIMAL', label: 'Decimal' }, { code: 'DATE', label: 'Date' }, { code: 'BOOLEAN', label: 'Boolean' }, { code: 'LIST', label: 'List' }, { code: 'UUID', label: 'UUID' }], required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'dataTypeEnum', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000003', 'round_off_type', {
+    displayName: 'Round Off Type', pluralName: 'Round Off Types', category: 'master', icon: 'circle-dot', color: '#14B8A6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'method', label: 'Method', type: 'enum', enumValues: [{ code: 'ROUND', label: 'Round' }, { code: 'CEIL', label: 'Ceil' }, { code: 'FLOOR', label: 'Floor' }, { code: 'NEAREST_5', label: 'Nearest 5' }], required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'decimalPlaces', label: 'Decimal Places', type: 'integer', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'method', 'decimalPlaces', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000004', 'tax_period_type', {
+    displayName: 'Tax Period Type', pluralName: 'Tax Period Types', category: 'master', icon: 'calendar-clock', color: '#10B981',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'granularity', label: 'Granularity', type: 'enum', enumValues: [{ code: 'MONTHLY', label: 'Monthly' }, { code: 'QUARTERLY', label: 'Quarterly' }, { code: 'HALFYEAR', label: 'Half Year' }, { code: 'ANNUAL', label: 'Annual' }], required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'granularity', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000005', 'tax_type', {
+    displayName: 'Tax Type', pluralName: 'Tax Types', category: 'master', icon: 'percent', color: '#3B82F6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxDefinitionId', label: 'Tax Definition', type: 'reference', referenceEntity: 'tax_definition', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxPeriodTypeId', label: 'Tax Period Type', type: 'reference', referenceEntity: 'tax_period_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isRecoverable', label: 'Is Recoverable', type: 'boolean', required: false, unique: false, indexed: false, default: false, storageType: 'physical' },
+      { name: 'isCompound', label: 'Is Compound', type: 'boolean', required: false, unique: false, indexed: false, default: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'taxPeriodTypeId', 'description', 'isRecoverable', 'isCompound', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000006', 'tax_jurisdiction', {
+    displayName: 'Tax Jurisdiction', pluralName: 'Tax Jurisdictions', category: 'master', icon: 'map-pin', color: '#F59E0B',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxDefinitionId', label: 'Tax Definition', type: 'reference', referenceEntity: 'tax_definition', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'parentJurisdictionId', label: 'Parent Jurisdiction', type: 'reference', referenceEntity: 'tax_jurisdiction', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'level', label: 'Level', type: 'enum', enumValues: [{ code: 'Country', label: 'Country' }, { code: 'State', label: 'State' }, { code: 'Province', label: 'Province' }, { code: 'County', label: 'County' }, { code: 'Region', label: 'Region' }, { code: 'Federal', label: 'Federal' }], required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'parentJurisdictionId', 'level', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000007', 'tax_category', {
+    displayName: 'Tax Category', pluralName: 'Tax Categories', category: 'master', icon: 'tag', color: '#EC4899',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxDefinitionId', label: 'Tax Definition', type: 'reference', referenceEntity: 'tax_definition', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000008', 'tax_filing_section', {
+    displayName: 'Tax Filing Section', pluralName: 'Tax Filing Sections', category: 'master', icon: 'file-check', color: '#0EA5E9',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxDefinitionId', label: 'Tax Definition', type: 'reference', referenceEntity: 'tax_definition', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'sectionIdentifier', label: 'Section Identifier', type: 'string', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'sectionIdentifier', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000009', 'tax_entity', {
+    displayName: 'Tax Entity', pluralName: 'Tax Entities', category: 'master', icon: 'users', color: '#6366F1',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxTypeId', label: 'Tax Type', type: 'reference', referenceEntity: 'tax_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'entityDiscriminator', label: 'Entity Discriminator', type: 'enum', enumValues: [{ code: 'CUSTOMER', label: 'Customer' }, { code: 'VENDOR', label: 'Vendor' }, { code: 'PRODUCT', label: 'Product' }, { code: 'SERVICE', label: 'Service' }, { code: 'ACCOUNT', label: 'Account' }, { code: 'EMPLOYEE', label: 'Employee' }], required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'externalEntityId', label: 'External Entity ID', type: 'string', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxTypeId', 'entityDiscriminator', 'externalEntityId', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000010', 'tax_group', {
+    displayName: 'Tax Group', pluralName: 'Tax Groups', category: 'master', icon: 'group', color: '#8B5CF6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxDefinitionId', label: 'Tax Definition', type: 'reference', referenceEntity: 'tax_definition', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'groupType', label: 'Group Type', type: 'enum', enumValues: [{ code: 'INCLUSIVE', label: 'Inclusive' }, { code: 'EXCLUSIVE', label: 'Exclusive' }, { code: 'COMPOUND', label: 'Compound' }], required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'calculationType', label: 'Calculation Type', type: 'enum', enumValues: [{ code: 'PERCENTAGE', label: 'Percentage' }, { code: 'FLAT', label: 'Flat' }, { code: 'TIERED', label: 'Tiered' }], required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'groupType', 'calculationType', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000011', 'tax_year', {
+    displayName: 'Tax Year', pluralName: 'Tax Years', category: 'master', icon: 'calendar-check', color: '#14B8A6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxDefinitionId', label: 'Tax Definition', type: 'reference', referenceEntity: 'tax_definition', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxPeriodTypeId', label: 'Tax Period Type', type: 'reference', referenceEntity: 'tax_period_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'startDate', label: 'Start Date', type: 'datetime', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'endDate', label: 'End Date', type: 'datetime', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isCurrent', label: 'Is Current', type: 'boolean', required: false, unique: false, indexed: false, default: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'taxPeriodTypeId', 'startDate', 'endDate', 'isCurrent', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000012', 'tax_nature', {
+    displayName: 'Tax Nature', pluralName: 'Tax Natures', category: 'master', icon: 'leaf', color: '#10B981',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxDefinitionId', label: 'Tax Definition', type: 'reference', referenceEntity: 'tax_definition', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxCategoryId', label: 'Tax Category', type: 'reference', referenceEntity: 'tax_category', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxFilingSectionId', label: 'Tax Filing Section', type: 'reference', referenceEntity: 'tax_filing_section', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'taxCategoryId', 'taxFilingSectionId', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000013', 'tax_code_lookup', {
+    displayName: 'Tax Code Lookup', pluralName: 'Tax Code Lookups', category: 'master', icon: 'search', color: '#F59E0B',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxGroupId', label: 'Tax Group', type: 'reference', referenceEntity: 'tax_group', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'lookupStandard', label: 'Lookup Standard', type: 'enum', enumValues: [{ code: 'HSN', label: 'HSN' }, { code: 'SAC', label: 'SAC' }, { code: 'UNSPSC', label: 'UNSPSC' }, { code: 'HS6', label: 'HS6' }, { code: 'CPV', label: 'CPV' }, { code: 'NIC', label: 'NIC' }, { code: 'ETIM', label: 'ETIM' }, { code: 'GS1', label: 'GS1' }, { code: 'CUSTOM', label: 'Custom' }], required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxGroupId', 'lookupStandard', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000014', 'organization_taxation', {
+    displayName: 'Organization Taxation', pluralName: 'Organization Taxations', category: 'master', icon: 'building-2', color: '#3B82F6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxDefinitionId', label: 'Tax Definition', type: 'reference', referenceEntity: 'tax_definition', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'registrationNumber', label: 'Registration Number', type: 'string', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'registrationNumber', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000015', 'tax_period', {
+    displayName: 'Tax Period', pluralName: 'Tax Periods', category: 'master', icon: 'calendar-range', color: '#EC4899',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxYearId', label: 'Tax Year', type: 'reference', referenceEntity: 'tax_year', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxPeriodTypeId', label: 'Tax Period Type', type: 'reference', referenceEntity: 'tax_period_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'startDate', label: 'Start Date', type: 'datetime', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'endDate', label: 'End Date', type: 'datetime', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'periodNumber', label: 'Period Number', type: 'integer', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isClosed', label: 'Is Closed', type: 'boolean', required: false, unique: false, indexed: false, default: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxYearId', 'taxPeriodTypeId', 'startDate', 'endDate', 'periodNumber', 'isClosed', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000016', 'tax_jurisdiction_attribute', {
+    displayName: 'Tax Jurisdiction Attribute', pluralName: 'Tax Jurisdiction Attributes', category: 'master', icon: 'key-round', color: '#0EA5E9',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'taxJurisdictionId', label: 'Tax Jurisdiction', type: 'reference', referenceEntity: 'tax_jurisdiction', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'attributeKey', label: 'Attribute Key', type: 'string', required: true, unique: false, indexed: true, storageType: 'physical' },
+      { name: 'attributeValue', label: 'Attribute Value', type: 'string', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['taxJurisdictionId', 'attributeKey', 'attributeValue', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000017', 'tax_nature_attribute', {
+    displayName: 'Tax Nature Attribute', pluralName: 'Tax Nature Attributes', category: 'master', icon: 'key-round', color: '#6366F1',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'taxNatureId', label: 'Tax Nature', type: 'reference', referenceEntity: 'tax_nature', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'attributeKey', label: 'Attribute Key', type: 'string', required: true, unique: false, indexed: true, storageType: 'physical' },
+      { name: 'attributeValue', label: 'Attribute Value', type: 'string', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['taxNatureId', 'attributeKey', 'attributeValue', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000018', 'tax_attribute', {
+    displayName: 'Tax Attribute', pluralName: 'Tax Attributes', category: 'master', icon: 'sliders', color: '#8B5CF6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxTypeId', label: 'Tax Type', type: 'reference', referenceEntity: 'tax_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'dataTypeId', label: 'Data Type', type: 'reference', referenceEntity: 'data_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxEntityId', label: 'Tax Entity', type: 'reference', referenceEntity: 'tax_entity', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'values', label: 'Values', type: 'json', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxTypeId', 'dataTypeId', 'taxEntityId', 'values', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000019', 'tax_interface', {
+    displayName: 'Tax Interface', pluralName: 'Tax Interfaces', category: 'master', icon: 'plug', color: '#14B8A6',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxEntityId', label: 'Tax Entity', type: 'reference', referenceEntity: 'tax_entity', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'parentId', label: 'Parent', type: 'reference', referenceEntity: 'tax_interface', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'properties', label: 'Properties', type: 'json', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'description', label: 'Description', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxEntityId', 'parentId', 'properties', 'description', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
+
+  a('00000000-0000-0000-0004-000000000020', 'tax_component', {
+    displayName: 'Tax Component', pluralName: 'Tax Components', category: 'master', icon: 'calculator', color: '#EC4899',
+    capabilities: { softDelete: true, auditTrail: true },
+    idConfig: { strategy: 'uuid_v4' },
+    fields: [
+      { name: 'code', label: 'Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
+      { name: 'name', label: 'Name', type: 'string', required: true, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'taxTypeId', label: 'Tax Type', type: 'reference', referenceEntity: 'tax_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'roundOffTypeId', label: 'Round Off Type', type: 'reference', referenceEntity: 'round_off_type', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'componentType', label: 'Component Type', type: 'enum', enumValues: [{ code: 'Base', label: 'Base' }, { code: 'Addition', label: 'Addition' }, { code: 'Deduction', label: 'Deduction' }, { code: 'Rounding', label: 'Rounding' }], required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'formula', label: 'Formula', type: 'text', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'rate', label: 'Rate', type: 'decimal', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'sequenceOrder', label: 'Sequence Order', type: 'integer', required: false, unique: false, indexed: false, storageType: 'physical' },
+      { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
+    ],
+    sections: [{ name: 'Details', fields: ['code', 'name', 'taxTypeId', 'roundOffTypeId', 'componentType', 'formula', 'rate', 'sequenceOrder', 'isActive'] }],
+    statuses: [
+      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
+      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
+    ],
+    transitions: [
+      { from: 'active', to: 'inactive', label: 'Deactivate' },
+      { from: 'inactive', to: 'active', label: 'Activate' },
+    ],
+    relationships: [],
+  }),
 ]
