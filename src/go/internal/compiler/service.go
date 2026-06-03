@@ -95,6 +95,9 @@ func parse(payload []byte) (*RawEntitySchema, error) {
 			"text": true, "number": true, "date": true, "datetime": true,
 			"boolean": true, "select": true, "multiselect": true,
 			"relation": true, "expression": true, "file": true,
+			"string": true, "integer": true, "decimal": true,
+			"enum": true, "reference": true, "email": true,
+			"phone": true, "uuid": true, "computed": true, "json": true,
 		}
 		if f.Type != "" && !validTypes[f.Type] {
 			return nil, fmt.Errorf("field %q: unknown type %q", f.Key, f.Type)
@@ -181,14 +184,18 @@ func compileSchema(entityType string, version int, raw *RawEntitySchema) (*Compi
 
 func canonicalType(t string) string {
 	switch t {
-	case "text", "":
+	case "text", "string", "":
 		return "string"
-	case "number":
+	case "number", "decimal":
 		return "float64"
+	case "integer":
+		return "int64"
 	case "boolean":
 		return "bool"
 	case "date", "datetime":
 		return "time"
+	case "json":
+		return "json"
 	default:
 		return t
 	}
