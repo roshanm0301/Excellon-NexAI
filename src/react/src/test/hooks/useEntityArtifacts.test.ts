@@ -26,7 +26,13 @@ describe('useEntityArtifacts', () => {
   test('returns artifact list on success', async () => {
     const mockData = {
       items: [
-        { id: '1', entity_type: 'entity_schema', status: 'draft' as const, version: 1, payload: {}, created_by: 'user1', created_at: '', updated_at: '', tenant_id: 't1' },
+        {
+          version_id: '1', artifact_id: 'a1', version_no: 1,
+          artifact_name: 'entity_schema', artifact_type: 'entity_schema',
+          tenant_id: 't1', payload: {}, is_active: false, is_draft: true,
+          created_by: 'user1', created_at: '',
+          id: '1', entity_type: 'entity_schema',
+        },
       ],
       total: 1,
     }

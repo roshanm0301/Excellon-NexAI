@@ -5,8 +5,12 @@ type BannerVariant = 'success' | 'error' | 'warning' | 'info'
 
 interface BannerProps {
   variant?: BannerVariant
-  title: string
+  /** Short bold heading. Omit when using children for custom content. */
+  title?: string
+  /** Secondary body text below the title. */
   message?: string
+  /** Custom content — rendered instead of title/message when provided. */
+  children?: ReactNode
   onClose?: () => void
   action?: ReactNode
 }
@@ -18,7 +22,7 @@ const BANNER_CONFIG = {
   info: { icon: Info, bg: 'var(--info-50)', color: 'var(--info-700)', border: 'var(--info-500)' },
 }
 
-export function Banner({ variant = 'info', title, message, onClose, action }: BannerProps) {
+export function Banner({ variant = 'info', title, message, children, onClose, action }: BannerProps) {
   const cfg = BANNER_CONFIG[variant]
   const Icon = cfg.icon
   return (
@@ -29,8 +33,12 @@ export function Banner({ variant = 'info', title, message, onClose, action }: Ba
     }}>
       <Icon size={18} style={{ color: cfg.color, flexShrink: 0, marginTop: 1 }} />
       <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: cfg.color }}>{title}</div>
-        {message && <div style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-secondary)', marginTop: 4 }}>{message}</div>}
+        {children ?? (
+          <>
+            {title && <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: cfg.color }}>{title}</div>}
+            {message && <div style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-secondary)', marginTop: title ? 4 : 0 }}>{message}</div>}
+          </>
+        )}
         {action && <div style={{ marginTop: 8 }}>{action}</div>}
       </div>
       {onClose && <button onClick={onClose} className="ex-icon-btn"><X size={14} /></button>}

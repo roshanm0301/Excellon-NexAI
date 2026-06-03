@@ -39,11 +39,11 @@ describe('createArtifact', () => {
     const artifact = { id: '1', entity_type: 'entity_schema', payload: {} }
     mockFetch(200, artifact)
 
-    await createArtifact({ entity_type: 'entity_schema', payload: { foo: 'bar' } })
+    await createArtifact({ artifact_name: 'entity_schema', artifact_type: 'entity_schema', payload: { foo: 'bar' } })
 
     const [, init] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0]
     expect(init.method).toBe('POST')
-    expect(JSON.parse(init.body as string)).toEqual({ entity_type: 'entity_schema', payload: { foo: 'bar' } })
+    expect(JSON.parse(init.body as string)).toEqual({ artifact_name: 'entity_schema', artifact_type: 'entity_schema', payload: { foo: 'bar' } })
   })
 })
 

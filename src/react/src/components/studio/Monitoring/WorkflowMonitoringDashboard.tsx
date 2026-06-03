@@ -188,7 +188,7 @@ function StepRow({ metric }: { metric: WorkflowStepMetric }) {
   return (
     <tr>
       <td style={tdStyle}>
-        <Badge variant="gray">{metric.step_type}</Badge>
+        <Badge variant="neutral">{metric.step_type}</Badge>
       </td>
       <td style={tdStyle}>{metric.total_executions}</td>
       <td style={{ ...tdStyle, color: rateColor, fontWeight: 600 }}>{successRate.toFixed(1)}%</td>
@@ -207,7 +207,7 @@ function SLABreachRow({ breach }: { breach: SLABreach }) {
       <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--fg-primary)' }}>
         {breach.instance_id.slice(0, 8)}…
       </span>
-      <Badge variant="gray">{breach.entity_type}</Badge>
+      <Badge variant="neutral">{breach.entity_type}</Badge>
       <Badge variant={breach.status === 'running' ? 'info' : 'warn'}>{breach.status}</Badge>
       <span style={{ marginLeft: 'auto', color: 'var(--error-600)', fontWeight: 600 }}>
         {elapsed > 3600 ? `${(elapsed / 3600).toFixed(1)}h` : `${(elapsed / 60).toFixed(0)}m`} overdue

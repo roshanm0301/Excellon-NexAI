@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Activity, Clock, CheckCircle, XCircle, Pause, AlertTriangle, RefreshCw } from 'lucide-react'
-import { Button, Badge, Spinner, Banner, TabGroup } from '../../../design-system'
+import { Activity, Clock, CheckCircle, XCircle, Pause, RefreshCw } from 'lucide-react'
+import { Badge, Spinner, Banner, TabGroup } from '../../../design-system'
 import {
   getWorkflowInstance, getDAGState, getWorkflowLogs,
-  type ProcessInstanceV2, type DAGState, type WorkflowExecutionLog, type NodeStatus,
+  type WorkflowExecutionLog, type NodeStatus,
 } from '../../../config/studioApi'
 import { WorkflowCanvas } from './WorkflowCanvas'
 
@@ -27,7 +27,7 @@ export function ExecutionViewer({ instanceId }: ExecutionViewerProps) {
     refetchInterval: 3000, // Poll every 3s for live updates
   })
 
-  const { data: dagState, isLoading: loadingState } = useQuery({
+  const { data: dagState } = useQuery({
     queryKey: ['dag-state', instanceId],
     queryFn: () => getDAGState(instanceId),
     refetchInterval: 3000,
@@ -40,7 +40,7 @@ export function ExecutionViewer({ instanceId }: ExecutionViewerProps) {
   })
 
   if (loadingInstance) return <div style={{ padding: 40, textAlign: 'center' }}><Spinner /></div>
-  if (!instance) return <Banner variant="error">Instance not found</Banner>
+  if (!instance) return <Banner variant="error" title="Instance not found" />
 
   // Build execution state map for the canvas
   const executionStateMap: Record<string, string> = {}
@@ -142,7 +142,7 @@ function ExecutionLogTimeline({ logs }: { logs: WorkflowExecutionLog[] }) {
                 <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--fg-primary)' }}>
                   {log.stepId}
                 </span>
-                <Badge variant="neutral">{log.stepType}</Badge>
+                <Badge variant="gray">{log.stepType}</Badge>
                 <Badge variant={log.status === 'completed' ? 'success' : log.status === 'failed' ? 'error' : 'info'}>
                   {log.status}
                 </Badge>
@@ -194,7 +194,7 @@ function VariablesPanel({ variables, nodeStates }: { variables: Record<string, u
       {Object.entries(nodeStates).filter(([, s]) => s.output && Object.keys(s.output).length > 0).map(([id, state]) => (
         <div key={id} style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--fg-secondary)', marginBottom: 4 }}>
-            {id} <Badge variant={state.status === 'completed' ? 'success' : 'neutral'}>{state.status}</Badge>
+            {id} <Badge variant={state.status === 'completed' ? 'success' : 'gray'}>{state.status}</Badge>
           </div>
           <pre style={{
             padding: 8, background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)',

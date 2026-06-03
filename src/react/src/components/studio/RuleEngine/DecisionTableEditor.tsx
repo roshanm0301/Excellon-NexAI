@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { Plus, Trash2, GripVertical, ToggleLeft } from 'lucide-react'
-import { Button, Select, Input, Toggle, Badge } from '../../../design-system'
+import { Button, Toggle, Badge } from '../../../design-system'
 import type { DecisionTable, DTColumn, DTRow, DTCell, HitPolicy } from '../../../config/studioApi'
 
 const HIT_POLICY_OPTIONS = [
@@ -239,7 +239,7 @@ export function DecisionTableEditor({ table, onChange }: DecisionTableEditorProp
                   <GripVertical size={14} />
                 </td>
                 <td style={{ padding: '4px 8px', borderBottom: '1px solid var(--border-secondary)', textAlign: 'center' }}>
-                  <Toggle checked={row.enabled} onChange={() => toggleRow(row.id)} size="sm" />
+                  <Toggle checked={row.enabled} onChange={() => toggleRow(row.id)} />
                 </td>
                 {[...inputCols, ...outputCols].map(col => {
                   const cell = row.cells.find(c => c.columnId === col.id)

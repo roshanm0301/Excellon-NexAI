@@ -14,10 +14,10 @@ import {
 const CLASSIFICATION_OPTIONS: { value: RuleClassification; label: string; color: string }[] = [
   { value: 'VALIDATION', label: 'Validation', color: 'error' },
   { value: 'DERIVATION', label: 'Derivation', color: 'info' },
-  { value: 'APPROVAL', label: 'Approval', color: 'warning' },
+  { value: 'APPROVAL', label: 'Approval', color: 'warn' },
   { value: 'FIELD_CONTROL', label: 'Field Control', color: 'success' },
-  { value: 'ELIGIBILITY', label: 'Eligibility', color: 'neutral' },
-  { value: 'EXTENSION', label: 'Extension', color: 'neutral' },
+  { value: 'ELIGIBILITY', label: 'Eligibility', color: 'gray' },
+  { value: 'EXTENSION', label: 'Extension', color: 'gray' },
 ]
 
 export function RuleBuilderPageV2() {
@@ -46,19 +46,19 @@ export function RuleBuilderPageV2() {
     }),
     onSuccess: (rs) => {
       qc.invalidateQueries({ queryKey: ['ruleSetsV2'] })
-      toast({ title: 'Rule set created', variant: 'success' })
+      toast('success', 'Rule set created')
       setCreating(false)
       setNewName('')
       setNewEntityType('')
       navigate(`/rules/v2/${rs.id}`)
     },
-    onError: () => toast({ title: 'Failed to create rule set', variant: 'error' }),
+    onError: () => toast('error', 'Failed to create rule set'),
   })
 
   const toggleMut = useMutation({
     mutationFn: (rs: RuleSetV2) => saveRuleSetV2(rs.id, { enabled: !rs.enabled }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['ruleSetsV2'] }),
-    onError: () => toast({ title: 'Failed to update rule set', variant: 'error' }),
+    onError: () => toast('error', 'Failed to update rule set'),
   })
 
   const deleteMut = useMutation({
@@ -66,9 +66,9 @@ export function RuleBuilderPageV2() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ruleSetsV2'] })
       setDeleteTarget(null)
-      toast({ title: 'Rule set deleted', variant: 'success' })
+      toast('success', 'Rule set deleted')
     },
-    onError: () => toast({ title: 'Delete failed', variant: 'error' }),
+    onError: () => toast('error', 'Delete failed'),
   })
 
   const columns: Column<RuleSetV2>[] = [
@@ -116,7 +116,7 @@ export function RuleBuilderPageV2() {
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {(row.classifications ?? []).map(cls => {
             const opt = CLASSIFICATION_OPTIONS.find(o => o.value === cls)
-            return <Badge key={cls} variant={opt?.color as 'error' | 'info' | 'warning' | 'success' | 'neutral' ?? 'neutral'}>{opt?.label ?? cls}</Badge>
+            return <Badge key={cls} variant={opt?.color as 'error' | 'info' | 'warn' | 'success' | 'gray' ?? 'gray'}>{opt?.label ?? cls}</Badge>
           })}
           {(!row.classifications || row.classifications.length === 0) && (
             <span style={{ color: 'var(--fg-tertiary)', fontSize: 'var(--text-xs)' }}>—</span>
@@ -136,7 +136,7 @@ export function RuleBuilderPageV2() {
       label: 'Enabled',
       width: 80,
       render: (row) => (
-        <Toggle checked={row.enabled} onChange={() => toggleMut.mutate(row)} size="sm" />
+        <Toggle checked={row.enabled} onChange={() => toggleMut.mutate(row)} />
       ),
     },
     {
@@ -210,11 +210,11 @@ export function RuleBuilderPageV2() {
 
       {/* Table */}
       <DataTable
-        columns={columns}
-        data={items}
+        columns={columns as unknown as Column<Record<string, unknown>>[]}
+        rows={items as unknown as Record<string, unknown>[]}
         loading={isLoading}
-        emptyMessage="No rule sets found. Create one to get started."
-        onRowClick={(row) => navigate(`/rules/v2/${row.id}`)}
+        emptyTitle="No rule sets found. Create one to get started."
+        onRowClick={(row) => navigate(`/rules/v2/${(row as unknown as RuleSetV2).id}`)}
       />
 
       {/* Create modal */}
@@ -300,11 +300,11 @@ export function RuleBuilderPageV2() {
         <ConfirmDialog
           open
           title="Delete Rule Set"
-          description={`Are you sure you want to delete "${deleteTarget.name}"? This cannot be undone.`}
+          message={`Are you sure you want to delete "${deleteTarget.name}"? This cannot be undone.`}
           confirmLabel="Delete"
-          variant="danger"
+          danger
           onConfirm={() => deleteMut.mutate(deleteTarget.id)}
-          onCancel={() => setDeleteTarget(null)}
+          onClose={() => setDeleteTarget(null)}
         />
       )}
     </div>

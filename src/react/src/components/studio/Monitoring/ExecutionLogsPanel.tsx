@@ -65,7 +65,7 @@ export function ExecutionLogsPanel() {
         <Filter size={14} color="var(--fg-tertiary)" />
         <Select
           value={source}
-          onChange={(e) => setSource((e.target as HTMLSelectElement).value as LogSource)}
+          onChange={(e) => setSource(e.target.value as LogSource)}
           options={[
             { label: 'All Sources', value: 'all' },
             { label: 'Rules Only', value: 'rules' },
@@ -91,7 +91,7 @@ export function ExecutionLogsPanel() {
         {(source === 'workflow' || source === 'all') && (
           <Select
             value={statusFilter}
-            onChange={(e) => setStatusFilter((e.target as HTMLSelectElement).value)}
+            onChange={(e) => setStatusFilter(e.target.value)}
             options={[
               { label: 'All Statuses', value: '' },
               { label: 'Completed', value: 'completed' },

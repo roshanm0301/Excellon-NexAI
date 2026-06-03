@@ -2,10 +2,10 @@ import { useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  ArrowLeft, Save, Play, Settings, Link2, Eye,
+  ArrowLeft, Save, Play, Link2,
 } from 'lucide-react'
 import {
-  Button, Spinner, Banner, Badge, useToast, TabGroup, Toggle, Modal,
+  Button, Spinner, Banner, Badge, useToast, Toggle, Modal,
 } from '../../design-system'
 import {
   getWorkflowDefinition, saveWorkflowDefinition,
@@ -58,10 +58,10 @@ export default function WorkflowEditorPage() {
       })
     },
     onSuccess: () => {
-      toast({ title: 'Workflow saved', variant: 'success' })
+      toast('success', 'Workflow saved')
       queryClient.invalidateQueries({ queryKey: ['workflow-definition', id] })
     },
-    onError: (err) => toast({ title: 'Save failed', description: String(err), variant: 'error' }),
+    onError: (err) => toast('error', 'Save failed', String(err)),
   })
 
   // Test run mutation
@@ -73,11 +73,11 @@ export default function WorkflowEditorPage() {
       context: {},
     }),
     onSuccess: (instance) => {
-      toast({ title: 'Instance started', description: `ID: ${instance.id.slice(0, 8)}…`, variant: 'success' })
+      toast('success', 'Instance started', `ID: ${instance.id.slice(0, 8)}…`)
       setShowTestRun(false)
       navigate(`/workflow/${id}/instances/${instance.id}`)
     },
-    onError: (err) => toast({ title: 'Failed to start', description: String(err), variant: 'error' }),
+    onError: (err) => toast('error', 'Failed to start', String(err)),
   })
 
   // Update helpers
@@ -93,8 +93,8 @@ export default function WorkflowEditorPage() {
   // ─── Loading / Error ────────────────────────────────────────────────────────
 
   if (isLoading) return <div style={{ padding: 40, textAlign: 'center' }}><Spinner /></div>
-  if (error) return <Banner variant="error">Failed to load workflow definition</Banner>
-  if (!def) return <Banner variant="error">Workflow not found</Banner>
+  if (error) return <Banner variant="error" title="Failed to load workflow definition" />
+  if (!def) return <Banner variant="error" title="Workflow not found" />
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -115,7 +115,7 @@ export default function WorkflowEditorPage() {
           value={def.name}
           onChange={(e) => updateDef({ name: e.target.value })}
         />
-        <Badge variant="neutral">{def.entityType}</Badge>
+        <Badge variant="gray">{def.entityType}</Badge>
         <Badge variant="info">v{def.version}</Badge>
 
         <div style={{ flex: 1 }} />
@@ -213,7 +213,7 @@ function BindingsPanel({ definitionId, entityType }: { definitionId: string; ent
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workflow-bindings'] })
-      toast({ title: 'Binding created', variant: 'success' })
+      toast('success', 'Binding created')
     },
   })
 
@@ -226,7 +226,7 @@ function BindingsPanel({ definitionId, entityType }: { definitionId: string; ent
     mutationFn: (id: string) => deleteWorkflowBinding(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workflow-bindings'] })
-      toast({ title: 'Binding removed', variant: 'success' })
+      toast('success', 'Binding removed')
     },
   })
 
@@ -256,7 +256,7 @@ function BindingsPanel({ definitionId, entityType }: { definitionId: string; ent
                   if: {b.condition.slice(0, 25)}
                 </span>
               )}
-              <Toggle checked={b.enabled} onChange={() => toggleMut.mutate(b)} size="sm" />
+              <Toggle checked={b.enabled} onChange={() => toggleMut.mutate(b)} />
               <button
                 onClick={() => deleteMut.mutate(b.id)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error-500)', padding: 4, fontSize: 'var(--text-xs)' }}

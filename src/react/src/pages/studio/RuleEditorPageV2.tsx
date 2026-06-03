@@ -8,8 +8,7 @@ import {
 } from '../../design-system'
 import {
   getRuleSetV2, saveRuleSetV2,
-  type RuleSetV2, type ContentType, type RuleClassification,
-  type HitPolicy, type DecisionTable, type ActionV2, type Condition,
+  type RuleSetV2, type RuleClassification,
 } from '../../config/studioApi'
 import {
   DecisionTableEditor, createBlankDecisionTable,
@@ -64,11 +63,11 @@ export default function RuleEditorPageV2() {
       return saveRuleSetV2(id, rule)
     },
     onSuccess: () => {
-      toast({ title: 'Rule saved', variant: 'success' })
+      toast('success', 'Rule saved')
       queryClient.invalidateQueries({ queryKey: ['rule-set-v2', id] })
     },
     onError: (err) => {
-      toast({ title: 'Save failed', description: String(err), variant: 'error' })
+      toast('error', 'Save failed', String(err))
     },
   })
 
@@ -245,7 +244,7 @@ export default function RuleEditorPageV2() {
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 
-function Header({ rule, onBack, onSave, saving, children }: {
+function Header({ rule: _rule, onBack, onSave, saving, children }: {
   rule: RuleSetV2
   onBack: () => void
   onSave: () => void

@@ -7,8 +7,7 @@ import {
   MarkerType, useReactFlow, ReactFlowProvider,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { Undo2, Redo2, Layout, ZoomIn, ZoomOut, Maximize2, AlertCircle, CheckCircle } from 'lucide-react'
-import { Button, Badge } from '../../../design-system'
+import { Undo2, Redo2, Layout, Maximize2, AlertCircle, CheckCircle } from 'lucide-react'
 import { workflowNodeTypes, type WorkflowNodeData } from './WorkflowNodes'
 import { workflowEdgeTypes, type WorkflowEdgeData } from './WorkflowEdge'
 import { NodePalette } from './NodePalette'
@@ -351,7 +350,7 @@ function WorkflowCanvasInner({ dag, onChange, readOnly, executionState }: Workfl
       markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 },
       data: {} satisfies WorkflowEdgeData,
     }
-    setEdges(eds => addEdge(newEdge, eds))
+    setEdges(eds => addEdge(newEdge as Edge, eds))
     setTimeout(pushHistory, 0)
   }, [pushHistory])
 

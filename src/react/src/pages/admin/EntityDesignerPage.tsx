@@ -96,15 +96,15 @@ export function EntityDesignerPage() {
       key: 'status',
       label: 'Status',
       width: 120,
-      render: row => <StatusBadge status={row.status} />,
+      render: row => <StatusBadge status={row.is_draft ? 'draft' : row.is_active ? 'published' : 'inactive'} />,
     },
     {
       key: 'updated_at',
       label: 'Last Updated',
       width: 140,
       render: row => (
-        <span style={{ color: 'var(--fg-tertiary)', fontSize: 13 }} title={new Date(row.updated_at).toLocaleString()}>
-          {relativeDate(row.updated_at)}
+        <span style={{ color: 'var(--fg-tertiary)', fontSize: 13 }} title={new Date(row.published_at ?? row.created_at).toLocaleString()}>
+          {relativeDate(row.published_at ?? row.created_at)}
         </span>
       ),
     },
