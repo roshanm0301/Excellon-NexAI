@@ -22,8 +22,20 @@ func NewHandler(repo *Repo, evaluator *ProductionEvaluator) *Handler {
 func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Get("/", h.list)
 	r.Post("/", h.create)
+	r.Get("/{id}", h.get)
 	r.Put("/{id}", h.update)
 	r.Delete("/{id}", h.delete)
+}
+
+func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
+	tID := tenantID(r)
+	id := chi.URLParam(r, "id")
+	rs, err := h.repo.GetByID(r.Context(), tID, id)
+	if err != nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "rule set not found"})
+		return
+	}
+	writeJSON(w, http.StatusOK, rs)
 }
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {

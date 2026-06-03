@@ -79,6 +79,11 @@ func main() {
 
 	rulesEvaluator := rules.NewProductionEvaluator()
 	rulesHandler := rules.NewHandler(rulesRepo, rulesEvaluator)
+	rulesExecLogger := rules.NewExecutionLogger(pool)
+	rulesConflictResolver := rules.NewConflictResolver(pool)
+	rulesEvalV2 := rules.NewEvaluatorV2(pool, expression.NewEngine(""), rulesConflictResolver, rulesExecLogger)
+	rulesSimulator := rules.NewSimulator(rulesEvalV2, rulesExecLogger)
+	rulesHandlerV2 := rules.NewHandlerV2(rulesSimulator, rulesConflictResolver, rulesExecLogger, rulesRepo)
 
 	workflowRuntime := workflow.NewRuntime(pool)
 	_ = workflowRuntime
@@ -99,6 +104,7 @@ func main() {
 		slog.Warn("business workflow tables ensure failed", "error", err)
 	}
 	bwHandler := business_workflow.NewHandler(bwEngine, pool)
+	bwHandlerV2 := business_workflow.NewHandlerV2(pool, exprEngine)
 
 	// NLP handler
 	nlpHandler := nlp.NewHandler(os.Getenv("ANTHROPIC_API_KEY"), "claude-haiku-4-5-20251001")
@@ -142,6 +148,9 @@ func main() {
 		r.Route("/admin", func(r chi.Router) {
 			r.Route("/rules", func(r chi.Router) {
 				rulesHandler.RegisterRoutes(r)
+				r.Route("/v2", func(r chi.Router) {
+					rulesHandlerV2.RegisterRoutes(r)
+				})
 			})
 			r.Route("/overlay-deltas", func(r chi.Router) {
 				overlayHandler.RegisterRoutes(r)
@@ -158,6 +167,9 @@ func main() {
 		})
 		r.Route("/processes", func(r chi.Router) {
 			bwHandler.RegisterRoutes(r)
+		})
+		r.Route("/workflows", func(r chi.Router) {
+			bwHandlerV2.RegisterRoutesV2(r)
 		})
 		r.Route("/studio", func(r chi.Router) {
 			viewStudioHandler.RegisterRoutes(r)

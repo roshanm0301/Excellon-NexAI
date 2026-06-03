@@ -29,13 +29,19 @@ type Action struct {
 	Value   json.RawMessage `json:"value,omitempty"`   // for SET_FIELD
 }
 
+// RuleDefinition holds the condition tree and actions for a rule set.
+// Stored as a nested object so the shape matches the frontend editor payload.
+type RuleDefinition struct {
+	Conditions Condition `json:"conditions"`
+	Actions    []Action  `json:"actions"`
+}
+
 type RuleSet struct {
-	ID         string      `json:"id"`
-	EntityType string      `json:"entity_type"`
-	Name       string      `json:"name"`
-	Conditions Condition   `json:"conditions"`
-	Actions    []Action    `json:"actions"`
-	Enabled    bool        `json:"enabled"`
+	ID         string         `json:"id"`
+	EntityType string         `json:"entity_type"`
+	Name       string         `json:"name"`
+	Definition RuleDefinition `json:"definition"`
+	Enabled    bool           `json:"enabled"`
 }
 
 type EvaluationResult struct {

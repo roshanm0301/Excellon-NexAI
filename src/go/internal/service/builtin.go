@@ -184,7 +184,7 @@ func (s *WebhookService) fire(ctx context.Context, input map[string]any) (*Invok
 	}
 
 	// Build a minimal registration for the HTTP adapter
-	configBytes, _ := fmt.Appendf(nil, `{"baseUrl": %q}`, url)
+	configBytes := fmt.Appendf(nil, `{"baseUrl": %q}`, url)
 	reg := &ServiceRegistration{
 		ServiceKey: "webhook",
 		Transport:  TransportHTTP,

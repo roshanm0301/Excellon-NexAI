@@ -463,8 +463,8 @@ func (e *EvaluatorV2) scanRuleSets(rows interface{ Next() bool; Scan(...any) err
 		default:
 			var legacy RuleSet
 			if err := json.Unmarshal(definition, &legacy); err == nil {
-				rs.Conditions = &legacy.Conditions
-				rs.Actions = legacy.Actions
+				rs.Conditions = &legacy.Definition.Conditions
+				rs.Actions = legacy.Definition.Actions
 			}
 		}
 

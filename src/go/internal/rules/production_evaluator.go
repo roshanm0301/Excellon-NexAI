@@ -24,11 +24,11 @@ func (e *ProductionEvaluator) EvaluateAll(ruleSets []RuleSet, payload map[string
 		if !rs.Enabled {
 			continue
 		}
-		if !e.evaluateCondition(rs.Conditions, payload) {
+		if !e.evaluateCondition(rs.Definition.Conditions, payload) {
 			continue
 		}
 		// Condition matched — apply actions
-		for _, action := range rs.Actions {
+		for _, action := range rs.Definition.Actions {
 			switch action.Type {
 			case ActionBlock:
 				result.Blocked = true
