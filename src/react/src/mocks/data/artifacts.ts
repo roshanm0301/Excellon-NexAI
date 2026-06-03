@@ -5,15 +5,19 @@ const TENANT = '00000000-0000-0000-0000-000000000001'
 
 function a(id: string, entity_type: string, payload: Record<string, unknown>): Artifact {
   return {
-    id,
+    version_id: id,
+    artifact_id: id,
+    version_no: 1,
+    artifact_name: entity_type,
+    artifact_type: 'entity_schema',
     tenant_id: TENANT,
-    entity_type,
-    version: 1,
-    status: 'published',
     payload,
+    is_active: true,
+    is_draft: false,
     created_by: TENANT,
     created_at: TS,
-    updated_at: TS,
+    id,
+    entity_type,
   }
 }
 

@@ -3,6 +3,7 @@ import { seedArtifacts } from '../data/artifacts'
 import type { Artifact } from '../../config/studioApi'
 
 const STORE_KEY = 'msw_artifacts'
+const TENANT = '00000000-0000-0000-0000-000000000001'
 
 function loadStore(): Artifact[] {
   try {
@@ -27,35 +28,58 @@ function randomId() {
   })
 }
 
+// Lookup by version_id (primary) or artifact_id (secondary)
+function findArtifact(id: string): Artifact | undefined {
+  return store.find(a => a.version_id === id || a.artifact_id === id)
+}
+
+function findIndex(id: string): number {
+  return store.findIndex(a => a.version_id === id || a.artifact_id === id)
+}
+
 export const artifactHandlers = [
-  http.get('/api/v1/artifacts', () => {
-    return HttpResponse.json({ items: store, total: store.length })
+  http.get('/api/v1/artifacts', ({ request }) => {
+    const url = new URL(request.url)
+    const artifactType = url.searchParams.get('artifact_type') ?? url.searchParams.get('entity_type')
+    const items = artifactType ? store.filter(a => a.artifact_name === artifactType || a.artifact_type === artifactType) : store
+    return HttpResponse.json({ items, total: items.length })
   }),
 
   http.get('/api/v1/artifacts/:id', ({ params }) => {
-    const artifact = store.find(a => a.id === params.id)
+    const artifact = findArtifact(params.id as string)
     if (!artifact) return new HttpResponse(null, { status: 404 })
     return HttpResponse.json(artifact)
   }),
 
   http.get('/api/v1/artifacts/:id/versions/latest', ({ params }) => {
-    const artifact = store.find(a => a.id === params.id)
+    const artifact = findArtifact(params.id as string)
     if (!artifact) return new HttpResponse(null, { status: 404 })
     return HttpResponse.json(artifact)
   }),
 
   http.post('/api/v1/artifacts', async ({ request }) => {
-    const body = await request.json() as { entity_type: string; payload?: Record<string, unknown> }
+    const body = await request.json() as {
+      artifact_name?: string
+      artifact_type?: string
+      payload?: Record<string, unknown>
+    }
+    const versionId = randomId()
+    const artifactId = randomId()
     const newArtifact: Artifact = {
-      id: randomId(),
-      tenant_id: '00000000-0000-0000-0000-000000000001',
-      entity_type: body.entity_type,
-      version: 1,
-      status: 'draft',
+      version_id: versionId,
+      artifact_id: artifactId,
+      version_no: 1,
+      artifact_name: body.artifact_name ?? '',
+      artifact_type: body.artifact_type ?? 'entity_schema',
+      tenant_id: TENANT,
       payload: body.payload ?? {},
-      created_by: '00000000-0000-0000-0000-000000000001',
+      is_active: false,
+      is_draft: true,
+      created_by: TENANT,
       created_at: now(),
-      updated_at: now(),
+      // Convenience accessors
+      id: versionId,
+      entity_type: body.artifact_name ?? '',
     }
     store.push(newArtifact)
     saveStore(store)
@@ -63,48 +87,52 @@ export const artifactHandlers = [
   }),
 
   http.put('/api/v1/artifacts/:id', async ({ params, request }) => {
-    const idx = store.findIndex(a => a.id === params.id)
+    const idx = findIndex(params.id as string)
     if (idx === -1) return new HttpResponse(null, { status: 404 })
     const body = await request.json() as { payload: Record<string, unknown> }
-    store[idx] = { ...store[idx], payload: body.payload, updated_at: now() }
-    saveStore(store)
-    return HttpResponse.json(store[idx])
-  }),
-
-  http.post('/api/v1/artifacts/:id/versions/:versionNo/publish', ({ params }) => {
-    const idx = store.findIndex(a => a.id === params.id)
-    if (idx === -1) return new HttpResponse(null, { status: 404 })
-    store[idx] = { ...store[idx], status: 'published', updated_at: now() }
+    store[idx] = { ...store[idx], payload: body.payload }
     saveStore(store)
     return HttpResponse.json(store[idx])
   }),
 
   http.post('/api/v1/artifacts/:id/publish', ({ params }) => {
-    const idx = store.findIndex(a => a.id === params.id)
+    const idx = findIndex(params.id as string)
     if (idx === -1) return new HttpResponse(null, { status: 404 })
-    store[idx] = { ...store[idx], status: 'published', updated_at: now() }
+    store[idx] = { ...store[idx], is_draft: false, is_active: true, published_at: now(), published_by: TENANT }
+    saveStore(store)
+    return HttpResponse.json(store[idx])
+  }),
+
+  http.post('/api/v1/artifacts/:id/versions/:versionNo/publish', ({ params }) => {
+    const idx = findIndex(params.id as string)
+    if (idx === -1) return new HttpResponse(null, { status: 404 })
+    store[idx] = { ...store[idx], is_draft: false, is_active: true, published_at: now(), published_by: TENANT }
     saveStore(store)
     return HttpResponse.json(store[idx])
   }),
 
   http.post('/api/v1/artifacts/:id/deprecate', ({ params }) => {
-    const idx = store.findIndex(a => a.id === params.id)
+    const idx = findIndex(params.id as string)
     if (idx === -1) return new HttpResponse(null, { status: 404 })
-    store[idx] = { ...store[idx], status: 'deprecated', updated_at: now() }
+    store[idx] = { ...store[idx], is_active: false, is_draft: false }
     saveStore(store)
     return HttpResponse.json(store[idx])
   }),
 
   http.post('/api/v1/artifacts/:id/fork', ({ params }) => {
-    const src = store.find(a => a.id === params.id)
+    const src = findArtifact(params.id as string)
     if (!src) return new HttpResponse(null, { status: 404 })
+    const newVersionId = randomId()
     const forked: Artifact = {
       ...src,
-      id: randomId(),
-      version: src.version + 1,
-      status: 'draft',
+      version_id: newVersionId,
+      version_no: (src.version_no ?? 1) + 1,
+      is_draft: true,
+      is_active: false,
+      published_at: undefined,
+      published_by: undefined,
       created_at: now(),
-      updated_at: now(),
+      id: newVersionId,
     }
     store.push(forked)
     saveStore(store)
@@ -112,7 +140,7 @@ export const artifactHandlers = [
   }),
 
   http.delete('/api/v1/artifacts/:id', ({ params }) => {
-    const idx = store.findIndex(a => a.id === params.id)
+    const idx = findIndex(params.id as string)
     if (idx === -1) return new HttpResponse(null, { status: 404 })
     store.splice(idx, 1)
     saveStore(store)

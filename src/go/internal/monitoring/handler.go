@@ -133,7 +133,7 @@ func (h *Handler) getTopFiredRules(w http.ResponseWriter, r *http.Request) {
 				COUNT(*) as fire_count,
 				MAX(created_at) as last_fired
 			FROM rule_execution_log,
-				jsonb_array_elements(fired_rules::jsonb) as elem
+				jsonb_array_elements(fired_rules) as elem
 			WHERE tenant_id = $1
 			  AND created_at >= $2
 			  AND is_simulation = false
@@ -179,14 +179,14 @@ func (h *Handler) getDeadRules(w http.ResponseWriter, r *http.Request) {
 		WITH all_known_rules AS (
 			SELECT DISTINCT elem->>'rule_key' as rule_key, entity_type
 			FROM rule_execution_log,
-				jsonb_array_elements(fired_rules::jsonb) as elem
+				jsonb_array_elements(fired_rules) as elem
 			WHERE tenant_id = $1
 			  AND is_simulation = false
 		),
 		recently_fired AS (
 			SELECT DISTINCT elem->>'rule_key' as rule_key
 			FROM rule_execution_log,
-				jsonb_array_elements(fired_rules::jsonb) as elem
+				jsonb_array_elements(fired_rules) as elem
 			WHERE tenant_id = $1
 			  AND created_at >= $2
 			  AND is_simulation = false
