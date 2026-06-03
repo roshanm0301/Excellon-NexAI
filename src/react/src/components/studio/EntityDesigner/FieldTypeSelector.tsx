@@ -15,6 +15,7 @@ export const FIELD_TYPES = [
   { value: 'phone', label: 'Phone' },
   { value: 'uuid', label: 'UUID' },
   { value: 'computed', label: 'Computed' },
+  { value: 'json', label: 'JSON / Array' },
 ]
 
 interface FieldTypeSelectorProps {
