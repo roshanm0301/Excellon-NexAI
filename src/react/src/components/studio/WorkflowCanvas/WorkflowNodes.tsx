@@ -60,8 +60,7 @@ function StepIcon({ type, size = 16 }: { type: StepType; size?: number }) {
 
 // ─── Start Node ───────────────────────────────────────────────────────────────
 
-export const StartNode = memo(({ data, selected }: NodeProps) => {
-  const nodeData = data as unknown as WorkflowNodeData
+export const StartNode = memo(({ selected }: NodeProps) => {
   return (
     <div style={{
       width: 56, height: 56, borderRadius: '50%',
@@ -79,7 +78,7 @@ StartNode.displayName = 'StartNode'
 
 // ─── End Node ─────────────────────────────────────────────────────────────────
 
-export const EndNode = memo(({ data, selected }: NodeProps) => {
+export const EndNode = memo(({ selected }: NodeProps) => {
   return (
     <div style={{
       width: 56, height: 56, borderRadius: '50%',

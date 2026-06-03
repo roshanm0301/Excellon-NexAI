@@ -382,11 +382,15 @@ func TestValidateExpressions_ValidExpression(t *testing.T) {
 func TestCanonicalType(t *testing.T) {
 	cases := []struct{ in, want string }{
 		{"text", "string"},
+		{"string", "string"},
 		{"", "string"},
 		{"number", "float64"},
+		{"decimal", "float64"},
+		{"integer", "int64"},
 		{"boolean", "bool"},
 		{"date", "time"},
 		{"datetime", "time"},
+		{"json", "json"},
 		{"relation", "relation"},
 		{"select", "select"},
 		{"file", "file"},

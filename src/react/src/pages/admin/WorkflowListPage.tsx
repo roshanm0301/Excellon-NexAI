@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Edit2, Trash2, Play, Eye, Clock, GitBranch } from 'lucide-react'
+import { Plus, Edit2, Eye, GitBranch } from 'lucide-react'
 import {
-  Button, Badge, Modal, Toggle, DataTable, ConfirmDialog, useToast,
+  Button, Badge, Modal, DataTable, useToast,
   type Column,
 } from '../../design-system'
 import {
@@ -49,13 +49,13 @@ export function WorkflowListPage() {
     }),
     onSuccess: (def) => {
       qc.invalidateQueries({ queryKey: ['workflow-definitions'] })
-      toast({ title: 'Workflow created', variant: 'success' })
+      toast('success', 'Workflow created')
       setCreating(false)
       setNewName('')
       setNewEntityType('')
       navigate(`/workflow/${def.id}/edit`)
     },
-    onError: () => toast({ title: 'Failed to create workflow', variant: 'error' }),
+    onError: () => toast('error', 'Failed to create workflow'),
   })
 
   // Count running instances per definition
@@ -96,7 +96,7 @@ export function WorkflowListPage() {
       label: 'Trigger',
       width: 140,
       render: (row) => (
-        <Badge variant={row.triggerEvent === 'manual' ? 'neutral' : 'info'}>
+        <Badge variant={row.triggerEvent === 'manual' ? 'gray' : 'info'}>
           {row.triggerEvent ?? 'manual'}
         </Badge>
       ),
@@ -170,11 +170,11 @@ export function WorkflowListPage() {
 
       {/* Table */}
       <DataTable
-        columns={columns}
-        data={items}
+        columns={columns as unknown as Column<Record<string, unknown>>[]}
+        rows={items as unknown as Record<string, unknown>[]}
         loading={isLoading}
-        emptyMessage="No workflows defined yet. Create one to get started."
-        onRowClick={(row) => navigate(`/workflow/${row.id}/edit`)}
+        emptyTitle="No workflows defined yet. Create one to get started."
+        onRowClick={(row) => navigate(`/workflow/${(row as unknown as ProcessDefinitionV2).id}/edit`)}
       />
 
       {/* Create modal */}

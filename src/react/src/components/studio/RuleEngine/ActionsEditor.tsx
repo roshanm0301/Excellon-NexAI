@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react'
-import { Button, Badge } from '../../../design-system'
+import { Button } from '../../../design-system'
 import type { ActionV2, ActionTypeV2, FieldBehaviorType } from '../../../config/studioApi'
 
 const ACTION_TYPE_OPTIONS: { value: ActionTypeV2; label: string }[] = [

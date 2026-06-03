@@ -6,7 +6,7 @@ import {
 import { Badge, Spinner, Select } from '../../../design-system'
 import {
   getWorkflowHealth, getWorkflowStepMetrics, getWorkflowSLABreaches,
-  type WorkflowHealthMetrics, type WorkflowStepMetric, type SLABreach,
+  type WorkflowStepMetric, type SLABreach,
 } from '../../../config/studioApi'
 
 export function WorkflowMonitoringDashboard() {
@@ -208,7 +208,7 @@ function SLABreachRow({ breach }: { breach: SLABreach }) {
         {breach.instance_id.slice(0, 8)}…
       </span>
       <Badge variant="neutral">{breach.entity_type}</Badge>
-      <Badge variant={breach.status === 'running' ? 'info' : 'warning'}>{breach.status}</Badge>
+      <Badge variant={breach.status === 'running' ? 'info' : 'warn'}>{breach.status}</Badge>
       <span style={{ marginLeft: 'auto', color: 'var(--error-600)', fontWeight: 600 }}>
         {elapsed > 3600 ? `${(elapsed / 3600).toFixed(1)}h` : `${(elapsed / 60).toFixed(0)}m`} overdue
       </span>

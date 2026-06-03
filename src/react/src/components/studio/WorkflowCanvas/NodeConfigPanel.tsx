@@ -1,8 +1,7 @@
-import { useState } from 'react'
 import { X, Plus, Trash2, GripVertical } from 'lucide-react'
-import { Button, Toggle, Badge } from '../../../design-system'
+import { Button, Toggle } from '../../../design-system'
 import type {
-  StepType, ApprovalConfig, ApprovalMode, ApprovalPolicy,
+  ApprovalConfig, ApprovalMode, ApprovalPolicy,
   ServiceCallConfig, ScriptConfig, WaitConfig, SubWorkflowConfig,
   RuleEvalConfig, ApproverDef, EscalationConfig,
 } from '../../../config/studioApi'
@@ -17,9 +16,6 @@ interface NodeConfigPanelProps {
 
 export function NodeConfigPanel({ node, onUpdate, onClose, onDelete }: NodeConfigPanelProps) {
   const update = (changes: Partial<WorkflowNodeData>) => onUpdate(node.id, changes)
-  const updateConfig = (key: string, value: unknown) => {
-    update({ config: { ...(node.config ?? {}), [key]: value } })
-  }
 
   return (
     <div style={{
@@ -204,7 +200,6 @@ function EscalationPanel({ escalation, onChange }: { escalation?: EscalationConf
         <Toggle
           checked={enabled}
           onChange={(v) => onChange(v ? { timeoutMins: 60, escalateTo: '' } : undefined)}
-          size="sm"
         />
       </div>
       {escalation && (

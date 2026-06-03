@@ -1,16 +1,33 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
-type BadgeVariant = 'success' | 'warn' | 'error' | 'info' | 'purple' | 'brand' | 'gray'
+// 'warning' is an alias for 'warn'; 'neutral' is an alias for 'gray'
+export type BadgeVariant =
+  | 'success' | 'warn' | 'warning'
+  | 'error'
+  | 'info'
+  | 'neutral' | 'gray'
+  | 'purple' | 'brand'
 
 interface BadgeProps {
   variant?: BadgeVariant
   dot?: boolean
   children: ReactNode
+  style?: CSSProperties
+  className?: string
 }
 
-export function Badge({ variant = 'gray', dot = true, children }: BadgeProps) {
+function resolveVariant(v: BadgeVariant): string {
+  if (v === 'warning') return 'warn'
+  if (v === 'neutral') return 'gray'
+  return v
+}
+
+export function Badge({ variant = 'gray', dot = true, children, style, className }: BadgeProps) {
   return (
-    <span className={`ex-badge ${variant}`}>
+    <span
+      className={`ex-badge ${resolveVariant(variant)}${className ? ` ${className}` : ''}`}
+      style={style}
+    >
       {dot && <span className="dot" />}
       {children}
     </span>
@@ -25,6 +42,7 @@ const STATUS_VARIANT_MAP: Record<string, BadgeVariant> = {
   active: 'success',
   inactive: 'gray',
   pending: 'warn',
+  warning: 'warning',
   failed: 'error',
 }
 

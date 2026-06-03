@@ -4,7 +4,7 @@ import {
   Play, FlaskConical, ChevronDown, ChevronRight, CheckCircle, XCircle,
   AlertTriangle, ArrowRight, Zap,
 } from 'lucide-react'
-import { Button, Badge, Spinner, Banner, Input, Select, TabGroup } from '../../../design-system'
+import { Button, Badge, Banner, Input, Select, TabGroup } from '../../../design-system'
 import {
   simulateRules,
   type SimulationResult, type SimulationTrace,
@@ -84,7 +84,7 @@ function RuleSimulation() {
           <label style={labelStyle}>Trigger</label>
           <Select
             value={triggerType}
-            onChange={(v) => setTriggerType(v)}
+            onChange={(e) => setTriggerType(e.target.value)}
             options={[
               { label: 'on_change', value: 'on_change' },
               { label: 'on_create', value: 'on_create' },
@@ -109,7 +109,7 @@ function RuleSimulation() {
         />
       </div>
 
-      {parseError && <Banner variant="error">{parseError}</Banner>}
+      {parseError && <Banner variant="error" title={parseError} />}
 
       <Button
         variant="primary"
@@ -122,7 +122,7 @@ function RuleSimulation() {
 
       {/* Results */}
       {simMutation.isError && (
-        <Banner variant="error">Simulation failed: {(simMutation.error as Error).message}</Banner>
+        <Banner variant="error" title="Simulation failed" message={(simMutation.error as Error).message} />
       )}
 
       {result && <SimulationResultView result={result} />}
@@ -149,7 +149,7 @@ function SimulationResultView({ result }: { result: SimulationResult }) {
       </div>
 
       {result.blocked && result.blockMessage && (
-        <Banner variant="error">{result.blockMessage}</Banner>
+        <Banner variant="error" title={result.blockMessage} />
       )}
 
       {/* Warnings */}
@@ -205,7 +205,6 @@ function SimulationResultView({ result }: { result: SimulationResult }) {
             <TraceRow
               key={i}
               trace={t}
-              index={i}
               expanded={expandedTrace.has(i)}
               onToggle={() => {
                 const next = new Set(expandedTrace)
@@ -223,7 +222,7 @@ function SimulationResultView({ result }: { result: SimulationResult }) {
           <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--fg-primary)', marginBottom: 8 }}>Field Behaviors</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {Object.entries(result.fieldBehaviors).map(([field, behavior]) => (
-              <Badge key={field} variant={behavior === 'hidden' ? 'error' : behavior === 'readonly' ? 'warning' : 'neutral'}>
+              <Badge key={field} variant={behavior === 'HIDDEN' ? 'error' : behavior === 'READONLY' ? 'warn' : 'gray'}>
                 {field}: {behavior}
               </Badge>
             ))}
@@ -234,8 +233,8 @@ function SimulationResultView({ result }: { result: SimulationResult }) {
   )
 }
 
-function TraceRow({ trace, index, expanded, onToggle }: {
-  trace: SimulationTrace; index: number; expanded: boolean; onToggle: () => void
+function TraceRow({ trace, expanded, onToggle }: {
+  trace: SimulationTrace; expanded: boolean; onToggle: () => void
 }) {
   return (
     <div style={{ fontSize: 'var(--text-xs)', marginBottom: 4 }}>
@@ -244,7 +243,7 @@ function TraceRow({ trace, index, expanded, onToggle }: {
         style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', padding: '4px 0' }}
       >
         {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
-        <Badge variant={trace.matched ? 'success' : 'neutral'} style={{ fontSize: 9 }}>
+        <Badge variant={trace.matched ? 'success' : 'gray'} style={{ fontSize: 9 }}>
           {trace.matched ? 'MATCH' : 'SKIP'}
         </Badge>
         <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--fg-primary)' }}>{trace.ruleKey}</span>
@@ -301,10 +300,7 @@ function WorkflowDryRun() {
 
   return (
     <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Banner variant="info">
-        Workflow dry-run publishes an event to trigger matching workflow bindings.
-        Instances will be created if bindings match.
-      </Banner>
+      <Banner variant="info" title="Workflow Dry Run" message="Publishes an event to trigger matching workflow bindings. Instances will be created if bindings match." />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div>
@@ -321,7 +317,7 @@ function WorkflowDryRun() {
         <label style={labelStyle}>Event Type</label>
         <Select
           value={event}
-          onChange={(v) => setEvent(v)}
+          onChange={(e) => setEvent(e.target.value)}
           options={[
             { label: 'on_create', value: 'on_create' },
             { label: 'on_update', value: 'on_update' },
@@ -346,7 +342,7 @@ function WorkflowDryRun() {
         />
       </div>
 
-      {parseError && <Banner variant="error">{parseError}</Banner>}
+      {parseError && <Banner variant="error" title={parseError} />}
 
       <Button
         variant="primary"
@@ -358,12 +354,12 @@ function WorkflowDryRun() {
       </Button>
 
       {dryRunMutation.isError && (
-        <Banner variant="error">Failed: {(dryRunMutation.error as Error).message}</Banner>
+        <Banner variant="error" title="Failed" message={(dryRunMutation.error as Error).message} />
       )}
 
       {result && (
         <div style={{ background: 'var(--bg-secondary)', borderRadius: 6, padding: 16, border: '1px solid var(--border-primary)' }}>
-          <Badge variant={result.triggered > 0 ? 'success' : 'neutral'}>
+          <Badge variant={result.triggered > 0 ? 'success' : 'gray'}>
             {result.triggered} workflow instance(s) triggered
           </Badge>
         </div>

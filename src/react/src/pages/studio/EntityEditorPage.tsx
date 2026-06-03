@@ -243,7 +243,7 @@ export function EntityEditorPage() {
   return (
     <EditorLayout
       title={isNew ? 'New Entity' : (settings.displayName || artifact?.entity_type || 'Entity')}
-      statusBadge={!isNew && artifact ? <StatusBadge status={artifact.status} /> : undefined}
+      statusBadge={!isNew && artifact ? <StatusBadge status={artifact.is_draft ? 'draft' : artifact.is_active ? 'published' : 'inactive'} /> : undefined}
       isDirty={isDirty}
       onSaveDraft={handleSaveDraft}
       saving={saveMut.isPending || createMut.isPending}

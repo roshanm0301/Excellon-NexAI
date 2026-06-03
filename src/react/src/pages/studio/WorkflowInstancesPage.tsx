@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Play, XCircle, Eye, RefreshCw } from 'lucide-react'
+import { ArrowLeft, XCircle, Eye } from 'lucide-react'
 import {
-  Button, Badge, Spinner, Banner, DataTable, useToast, ConfirmDialog,
+  Button, Badge, DataTable, useToast, ConfirmDialog,
   type Column,
 } from '../../design-system'
 import {
@@ -45,19 +45,19 @@ export default function WorkflowInstancesPage() {
     mutationFn: (instId: string) => abortWorkflowInstance(instId, 'Manually aborted from UI'),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['workflow-instances'] })
-      toast({ title: 'Instance aborted', variant: 'success' })
+      toast('success', 'Instance aborted')
       setAbortTarget(null)
     },
-    onError: () => toast({ title: 'Abort failed', variant: 'error' }),
+    onError: () => toast('error', 'Abort failed'),
   })
 
-  const statusColor = (s: WorkflowInstanceStatus): 'success' | 'error' | 'warning' | 'info' | 'neutral' => {
+  const statusColor = (s: WorkflowInstanceStatus): 'success' | 'error' | 'warn' | 'info' | 'gray' => {
     switch (s) {
       case 'completed': return 'success'
       case 'failed': return 'error'
       case 'running': return 'info'
-      case 'waiting': return 'warning'
-      case 'aborted': return 'neutral'
+      case 'waiting': return 'warn'
+      case 'aborted': return 'gray'
     }
   }
 
@@ -124,26 +124,26 @@ export default function WorkflowInstancesPage() {
         <h1 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--fg-primary)', margin: 0, flex: 1 }}>
           Workflow Instances
         </h1>
-        <Badge variant="neutral">{items.length} total</Badge>
+        <Badge variant="gray">{items.length} total</Badge>
       </div>
 
       <DataTable
-        columns={columns}
-        data={items}
+        columns={columns as unknown as Column<Record<string, unknown>>[]}
+        rows={items as unknown as Record<string, unknown>[]}
         loading={isLoading}
-        emptyMessage="No instances running for this workflow."
-        onRowClick={(row) => navigate(`/workflow/${definitionId}/instances/${row.id}`)}
+        emptyTitle="No instances running for this workflow."
+        onRowClick={(row) => navigate(`/workflow/${definitionId}/instances/${(row as unknown as ProcessInstanceV2).id}`)}
       />
 
       {abortTarget && (
         <ConfirmDialog
           open
           title="Abort Instance"
-          description="Are you sure you want to abort this workflow instance? This cannot be undone."
+          message="Are you sure you want to abort this workflow instance? This cannot be undone."
           confirmLabel="Abort"
-          variant="danger"
+          danger
           onConfirm={() => abortMut.mutate(abortTarget)}
-          onCancel={() => setAbortTarget(null)}
+          onClose={() => setAbortTarget(null)}
         />
       )}
     </div>

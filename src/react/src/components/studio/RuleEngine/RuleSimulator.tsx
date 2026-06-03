@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Play, AlertTriangle, XCircle, CheckCircle, Activity } from 'lucide-react'
-import { Button, Badge, Spinner, Banner, CodeBlock } from '../../../design-system'
+import { Button, Badge, Spinner, Banner } from '../../../design-system'
 import { simulateRules, type SimulationResult } from '../../../config/studioApi'
 
 interface RuleSimulatorProps {
@@ -68,9 +68,7 @@ export function RuleSimulator({ entityType }: RuleSimulatorProps) {
             Run Simulation
           </Button>
           {mutation.isError && (
-            <Banner variant="error">
-              {mutation.error instanceof SyntaxError ? 'Invalid JSON in payload' : String(mutation.error)}
-            </Banner>
+            <Banner variant="error" title={mutation.error instanceof SyntaxError ? 'Invalid JSON in payload' : String(mutation.error)} />
           )}
         </div>
 
@@ -148,7 +146,7 @@ function SimulationResults({ result }: { result: SimulationResult }) {
         <Section title="Field Behaviors" icon={<Activity size={14} />} color="var(--fg-secondary)">
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {Object.entries(result.fieldBehaviors).map(([field, behavior]) => (
-              <Badge key={field} variant="neutral">
+              <Badge key={field} variant="gray">
                 {field}: {behavior}
               </Badge>
             ))}

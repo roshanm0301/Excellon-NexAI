@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, Shield } from 'lucide-react'
-import { Button, Badge, Spinner, Banner } from '../../../design-system'
+import { Button, Spinner, Banner } from '../../../design-system'
 import {
   getConflictMatrix,
   saveConflictMatrixEntry,
@@ -50,7 +50,7 @@ export function ConflictMatrixPanel({ ruleSetKey }: ConflictMatrixPanelProps) {
   }
 
   if (isLoading) return <Spinner />
-  if (error) return <Banner variant="error">Failed to load conflict matrix</Banner>
+  if (error) return <Banner variant="error" title="Failed to load conflict matrix" />
 
   const entries = data?.items ?? []
 
