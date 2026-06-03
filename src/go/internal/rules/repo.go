@@ -47,11 +47,10 @@ func (r *Repo) EnsureTable(ctx context.Context) error {
 }
 
 func (r *Repo) ListForEntity(ctx context.Context, tenantID, entityType string) ([]RuleSet, error) {
-	rows, err := r.pool.Query(ctx, `
-		SELECT definition FROM rule_set
-		WHERE tenant_id = $1 AND entity_type = $2 AND enabled = true AND deleted_at IS NULL
-		ORDER BY created_at ASC`,
-		tenantID, entityType)
+	q := `SELECT id, entity_type, name, definition, enabled FROM rule_set
+		WHERE tenant_id = $1 AND ($2 = '' OR entity_type = $2) AND deleted_at IS NULL
+		ORDER BY created_at ASC`
+	rows, err := r.pool.Query(ctx, q, tenantID, entityType)
 	if err != nil {
 		return nil, fmt.Errorf("rules list: %w", err)
 	}
@@ -59,18 +58,46 @@ func (r *Repo) ListForEntity(ctx context.Context, tenantID, entityType string) (
 
 	var sets []RuleSet
 	for rows.Next() {
+		var id, et, name string
 		var def []byte
-		if err := rows.Scan(&def); err != nil {
+		var enabled bool
+		if err := rows.Scan(&id, &et, &name, &def, &enabled); err != nil {
 			return nil, err
 		}
 		var rs RuleSet
 		if err := json.Unmarshal(def, &rs); err != nil {
-			continue
+			rs = RuleSet{}
 		}
-		rs.Enabled = true
+		rs.ID = id
+		rs.EntityType = et
+		rs.Name = name
+		rs.Enabled = enabled
 		sets = append(sets, rs)
 	}
 	return sets, rows.Err()
+}
+
+func (r *Repo) GetByID(ctx context.Context, tenantID, id string) (*RuleSet, error) {
+	var etCol, name string
+	var def []byte
+	var enabled bool
+	err := r.pool.QueryRow(ctx, `
+		SELECT entity_type, name, definition, enabled FROM rule_set
+		WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL`,
+		id, tenantID,
+	).Scan(&etCol, &name, &def, &enabled)
+	if err != nil {
+		return nil, fmt.Errorf("rules get: %w", err)
+	}
+	var rs RuleSet
+	if err := json.Unmarshal(def, &rs); err != nil {
+		rs = RuleSet{}
+	}
+	rs.ID = id
+	rs.EntityType = etCol
+	rs.Name = name
+	rs.Enabled = enabled
+	return &rs, nil
 }
 
 func (r *Repo) Save(ctx context.Context, tenantID, createdBy string, rs RuleSet) (*RuleSetRecord, error) {

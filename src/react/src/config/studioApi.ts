@@ -213,19 +213,19 @@ export interface RuleSet {
 }
 
 export const listRuleSets = (entityType?: string) =>
-  studioFetch<{ items: RuleSet[] }>(`/rules${entityType ? `?entity_type=${entityType}` : ''}`)
+  studioFetch<{ items: RuleSet[] }>(`/admin/rules${entityType ? `?entity_type=${entityType}` : ''}`)
 
 export const getRuleSet = (id: string) =>
-  studioFetch<RuleSet>(`/rules/${id}`)
+  studioFetch<RuleSet>(`/admin/rules/${id}`)
 
 export const saveRuleSet = (id: string, body: Partial<RuleSet>) =>
-  studioFetch<RuleSet>(`/rules/${id}`, { method: 'PUT', body: JSON.stringify(body) })
+  studioFetch<RuleSet>(`/admin/rules/${id}`, { method: 'PUT', body: JSON.stringify(body) })
 
 export const createRuleSet = (body: { entity_type: string; name: string }) =>
-  studioFetch<RuleSet>('/rules', { method: 'POST', body: JSON.stringify(body) })
+  studioFetch<RuleSet>('/admin/rules', { method: 'POST', body: JSON.stringify(body) })
 
 export const deleteRuleSet = (id: string) =>
-  studioFetch<void>(`/rules/${id}`, { method: 'DELETE' })
+  studioFetch<void>(`/admin/rules/${id}`, { method: 'DELETE' })
 
 // ── Overlay API ───────────────────────────────────────────────────────────────
 
@@ -544,14 +544,14 @@ export const listRuleSetsV2 = (entityType?: string, classification?: RuleClassif
   const params = new URLSearchParams()
   if (entityType) params.set('entity_type', entityType)
   if (classification) params.set('classification', classification)
-  return studioFetch<{ items: RuleSetV2[] }>(`/rules/v2/classified?${params.toString()}`)
+  return studioFetch<{ items: RuleSetV2[] }>(`/admin/rules/v2/classified?${params.toString()}`)
 }
 
 export const getRuleSetV2 = (id: string) =>
-  studioFetch<RuleSetV2>(`/rules/${id}`)
+  studioFetch<RuleSetV2>(`/admin/rules/${id}`)
 
 export const saveRuleSetV2 = (id: string, body: Partial<RuleSetV2>) =>
-  studioFetch<RuleSetV2>(`/rules/${id}`, { method: 'PUT', body: JSON.stringify(body) })
+  studioFetch<RuleSetV2>(`/admin/rules/${id}`, { method: 'PUT', body: JSON.stringify(body) })
 
 export const createRuleSetV2 = (body: {
   entity_type: string
@@ -560,7 +560,7 @@ export const createRuleSetV2 = (body: {
   classifications?: RuleClassification[]
   hit_policy?: HitPolicy
 }) =>
-  studioFetch<RuleSetV2>('/rules', { method: 'POST', body: JSON.stringify(body) })
+  studioFetch<RuleSetV2>('/admin/rules', { method: 'POST', body: JSON.stringify(body) })
 
 // Simulation
 export const simulateRules = (body: {
@@ -568,27 +568,27 @@ export const simulateRules = (body: {
   trigger_type?: string
   payload: Record<string, unknown>
 }) =>
-  studioFetch<SimulationResult>('/rules/v2/simulate', { method: 'POST', body: JSON.stringify(body) })
+  studioFetch<SimulationResult>('/admin/rules/v2/simulate', { method: 'POST', body: JSON.stringify(body) })
 
 // Conflict Matrix
 export const getConflictMatrix = (ruleSetKey: string) =>
-  studioFetch<{ items: ConflictMatrixEntry[] }>(`/rules/v2/${ruleSetKey}/conflict-matrix`)
+  studioFetch<{ items: ConflictMatrixEntry[] }>(`/admin/rules/v2/${ruleSetKey}/conflict-matrix`)
 
 export const saveConflictMatrixEntry = (ruleSetKey: string, entry: ConflictMatrixEntry) =>
-  studioFetch<ConflictMatrixEntry>(`/rules/v2/${ruleSetKey}/conflict-matrix/${entry.field}`, {
+  studioFetch<ConflictMatrixEntry>(`/admin/rules/v2/${ruleSetKey}/conflict-matrix/${entry.field}`, {
     method: 'PUT',
     body: JSON.stringify(entry),
   })
 
 export const deleteConflictMatrixEntry = (ruleSetKey: string, field: string) =>
-  studioFetch<void>(`/rules/v2/${ruleSetKey}/conflict-matrix/${field}`, { method: 'DELETE' })
+  studioFetch<void>(`/admin/rules/v2/${ruleSetKey}/conflict-matrix/${field}`, { method: 'DELETE' })
 
 // Execution Log
 export const getExecutionLog = (params?: { entity_type?: string; limit?: number }) => {
   const qs = new URLSearchParams()
   if (params?.entity_type) qs.set('entity_type', params.entity_type)
   if (params?.limit) qs.set('limit', String(params.limit))
-  return studioFetch<{ items: ExecutionLogEntry[] }>(`/rules/v2/execution-log?${qs.toString()}`)
+  return studioFetch<{ items: ExecutionLogEntry[] }>(`/admin/rules/v2/execution-log?${qs.toString()}`)
 }
 
 // ── Workflow Engine V2 API ────────────────────────────────────────────────────

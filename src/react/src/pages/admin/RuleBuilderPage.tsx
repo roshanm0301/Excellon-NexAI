@@ -34,7 +34,7 @@ export function RuleBuilderPage() {
       setCreating(false)
       setNewName('')
       setNewEntityType('')
-      navigate(`/rules/${rs.id}`)
+      navigate(`/admin/rules/${rs.id}/edit`)
     },
     onError: () => error('Failed to create rule set'),
   })
@@ -74,7 +74,7 @@ export function RuleBuilderPage() {
         <button
           className="ex-link"
           style={{ fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-primary)', padding: 0, textAlign: 'left' }}
-          onClick={(e) => { e.stopPropagation(); navigate(`/rules/${row.id}`) }}
+          onClick={(e) => { e.stopPropagation(); navigate(`/admin/rules/${row.id}/edit`) }}
         >
           {row.name}
         </button>
@@ -104,7 +104,7 @@ export function RuleBuilderPage() {
       width: 150,
       render: (row) => (
         <div style={{ display: 'flex', gap: 4 }}>
-          <Button variant="ghost" onClick={(e) => { e.stopPropagation(); navigate(`/rules/${row.id}`) }} icon={<Edit2 size={14} />}>
+          <Button variant="ghost" onClick={(e) => { e.stopPropagation(); navigate(`/admin/rules/${row.id}/edit`) }} icon={<Edit2 size={14} />}>
             Edit
           </Button>
           <Button
@@ -141,7 +141,7 @@ export function RuleBuilderPage() {
           loading={isLoading}
           emptyTitle="No rule sets yet"
           emptyDescription="Create your first rule set to start defining entity validation rules."
-          onRowClick={(row) => navigate(`/rules/${row.id}`)}
+          onRowClick={(row) => navigate(`/admin/rules/${row.id}/edit`)}
         />
       </div>
 
