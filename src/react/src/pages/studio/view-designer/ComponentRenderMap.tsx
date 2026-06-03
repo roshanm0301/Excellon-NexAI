@@ -71,7 +71,7 @@ function ConditionalContainerRenderer({ node, children }: PreviewProps) {
   return (
     <div style={{ border: '1px dashed #94a3b8', borderRadius: 6, padding: '0.5rem', background: '#fafafa' }}>
       <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: '0.4rem', fontFamily: 'monospace' }}>
-        if: {node.bindings?.visible?.field_key ?? node.props?.condition ?? 'condition'}
+        if: {String(node.bindings?.visible?.field_key ?? node.props?.condition ?? 'condition')}
       </div>
       {children}
     </div>
@@ -171,7 +171,7 @@ function ReferenceSelectRenderer(props: PreviewProps) {
     <div className="prev-input">
       <label className="prev-input__label">
         {props.node.props?.label as string || 'Reference'}
-        {props.node.props?.required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
+        {props.node.props?.required === true && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
       </label>
       <div className="prev-input__field">
         <div style={{ padding: '0.35rem 0.5rem', border: '1px solid #e2e8f0', borderRadius: 4, background: '#fff', fontSize: '0.78rem', color: '#94a3b8', minHeight: 30, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
