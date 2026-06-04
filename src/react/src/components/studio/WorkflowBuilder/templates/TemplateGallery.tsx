@@ -58,23 +58,9 @@ export function TemplateGallery({ onClose, onApply }: TemplateGalleryProps) {
       {selectedTemplate ? (
         /* ── Template preview ─────────────────────────────────────────────── */
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <button
-            onClick={() => setSelectedTemplate(null)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--fg-secondary)',
-              fontSize: 'var(--text-sm)',
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              fontFamily: 'inherit',
-            }}
-          >
+          <Button variant="ghost" onClick={() => setSelectedTemplate(null)}>
             ← Back to templates
-          </button>
+          </Button>
 
           <div>
             <h3 style={{ margin: '0 0 4px', fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--fg-primary)' }}>

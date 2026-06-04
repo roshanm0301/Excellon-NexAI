@@ -50,7 +50,7 @@ export function ImportExportPanel({ isOpen, onClose, tabId, definition, onImport
       onImport(def)
       setImportSuccess(true)
       setImportText('')
-      setTimeout(onClose, 800)
+      onClose()
     } catch (err) {
       setImportError(err instanceof Error ? err.message : 'Unknown error importing workflow.')
     }

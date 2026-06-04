@@ -455,6 +455,9 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
         <TemplateGallery
           onClose={() => setShowTemplateGallery(false)}
           onApply={(definition) => {
+            if (tab?.isDirty) {
+              if (!window.confirm('Applying a template will replace the current workflow and discard unsaved changes.\n\nContinue?')) return
+            }
             updateDefinition(activeTabId, definition)
             setShowTemplateGallery(false)
           }}

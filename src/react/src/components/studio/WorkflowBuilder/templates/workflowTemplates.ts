@@ -1,5 +1,7 @@
 import type { WorkflowDefinition, WorkflowStep } from '../../../../types/workflowBuilder'
 
+export const TEMPLATE_LIBRARY_VERSION = 1
+
 export type TemplateCategory = 'Data CRUD' | 'Approvals' | 'Integration' | 'Analytics'
 
 export interface WorkflowTemplate {

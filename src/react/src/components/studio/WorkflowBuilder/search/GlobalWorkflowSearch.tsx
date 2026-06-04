@@ -6,7 +6,7 @@
  * To extend to backend search, call `listWorkflowArtifacts()` from studioApi.ts
  * and parse each artifact's `definition.sequence`.
  */
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Badge } from '../../../../design-system'
 import { useWorkflowBuilderStore } from '../../../../pages/studio/workflow-builder/useWorkflowBuilderStore'
 import type { WorkflowStep } from '../../../../types/workflowBuilder'
@@ -50,17 +50,15 @@ export function GlobalWorkflowSearch({ onClose }: GlobalWorkflowSearchProps) {
     return () => clearTimeout(t)
   }, [])
 
-  // Build search results
-  const results: SearchResult[] = (() => {
+  // Build search results — memoized so they only recompute when query or tabs change
+  const results: SearchResult[] = useMemo(() => {
     if (query.trim() === '') return []
     const q = query.toLowerCase()
     const out: SearchResult[] = []
     for (const tab of tabs) {
       const allSteps = collectSteps(tab.definition.sequence)
       for (const step of allSteps) {
-        if (
-          step.type === 'start' || step.type === 'end'
-        ) continue
+        if (step.type === 'start' || step.type === 'end') continue
         if (
           step.name.toLowerCase().includes(q) ||
           step.type.toLowerCase().includes(q) ||
@@ -71,7 +69,7 @@ export function GlobalWorkflowSearch({ onClose }: GlobalWorkflowSearchProps) {
       }
     }
     return out
-  })()
+  }, [query, tabs])
 
   // Reset highlight when results change
   useEffect(() => {
@@ -101,14 +99,23 @@ export function GlobalWorkflowSearch({ onClose }: GlobalWorkflowSearchProps) {
     }
   }
 
-  // Group results by tab
-  const grouped: Map<string, { tabName: string; results: SearchResult[] }> = new Map()
-  for (const r of results) {
-    if (!grouped.has(r.tabId)) {
-      grouped.set(r.tabId, { tabName: r.tabName, results: [] })
+  // Group results by tab — memoized on results
+  const grouped = useMemo(() => {
+    const map: Map<string, { tabName: string; results: SearchResult[]; offset: number }> = new Map()
+    let offset = 0
+    for (const r of results) {
+      if (!map.has(r.tabId)) {
+        map.set(r.tabId, { tabName: r.tabName, results: [], offset })
+      }
+      map.get(r.tabId)!.results.push(r)
     }
-    grouped.get(r.tabId)!.results.push(r)
-  }
+    // Pre-compute per-tab global index offsets
+    for (const group of map.values()) {
+      group.offset = offset
+      offset += group.results.length
+    }
+    return map
+  }, [results])
 
   return (
     /* Backdrop */
@@ -172,6 +179,8 @@ export function GlobalWorkflowSearch({ onClose }: GlobalWorkflowSearchProps) {
           </svg>
           <input
             ref={inputRef}
+            type="search"
+            aria-label="Search steps across all open workflows"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search steps across all open workflows…"
@@ -230,11 +239,7 @@ export function GlobalWorkflowSearch({ onClose }: GlobalWorkflowSearchProps) {
             </div>
           ) : (
             Array.from(grouped.entries()).map(([tabId, group]) => {
-              let globalIdx = 0
-              for (const [gid] of grouped) {
-                if (gid === tabId) break
-                globalIdx += grouped.get(gid)!.results.length
-              }
+              const globalIdx = group.offset
               return (
                 <div key={tabId}>
                   {/* Tab group heading */}

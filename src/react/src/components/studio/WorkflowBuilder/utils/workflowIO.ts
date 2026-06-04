@@ -24,8 +24,11 @@ export function exportWorkflowAsJson(name: string, definition: WorkflowDefinitio
   const anchor = document.createElement('a')
   anchor.href = url
   anchor.download = `${name.replace(/[^a-z0-9_-]/gi, '_')}_workflow.json`
+  // Append to DOM so Firefox triggers the download (detached elements are ignored)
+  document.body.appendChild(anchor)
   anchor.click()
-  URL.revokeObjectURL(url)
+  document.body.removeChild(anchor)
+  setTimeout(() => URL.revokeObjectURL(url), 100)
 }
 
 /**
@@ -43,6 +46,10 @@ export function validateImportJson(json: unknown): string | null {
     return 'Missing required field: "definition".'
   }
 
+  if ('version' in obj && obj['version'] !== 1) {
+    return `Unsupported workflow format version: ${String(obj['version'])}.`
+  }
+
   const def = obj['definition']
   if (def === null || typeof def !== 'object') {
     return 'Invalid format: "definition" must be an object.'
@@ -56,6 +63,38 @@ export function validateImportJson(json: unknown): string | null {
 
   if (!('properties' in defObj) || typeof defObj['properties'] !== 'object' || defObj['properties'] === null) {
     return 'Invalid format: "definition.properties" must be an object.'
+  }
+
+  // Validate each step in the sequence
+  const seenIds = new Set<string>()
+  const sequence = defObj['sequence'] as unknown[]
+  for (let i = 0; i < sequence.length; i++) {
+    const item = sequence[i]
+    if (item === null || typeof item !== 'object') {
+      return `Invalid step at index ${i}: must be an object.`
+    }
+    const s = item as Record<string, unknown>
+    if (typeof s['id'] !== 'string' || s['id'].trim() === '') {
+      return `Invalid step at index ${i}: "id" must be a non-empty string.`
+    }
+    if (typeof s['name'] !== 'string' || s['name'].trim() === '') {
+      return `Invalid step at index ${i}: "name" must be a non-empty string.`
+    }
+    if (typeof s['type'] !== 'string' || s['type'].trim() === '') {
+      return `Invalid step at index ${i}: "type" must be a non-empty string.`
+    }
+    if (s['properties'] === null || typeof s['properties'] !== 'object') {
+      return `Invalid step at index ${i}: "properties" must be an object.`
+    }
+    const props = s['properties'] as Record<string, unknown>
+    if (props['taskSettings'] === null || typeof props['taskSettings'] !== 'object') {
+      return `Invalid step at index ${i}: "properties.taskSettings" must be an object.`
+    }
+    const id = s['id'] as string
+    if (seenIds.has(id)) {
+      return `Duplicate step ID "${id}" found in sequence.`
+    }
+    seenIds.add(id)
   }
 
   return null

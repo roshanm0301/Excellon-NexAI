@@ -175,6 +175,19 @@ function applyPositions(
   })
 }
 
+function findStepById(steps: WorkflowStep[], stepId: string): WorkflowStep | undefined {
+  for (const s of steps) {
+    if (s.id === stepId) return s
+    if (s.branches) {
+      for (const branch of Object.values(s.branches)) {
+        const found = findStepById(branch, stepId)
+        if (found) return found
+      }
+    }
+  }
+  return undefined
+}
+
 function collectAllIds(steps: WorkflowStep[]): Set<string> {
   const ids = new Set<string>()
   function walk(seq: WorkflowStep[]) {
@@ -335,8 +348,7 @@ export const useWorkflowBuilderStore = create<WorkflowBuilderState>((set, get) =
   copyStep(tabId, stepId) {
     const tab = get().tabs.find(t => t.id === tabId)
     if (!tab) return
-    // Search top-level only (branches are not clipboard-copyable independently)
-    const found = tab.definition.sequence.find(s => s.id === stepId)
+    const found = findStepById(tab.definition.sequence, stepId)
     if (!found) return
     set({ clipboard: found })
   },
@@ -349,11 +361,14 @@ export const useWorkflowBuilderStore = create<WorkflowBuilderState>((set, get) =
 
     const existingIds = collectAllIds(tab.definition.sequence)
 
-    // Build a new unique ID with _paste suffix
-    let candidateId = `${clipboard.id}_paste`
+    // cloneStep recursively re-generates IDs for all branch children too
+    const cloned = cloneStep(clipboard, existingIds)
+
+    // Build a unique _paste ID for the top level
+    let pasteId = `${clipboard.id}_paste`
     let suffix = 2
-    while (existingIds.has(candidateId)) {
-      candidateId = `${clipboard.id}_paste${suffix}`
+    while (existingIds.has(pasteId)) {
+      pasteId = `${clipboard.id}_paste${suffix}`
       suffix++
     }
 
@@ -361,16 +376,10 @@ export const useWorkflowBuilderStore = create<WorkflowBuilderState>((set, get) =
     const originalPos = stepWithPos.position
 
     const pasted: WorkflowStep = {
-      ...clipboard,
-      id: candidateId,
+      ...cloned,
+      id: pasteId,
       name: `${clipboard.name} (paste)`,
-      properties: {
-        ...clipboard.properties,
-        taskSettings: { ...clipboard.properties.taskSettings },
-      },
-      ...(originalPos
-        ? { position: { x: originalPos.x + 80, y: originalPos.y + 80 } }
-        : {}),
+      ...(originalPos ? { position: { x: originalPos.x + 80, y: originalPos.y + 80 } } : {}),
     }
 
     get().updateDefinition(tabId, {
