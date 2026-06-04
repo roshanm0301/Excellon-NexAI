@@ -22,23 +22,26 @@ function getEntityOperations(artifact: Artifact): EntityOperation[] {
   ]
 
   // Add transitions from compiled payload if available
-  const payload = artifact.payload as Record<string, unknown>
-  const compiled = payload?.compiled as Record<string, unknown> | undefined
-  const statuses = compiled?.statuses as Array<{ status: string; transitions?: Array<{ command?: string; label?: string; to?: string }> }> | undefined
-
-  if (statuses) {
-    for (const status of statuses) {
-      for (const transition of status.transitions ?? []) {
-        const label = transition.label ?? transition.command ?? transition.to
-        if (label) {
-          ops.push({
-            label: `→ ${label}`,
-            taskType: 'Document',
-            preset: { entityType: name, operation: transition.command ?? String(label) },
-          })
+  try {
+    const payload = artifact.payload as Record<string, unknown>
+    const compiled = payload?.compiled as Record<string, unknown> | undefined
+    const statuses = compiled?.statuses
+    if (Array.isArray(statuses)) {
+      for (const status of statuses as Array<{ status: string; transitions?: Array<{ command?: string; label?: string; to?: string }> }>) {
+        for (const transition of status.transitions ?? []) {
+          const label = transition.label ?? transition.command ?? transition.to
+          if (label) {
+            ops.push({
+              label: `→ ${label}`,
+              taskType: 'Document',
+              preset: { entityType: name, operation: transition.command ?? String(label) },
+            })
+          }
         }
       }
     }
+  } catch {
+    // Malformed compiled payload — skip transitions, base operations still available
   }
 
   return ops
