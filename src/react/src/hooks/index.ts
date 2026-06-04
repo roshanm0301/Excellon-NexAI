@@ -1,5 +1,4 @@
 export * from './useEntityArtifacts'
 export * from './useArtifact'
-export * from './useRuleSets'
 export * from './useNodes'
 export * from './useOverlays'

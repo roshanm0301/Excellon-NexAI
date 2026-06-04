@@ -9,7 +9,14 @@ import { useMemo } from 'react'
 import { useCanvasStore } from './useCanvasStore'
 import { getRenderer } from './ComponentRenderMap'
 import type { ComponentNode } from '../../../types/viewStudio'
-import { applyRuleStateToComponentTree, type RuntimeRuleState } from '../../../lib/ruleRuntime'
+
+// Stub type for removed rule runtime
+type RuntimeRuleState = Record<string, unknown> | undefined
+
+// Stub function - rule runtime removed, just return tree as-is
+function applyRuleStateToComponentTree(tree: ComponentNode, _ruleState?: RuntimeRuleState): ComponentNode {
+  return tree
+}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 

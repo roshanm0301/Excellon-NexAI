@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/excellon/nexai/internal/compiler"
-	"github.com/excellon/nexai/internal/rules"
 )
 
 func TestResolveCreateStatusUsesInitialLifecycleStatus(t *testing.T) {
@@ -68,7 +67,7 @@ func TestRoleAllowedHonorsRoleGuards(t *testing.T) {
 
 func TestApplyRuleMutationsAndRequiredFields(t *testing.T) {
 	payload := map[string]any{"amount": 100}
-	result := &rules.EvalResultV2{
+	result := &EvalResultV2{
 		Mutations:      map[string]any{"tax": 18},
 		RequiredFields: []string{"amount", "tax"},
 	}

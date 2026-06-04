@@ -11,12 +11,18 @@ import (
 	"strings"
 
 	"github.com/excellon/nexai/internal/audit"
-	business_workflow "github.com/excellon/nexai/internal/business_workflow"
 	"github.com/excellon/nexai/internal/compiler"
 	"github.com/excellon/nexai/internal/db"
 	"github.com/excellon/nexai/internal/middleware"
-	"github.com/excellon/nexai/internal/rules"
 	"github.com/go-chi/chi/v5"
+)
+
+// Stub constants for removed business_workflow package
+const (
+	TriggerOnCreate      = "on_create"
+	TriggerOnUpdate      = "on_update"
+	TriggerOnStatusChange = "on_status_change"
+	TriggerManual        = "manual"
 )
 
 type Handler struct {
@@ -76,7 +82,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	}
 	triggerType := req.TriggerType
 	if triggerType == "" {
-		triggerType = business_workflow.TriggerOnCreate
+		triggerType = TriggerOnCreate
 	}
 	payload, ruleResult, err := h.evaluateWriteRules(r.Context(), tenantID, entityType, "", status, req.Payload, triggerType, nil)
 	if err != nil {
@@ -104,7 +110,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 			After:      afterMap,
 		})
 	}
-	h.publishEntityEvent(r.Context(), tenantID, entityType, rec.ID, business_workflow.TriggerOnCreate, userID, rec)
+	h.publishEntityEvent(r.Context(), tenantID, entityType, rec.ID, TriggerOnCreate, userID, rec)
 
 	writeJSON(w, http.StatusCreated, rec)
 }
@@ -172,7 +178,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	}
 	triggerType := req.TriggerType
 	if triggerType == "" {
-		triggerType = business_workflow.TriggerOnUpdate
+		triggerType = TriggerOnUpdate
 	}
 	payload, ruleResult, err := h.evaluateWriteRules(r.Context(), tenantID, entityType, id, status, req.Payload, triggerType, nil)
 	if err != nil {
@@ -204,7 +210,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 			After:      afterMap,
 		})
 	}
-	h.publishEntityEvent(r.Context(), tenantID, entityType, rec.ID, business_workflow.TriggerOnUpdate, userID, rec)
+	h.publishEntityEvent(r.Context(), tenantID, entityType, rec.ID, TriggerOnUpdate, userID, rec)
 
 	writeJSON(w, http.StatusOK, rec)
 }
@@ -360,10 +366,10 @@ func (h *Handler) runTransition(w http.ResponseWriter, r *http.Request, req Tran
 	facts["to_status"] = transition.To
 	facts["command"] = transition.Command
 
-	guardResults := map[string]*rules.EvalResultV2{}
+	guardResults := map[string]*EvalResultV2{}
 	if h.policy != nil && h.policy.ruleEvaluator != nil {
 		for _, guard := range RuleGuards(*transition) {
-			result, err := h.policy.ruleEvaluator.EvaluateRuleSet(r.Context(), tenantID, guard, facts, business_workflow.TriggerOnStatusChange)
+			result, err := h.policy.ruleEvaluator.EvaluateRuleSet(r.Context(), tenantID, guard, facts, TriggerOnStatusChange)
 			if err != nil {
 				writeError(w, http.StatusForbidden, err.Error())
 				return
@@ -380,7 +386,7 @@ func (h *Handler) runTransition(w http.ResponseWriter, r *http.Request, req Tran
 		}
 	}
 
-	payload, ruleResult, err := h.evaluateWriteRules(r.Context(), tenantID, entityType, id, transition.To, PayloadBytes(payloadMap), business_workflow.TriggerOnStatusChange, map[string]any{
+	payload, ruleResult, err := h.evaluateWriteRules(r.Context(), tenantID, entityType, id, transition.To, PayloadBytes(payloadMap), TriggerOnStatusChange, map[string]any{
 		"from_status": before.Status,
 		"to_status":   transition.To,
 		"command":     transition.Command,
@@ -424,7 +430,7 @@ func (h *Handler) runTransition(w http.ResponseWriter, r *http.Request, req Tran
 		})
 		return
 	}
-	h.publishEntityEvent(r.Context(), tenantID, entityType, rec.ID, business_workflow.TriggerOnStatusChange, userID, rec)
+	h.publishEntityEvent(r.Context(), tenantID, entityType, rec.ID, TriggerOnStatusChange, userID, rec)
 
 	writeJSON(w, http.StatusOK, TransitionResponse{
 		Record:        rec,
@@ -441,7 +447,7 @@ func (h *Handler) loadSchema(r *http.Request, tenantID, entityType string) (*com
 	return h.policy.LoadSchema(r.Context(), tenantID, entityType)
 }
 
-func (h *Handler) evaluateWriteRules(ctx context.Context, tenantID, entityType, entityID, status string, raw json.RawMessage, triggerType string, extraFacts map[string]any) (json.RawMessage, *rules.EvalResultV2, error) {
+func (h *Handler) evaluateWriteRules(ctx context.Context, tenantID, entityType, entityID, status string, raw json.RawMessage, triggerType string, extraFacts map[string]any) (json.RawMessage, *EvalResultV2, error) {
 	payloadMap := PayloadMap(raw)
 	if h.policy == nil || h.policy.ruleEvaluator == nil {
 		return PayloadBytes(payloadMap), nil, nil
@@ -502,7 +508,13 @@ func (h *Handler) publishEntityEvent(ctx context.Context, tenantID, entityType, 
 		payload["entity_id"] = rec.ID
 		payload["entity_type"] = rec.EntityType
 	}
-	business_workflow.PublishEntityEvent(ctx, tenantID, entityType, entityID, eventType, userID, payload)
+	// Event publishing removed - business_workflow package deleted
+	_ = tenantID  // unused
+	_ = entityType
+	_ = entityID
+	_ = eventType
+	_ = userID
+	_ = payload
 }
 
 func tenantUserRole(r *http.Request) (string, string, string) {

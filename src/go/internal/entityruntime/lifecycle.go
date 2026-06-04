@@ -8,14 +8,13 @@ import (
 
 	"github.com/excellon/nexai/internal/compiler"
 	"github.com/excellon/nexai/internal/db"
-	"github.com/excellon/nexai/internal/rules"
 	"github.com/excellon/nexai/internal/service"
 	"github.com/jackc/pgx/v5"
 )
 
 type RuntimeRuleEvaluator interface {
-	Evaluate(ctx context.Context, tenantID, entityType string, payload map[string]any, triggerType string) (*rules.EvalResultV2, error)
-	EvaluateRuleSet(ctx context.Context, tenantID, ruleSetKey string, payload map[string]any, triggerType string) (*rules.EvalResultV2, error)
+	Evaluate(ctx context.Context, tenantID, entityType string, payload map[string]any, triggerType string) (*EvalResultV2, error)
+	EvaluateRuleSet(ctx context.Context, tenantID, ruleSetKey string, payload map[string]any, triggerType string) (*EvalResultV2, error)
 }
 
 type RuntimePolicy struct {
@@ -196,7 +195,7 @@ func PayloadBytes(payload map[string]any) json.RawMessage {
 	return raw
 }
 
-func ApplyRuleMutations(payload map[string]any, result *rules.EvalResultV2) map[string]any {
+func ApplyRuleMutations(payload map[string]any, result *EvalResultV2) map[string]any {
 	if payload == nil {
 		payload = map[string]any{}
 	}
@@ -216,7 +215,7 @@ func ApplyRuleMutations(payload map[string]any, result *rules.EvalResultV2) map[
 	return next
 }
 
-func ValidateRequiredFields(payload map[string]any, result *rules.EvalResultV2) error {
+func ValidateRequiredFields(payload map[string]any, result *EvalResultV2) error {
 	if result == nil {
 		return nil
 	}

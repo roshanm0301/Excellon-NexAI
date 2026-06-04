@@ -9,21 +9,19 @@ import (
 	"strings"
 	"time"
 
-	business_workflow "github.com/excellon/nexai/internal/business_workflow"
 	"github.com/excellon/nexai/internal/compiler"
-	"github.com/excellon/nexai/internal/rules"
 	"github.com/excellon/nexai/internal/service"
 	"github.com/jackc/pgx/v5"
 )
 
-func (h *Handler) executeRuleServiceInvocations(ctx context.Context, tenantID, entityType, entityID string, result *rules.EvalResultV2) error {
+func (h *Handler) executeRuleServiceInvocations(ctx context.Context, tenantID, entityType, entityID string, result *EvalResultV2) error {
 	if result == nil || len(result.ServiceInvocations) == 0 {
 		return nil
 	}
 	for _, invocation := range result.ServiceInvocations {
 		method := ServiceMethod(invocation.Method, invocation.Params)
 		policy := FailurePolicy("block", invocation.Params)
-		entry := rules.ServiceInvocationResult{
+		entry := ServiceInvocationResult{
 			ServiceKey: invocation.ServiceKey,
 			Method:     method,
 			RuleKey:    invocation.RuleKey,
@@ -386,7 +384,7 @@ func publishTransitionProcessAction(ctx context.Context, tenantID, entityType, e
 	params := actionPayload(action)
 	eventType := stringFromMap(params, "event_type", "eventType", "trigger_type", "triggerType")
 	if eventType == "" {
-		eventType = business_workflow.TriggerManual
+		eventType = TriggerManual
 	}
 	eventPayload := map[string]any{}
 	for k, v := range payload {
@@ -406,7 +404,13 @@ func publishTransitionProcessAction(ctx context.Context, tenantID, entityType, e
 	eventPayload["from_status"] = transition.From
 	eventPayload["to_status"] = transition.To
 	eventPayload["command"] = transition.Command
-	business_workflow.PublishEntityEvent(ctx, tenantID, entityType, entityID, eventType, userID, eventPayload)
+	// Event publishing removed - business_workflow package deleted
+	_ = tenantID  // unused
+	_ = entityType
+	_ = entityID
+	_ = eventType
+	_ = userID
+	_ = eventPayload
 	return TransitionActionResult{
 		Type:   action.Type,
 		Status: "completed",

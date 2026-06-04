@@ -14,24 +14,19 @@ import (
 	chimw "github.com/go-chi/chi/v5/middleware"
 
 	"github.com/excellon/nexai/internal/admin"
-	business_workflow "github.com/excellon/nexai/internal/business_workflow"
 	"github.com/excellon/nexai/internal/compiler"
 	"github.com/excellon/nexai/internal/db"
 	"github.com/excellon/nexai/internal/entityruntime"
 	"github.com/excellon/nexai/internal/expression"
 	"github.com/excellon/nexai/internal/indexmgmt"
 	"github.com/excellon/nexai/internal/middleware"
-	"github.com/excellon/nexai/internal/monitoring"
 	"github.com/excellon/nexai/internal/nlp"
 	"github.com/excellon/nexai/internal/overlay"
 	"github.com/excellon/nexai/internal/pii"
 	"github.com/excellon/nexai/internal/purge"
 	"github.com/excellon/nexai/internal/recycle"
 	"github.com/excellon/nexai/internal/retention"
-	"github.com/excellon/nexai/internal/rules"
-	"github.com/excellon/nexai/internal/service"
 	"github.com/excellon/nexai/internal/viewstudio"
-	"github.com/excellon/nexai/internal/workflow"
 )
 
 func main() {
@@ -46,12 +41,6 @@ func main() {
 		os.Exit(1)
 	}
 	defer pool.Close()
-
-	// Ensure runtime-created tables exist
-	rulesRepo := rules.NewRepo(pool)
-	if err := rulesRepo.EnsureTable(context.Background()); err != nil {
-		slog.Warn("rules table ensure failed", "error", err)
-	}
 
 	// Initialize Redis cache for overlay resolution (graceful degradation)
 	var overlayCache *overlay.Cache
@@ -78,44 +67,12 @@ func main() {
 	entityRepo := entityruntime.NewRepo(pool)
 	entityHandler := entityruntime.NewHandlerWithPool(entityRepo, pool)
 
-	rulesEvaluator := rules.NewProductionEvaluator()
-	rulesHandler := rules.NewHandler(rulesRepo, rulesEvaluator)
-	rulesExecLogger := rules.NewExecutionLogger(pool)
-	rulesConflictResolver := rules.NewConflictResolver(pool)
-	rulesEvalV2 := rules.NewEvaluatorV2(pool, expression.NewEngine(""), rulesConflictResolver, rulesExecLogger)
-	rulesSimulator := rules.NewSimulator(rulesEvalV2, rulesExecLogger)
-	rulesHandlerV2 := rules.NewHandlerV2(rulesSimulator, rulesConflictResolver, rulesExecLogger, rulesRepo)
-	runtimePolicy := entityruntime.NewRuntimePolicy(pool, rulesEvalV2)
+	runtimePolicy := entityruntime.NewRuntimePolicy(pool, nil)
 	entityHandler.SetRuntimePolicy(runtimePolicy)
-
-	workflowRuntime := workflow.NewRuntime(pool)
-	_ = workflowRuntime
 
 	// Expression engine
 	exprEngine := expression.NewEngine("")
 	expressionHandler := expression.NewHandler(exprEngine)
-
-	// SLA worker — runs in background
-	slaWorker := workflow.NewSLAWorker(pool, 5*time.Minute)
-	workerCtx, cancelWorker := context.WithCancel(context.Background())
-	go slaWorker.Start(workerCtx)
-
-	// Business workflow engine
-	bwEngine := business_workflow.NewEngine(pool)
-	bwRepo := business_workflow.NewRepo(pool)
-	if err := bwRepo.EnsureTables(context.Background()); err != nil {
-		slog.Warn("business workflow tables ensure failed", "error", err)
-	}
-	bwHandler := business_workflow.NewHandler(bwEngine, pool)
-	bwHandlerV2 := business_workflow.NewHandlerV2(pool, exprEngine)
-
-	serviceRegistry := service.NewRegistry(pool)
-	service.RegisterBuiltinServices(serviceRegistry)
-	serviceHandler := service.NewHandler(serviceRegistry)
-	runtimePolicy.SetServiceInvoker(serviceRegistry)
-	bwHandlerV2.SetServiceInvoker(service.NewWorkflowServiceAdapter(serviceRegistry))
-	bwHandlerV2.SetRuleEvaluator(&workflowRuleEvaluator{eval: rulesEvalV2})
-	business_workflow.NewEventTrigger(bwHandlerV2.Resolver(), bwHandlerV2.Executor())
 
 	// NLP handler
 	nlpHandler := nlp.NewHandler(os.Getenv("ANTHROPIC_API_KEY"), "claude-haiku-4-5-20251001")
@@ -123,9 +80,6 @@ func main() {
 	// View Studio
 	viewStudioRepo := viewstudio.NewRepo(pool)
 	viewStudioHandler := viewstudio.NewHandler(viewStudioRepo)
-
-	// Monitoring
-	monitoringHandler := monitoring.NewHandler(pool)
 
 	// Index management
 	indexService := indexmgmt.NewService(pool)
@@ -138,7 +92,8 @@ func main() {
 	// Retention + Purge
 	retentionService := retention.NewService()
 	purgeAgent := purge.NewAgent(pool, retentionService)
-	go purgeAgent.Start(workerCtx)
+	purgeCtx, cancelPurge := context.WithCancel(context.Background())
+	go purgeAgent.Start(purgeCtx)
 
 	r := chi.NewRouter()
 	r.Use(chimw.RequestID)
@@ -157,19 +112,12 @@ func main() {
 			entityHandler.RegisterRoutes(r)
 		})
 		r.Route("/admin", func(r chi.Router) {
-			r.Route("/rules", func(r chi.Router) {
-				rulesHandler.RegisterRoutes(r)
-				r.Route("/v2", func(r chi.Router) {
-					rulesHandlerV2.RegisterRoutes(r)
-				})
-			})
 			r.Route("/overlay-deltas", func(r chi.Router) {
 				overlayHandler.RegisterRoutes(r)
 			})
 			r.Route("/indexes", func(r chi.Router) {
 				indexHandler.RegisterRoutes(r)
 			})
-			serviceHandler.RegisterRoutes(r)
 			r.Route("/recycle-bin", func(r chi.Router) {
 				recycleHandler.RegisterRoutes(r)
 			})
@@ -177,17 +125,8 @@ func main() {
 		r.Route("/expressions", func(r chi.Router) {
 			expressionHandler.RegisterRoutes(r)
 		})
-		r.Route("/processes", func(r chi.Router) {
-			bwHandler.RegisterRoutes(r)
-		})
-		r.Route("/workflows", func(r chi.Router) {
-			bwHandlerV2.RegisterRoutesV2(r)
-		})
 		r.Route("/studio", func(r chi.Router) {
 			viewStudioHandler.RegisterRoutes(r)
-		})
-		r.Route("/monitoring", func(r chi.Router) {
-			monitoringHandler.RegisterRoutes(r)
 		})
 	})
 	r.Route("/api/nlp", func(r chi.Router) {
@@ -218,8 +157,7 @@ func main() {
 	<-stop
 	slog.Info("shutting down")
 
-	cancelWorker()
-	slaWorker.Stop()
+	cancelPurge()
 	purgeAgent.Stop()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -228,14 +166,6 @@ func main() {
 		slog.Error("shutdown error", "error", err)
 	}
 	slog.Info("server stopped")
-}
-
-type workflowRuleEvaluator struct {
-	eval *rules.EvaluatorV2
-}
-
-func (w *workflowRuleEvaluator) EvaluateRuleSet(ctx context.Context, tenantID, ruleSetKey string, payload map[string]any, triggerType string) (any, error) {
-	return w.eval.EvaluateRuleSet(ctx, tenantID, ruleSetKey, payload, triggerType)
 }
 
 func healthHandler(pool *db.Pool) http.HandlerFunc {

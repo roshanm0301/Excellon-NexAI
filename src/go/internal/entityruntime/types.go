@@ -5,8 +5,51 @@ import (
 	"time"
 
 	"github.com/excellon/nexai/internal/compiler"
-	"github.com/excellon/nexai/internal/rules"
 )
+
+// Stub types for removed rules package
+type EvalResultV2 struct {
+	Blocked              bool                        `json:"blocked"`
+	BlockMessage         string                      `json:"block_message,omitempty"`
+	Warnings             []string                    `json:"warnings"`
+	Mutations            map[string]any              `json:"mutations"`
+	RequiredFields       []string                    `json:"required_fields"`
+	FieldBehaviors       []FieldBehavior             `json:"field_behaviors"`
+	ApprovalRequests     []ApprovalRequest           `json:"approval_requests"`
+	ServiceInvocations   []ServiceInvocation         `json:"service_invocations"`
+	ServiceResults       []ServiceInvocationResult   `json:"service_results"`
+}
+
+type FieldBehavior struct {
+	Field    string `json:"field"`
+	Behavior string `json:"behavior"`
+	RuleKey  string `json:"rule_key,omitempty"`
+	Reason   string `json:"reason,omitempty"`
+}
+
+type ApprovalRequest struct {
+	Category     string `json:"category"`
+	Reason       string `json:"reason"`
+	ApproverRole string `json:"approver_role"`
+	Priority     string `json:"priority,omitempty"`
+	RuleKey      string `json:"rule_key,omitempty"`
+}
+
+type ServiceInvocation struct {
+	ServiceKey string         `json:"service_key"`
+	Method     string         `json:"method,omitempty"`
+	Params     map[string]any `json:"params,omitempty"`
+	RuleKey    string         `json:"rule_key,omitempty"`
+}
+
+type ServiceInvocationResult struct {
+	ServiceKey string         `json:"service_key"`
+	Method     string         `json:"method,omitempty"`
+	RuleKey    string         `json:"rule_key,omitempty"`
+	Success    bool           `json:"success"`
+	Output     map[string]any `json:"output,omitempty"`
+	Error      string         `json:"error,omitempty"`
+}
 
 type EntityRecord struct {
 	ID             string              `json:"id"`
@@ -23,7 +66,7 @@ type EntityRecord struct {
 	DeletedAt      *time.Time          `json:"deleted_at,omitempty"`
 	DeletedBy      string              `json:"deleted_by,omitempty"`
 	Payload        json.RawMessage     `json:"payload"`
-	RuleResult     *rules.EvalResultV2 `json:"rule_result,omitempty"`
+	RuleResult     *EvalResultV2 `json:"rule_result,omitempty"`
 }
 
 type CreateEntityRequest struct {
@@ -48,7 +91,7 @@ type TransitionRequest struct {
 type TransitionResponse struct {
 	Record        *EntityRecord                  `json:"record"`
 	Transition    *compiler.RawTransition        `json:"transition,omitempty"`
-	RuleGuards    map[string]*rules.EvalResultV2 `json:"rule_guards,omitempty"`
+	RuleGuards    map[string]*EvalResultV2 `json:"rule_guards,omitempty"`
 	ActionResults []TransitionActionResult       `json:"action_results,omitempty"`
 }
 
