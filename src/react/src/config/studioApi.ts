@@ -398,3 +398,39 @@ export const registerPlugin = (body: RegisterPluginRequest) =>
 
 export const removePlugin = (pluginID: string) =>
   studioFetch<void>(`${STUDIO_PREFIX}/plugins/${pluginID}`, { method: 'DELETE' })
+
+// ── Workflow Builder API ──────────────────────────────────────────────────────
+
+import type {
+  WorkflowDefinition,
+  WorkflowArtifact,
+  WorkflowListResponse,
+  CreateWorkflowRequest,
+} from '../types/workflowBuilder'
+
+const WORKFLOW_PREFIX = '/workflows'
+
+export const listWorkflowArtifacts = (params?: { status?: string; entity?: string }) => {
+  const qs = new URLSearchParams()
+  if (params?.status) qs.set('status', params.status)
+  if (params?.entity) qs.set('entity', params.entity)
+  return studioFetch<WorkflowListResponse>(`${WORKFLOW_PREFIX}?${qs.toString()}`)
+}
+
+export const createWorkflowArtifact = (body: CreateWorkflowRequest) =>
+  studioFetch<WorkflowArtifact>(`${WORKFLOW_PREFIX}`, { method: 'POST', body: JSON.stringify(body) })
+
+export const getWorkflowArtifact = (id: string) =>
+  studioFetch<WorkflowArtifact>(`${WORKFLOW_PREFIX}/${id}`)
+
+export const saveWorkflowDraft = (id: string, definition: WorkflowDefinition) =>
+  studioFetch<WorkflowArtifact>(`${WORKFLOW_PREFIX}/${id}/draft`, {
+    method: 'PUT',
+    body: JSON.stringify({ payload: definition }),
+  })
+
+export const publishWorkflowArtifact = (id: string) =>
+  studioFetch<WorkflowArtifact>(`${WORKFLOW_PREFIX}/${id}/publish`, { method: 'POST' })
+
+export const deleteWorkflowArtifact = (id: string) =>
+  studioFetch<void>(`${WORKFLOW_PREFIX}/${id}`, { method: 'DELETE' })

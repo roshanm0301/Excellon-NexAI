@@ -15,6 +15,8 @@ const NodeTreePage = lazy(() => import('./pages/admin/NodeTreePage'))
 const ExpressionStudioPage = lazy(() => import('./pages/studio/ExpressionStudioPage'))
 const ViewDesignerListPage = lazy(() => import('./pages/admin/ViewDesignerListPage'))
 const ViewDesignerPage = lazy(() => import('./pages/studio/view-designer/ViewDesignerPage'))
+const WorkflowListPage = lazy(() => import('./pages/studio/WorkflowListPage'))
+const WorkflowBuilderPage = lazy(() => import('./pages/studio/workflow-builder/WorkflowBuilderPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 const queryClient = new QueryClient({
@@ -46,6 +48,9 @@ const router = createBrowserRouter(
         { path: 'admin/expressions', element: wrap(<ExpressionStudioPage />) },
         { path: 'studio/views', element: wrap(<ViewDesignerListPage />) },
         { path: 'studio/views/:viewId/edit', element: wrap(<ViewDesignerPage />) },
+        { path: 'admin/workflows', element: wrap(<WorkflowListPage />) },
+        { path: 'admin/workflows/new', element: wrap(<WorkflowBuilderPage />) },
+        { path: 'admin/workflows/:id/edit', element: wrap(<WorkflowBuilderPage />) },
         { path: '*', element: wrap(<NotFoundPage />) },
       ],
     },
