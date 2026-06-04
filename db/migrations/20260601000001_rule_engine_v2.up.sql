@@ -61,8 +61,7 @@ ALTER TABLE rule_set ADD COLUMN IF NOT EXISTS classifications TEXT[] DEFAULT '{}
 
 -- ─── Add content_type column to rule_set ─────────────────────────────────────
 -- Distinguishes condition_tree (default) from decision_table rule sets.
-ALTER TABLE rule_set ADD COLUMN IF NOT EXISTS content_type VARCHAR(30) NOT NULL DEFAULT 'condition_tree'
-    CHECK (content_type IN ('condition_tree', 'decision_table'));
+ALTER TABLE rule_set ADD COLUMN IF NOT EXISTS content_type VARCHAR(30) NOT NULL DEFAULT 'condition_tree';
 
 -- ─── Add priority column to rule_set ─────────────────────────────────────────
 -- Used for ordering rule set evaluation within a RuleExecutionPlan.

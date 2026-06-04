@@ -196,6 +196,18 @@ export interface ViewMeta {
   tags?: string[];
   icon?: string;
   default_mode?: 'view' | 'edit' | 'create';
+  runtime_rule_state?: {
+    blocked?: boolean;
+    block_message?: string;
+    warnings?: string[];
+    required_fields?: string[];
+    field_behaviors?: Array<{
+      field: string;
+      behavior: 'hidden' | 'readonly' | 'mandatory' | 'editable';
+      rule_key?: string;
+      reason?: string;
+    }>;
+  };
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────

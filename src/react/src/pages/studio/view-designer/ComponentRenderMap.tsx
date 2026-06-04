@@ -24,6 +24,45 @@ function bindingLabel(node: ComponentNode, bindingKey: string, fallback: string)
   return fallback
 }
 
+function runtimeFlags(node: ComponentNode) {
+  const props = node.props ?? {}
+  return {
+    required: props.__runtime_required === true || props.required === true,
+    readonly: props.__runtime_readonly === true || props.readOnly === true || props.disabled === true,
+    messages: Array.isArray(props.__runtime_messages) ? props.__runtime_messages.filter((m): m is string => typeof m === 'string') : [],
+  }
+}
+
+function fieldBoxStyle(node: ComponentNode, extra?: React.CSSProperties): React.CSSProperties {
+  const { readonly } = runtimeFlags(node)
+  return {
+    padding: '0.35rem 0.5rem',
+    border: '1px solid #e2e8f0',
+    borderRadius: 4,
+    background: readonly ? '#f8fafc' : '#fff',
+    fontSize: '0.78rem',
+    color: readonly ? '#64748b' : '#94a3b8',
+    minHeight: 30,
+    display: 'flex',
+    alignItems: 'center',
+    opacity: readonly ? 0.8 : 1,
+    ...extra,
+  }
+}
+
+function RequiredMark({ show }: { show: boolean }) {
+  return show ? <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span> : null
+}
+
+function RuntimeMessages({ messages }: { messages: string[] }) {
+  if (messages.length === 0) return null
+  return (
+    <div style={{ marginTop: 4, fontSize: 11, color: '#b45309' }}>
+      {messages[0]}
+    </div>
+  )
+}
+
 // ─── Layout ──────────────────────────────────────────────────────────────────
 
 function PageRoot({ children }: PreviewProps) {
@@ -82,26 +121,16 @@ function ConditionalContainerRenderer({ node, children }: PreviewProps) {
 
 function FieldInput({ node, suffix }: PreviewProps & { suffix?: React.ReactNode }) {
   const label = bindingLabel(node, 'value', node.props?.label as string || 'Field')
-  const required = node.props?.required as boolean
+  const { required, messages } = runtimeFlags(node)
   return (
     <div className="prev-input">
       <label className="prev-input__label">
         {node.props?.label as string || label}
-        {required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
+        <RequiredMark show={required} />
       </label>
       <div className="prev-input__field" style={{ position: 'relative' }}>
         {suffix}
-        <div style={{
-          padding: '0.35rem 0.5rem',
-          border: '1px solid #e2e8f0',
-          borderRadius: 4,
-          background: '#fff',
-          fontSize: '0.78rem',
-          color: '#94a3b8',
-          minHeight: 30,
-          display: 'flex',
-          alignItems: 'center',
-        }}>
+        <div style={fieldBoxStyle(node)}>
           {node.bindings?.value?.field_key ? (
             <span style={{ color: '#6366f1', fontFamily: 'monospace', fontSize: 11 }}>
               ⟨{node.bindings.value.field_key}⟩
@@ -110,6 +139,7 @@ function FieldInput({ node, suffix }: PreviewProps & { suffix?: React.ReactNode 
             <span style={{ color: '#cbd5e1' }}>—</span>
           )}
         </div>
+        <RuntimeMessages messages={messages} />
       </div>
     </div>
   )

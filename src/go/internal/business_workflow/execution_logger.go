@@ -69,7 +69,7 @@ func (l *ExecutionLogger) LogCompletion(ctx context.Context, tenantID, instanceI
 // GetLogs retrieves execution logs for an instance.
 func (l *ExecutionLogger) GetLogs(ctx context.Context, tenantID, instanceID string) ([]WorkflowExecutionLog, error) {
 	rows, err := l.pool.Query(ctx, `
-		SELECT id, tenant_id, instance_id, step_id, step_type, status, input_data, output_data, error_message, started_at, completed_at, duration_ms
+		SELECT id, tenant_id, instance_id, step_id, step_type, status, input_data, output_data, COALESCE(error_message, ''), started_at, completed_at, COALESCE(duration_ms, 0)
 		FROM workflow_execution_log
 		WHERE tenant_id = $1 AND instance_id = $2
 		ORDER BY started_at ASC`,

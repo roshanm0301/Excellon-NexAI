@@ -38,8 +38,18 @@ type FieldBehaviorAction struct {
 // returned to the caller (entity runtime or workflow) for execution via the service registry.
 type ServiceInvocation struct {
 	ServiceKey string         `json:"service_key"`
+	Method     string         `json:"method,omitempty"`
 	Params     map[string]any `json:"params,omitempty"`
 	RuleKey    string         `json:"rule_key"`
+}
+
+type ServiceInvocationResult struct {
+	ServiceKey string         `json:"service_key"`
+	Method     string         `json:"method,omitempty"`
+	RuleKey    string         `json:"rule_key,omitempty"`
+	Success    bool           `json:"success"`
+	Output     map[string]any `json:"output,omitempty"`
+	Error      string         `json:"error,omitempty"`
 }
 
 // ─── Extended Evaluation Result ──────────────────────────────────────────────
@@ -54,27 +64,31 @@ type EvalResultV2 struct {
 	Mutations    map[string]any `json:"mutations,omitempty"`
 
 	// V2 fields
-	FieldBehaviors     []FieldBehaviorAction `json:"field_behaviors,omitempty"`
-	ApprovalRequests   []ApprovalRequest     `json:"approval_requests,omitempty"`
-	ServiceInvocations []ServiceInvocation   `json:"service_invocations,omitempty"`
-	RequiredFields     []string              `json:"required_fields,omitempty"`
-	ConflictLog        []ConflictLogEntry    `json:"conflict_log,omitempty"`
+	FieldBehaviors     []FieldBehaviorAction     `json:"field_behaviors,omitempty"`
+	ApprovalRequests   []ApprovalRequest         `json:"approval_requests,omitempty"`
+	ServiceInvocations []ServiceInvocation       `json:"service_invocations,omitempty"`
+	ServiceResults     []ServiceInvocationResult `json:"service_results,omitempty"`
+	RequiredFields     []string                  `json:"required_fields,omitempty"`
+	ConflictLog        []ConflictLogEntry        `json:"conflict_log,omitempty"`
 
 	// Trace (populated during simulation)
-	FiredRules []FiredRuleEntry `json:"fired_rules,omitempty"`
-	ExecutionMs int             `json:"execution_ms,omitempty"`
+	FiredRules     []FiredRuleEntry `json:"fired_rules,omitempty"`
+	ExecutionMs    int              `json:"execution_ms,omitempty"`
+	DecisionOutput any              `json:"decision_output,omitempty"`
 }
 
 // ActionV2 extends Action with fields needed by v2 action types.
 type ActionV2 struct {
-	Type         ActionType        `json:"type"`
-	Message      string            `json:"message,omitempty"`
-	Field        string            `json:"field,omitempty"`
-	Value        any               `json:"value,omitempty"`
-	Behavior     FieldBehaviorType `json:"behavior,omitempty"`      // for FIELD_BEHAVIOR
-	Category     string            `json:"category,omitempty"`      // for REQUIRE_APPROVAL
-	ApproverRole string            `json:"approver_role,omitempty"` // for REQUIRE_APPROVAL
-	Priority     string            `json:"priority,omitempty"`      // for REQUIRE_APPROVAL
-	ServiceKey   string            `json:"service_key,omitempty"`   // for INVOKE_SERVICE
-	Params       map[string]any    `json:"params,omitempty"`        // for INVOKE_SERVICE
+	Type          ActionType        `json:"type"`
+	Message       string            `json:"message,omitempty"`
+	Field         string            `json:"field,omitempty"`
+	Value         any               `json:"value,omitempty"`
+	Behavior      FieldBehaviorType `json:"behavior,omitempty"`       // for FIELD_BEHAVIOR
+	Category      string            `json:"category,omitempty"`       // for REQUIRE_APPROVAL
+	ApproverRole  string            `json:"approver_role,omitempty"`  // for REQUIRE_APPROVAL
+	Priority      string            `json:"priority,omitempty"`       // for REQUIRE_APPROVAL
+	ServiceKey    string            `json:"service_key,omitempty"`    // for INVOKE_SERVICE
+	Method        string            `json:"method,omitempty"`         // for INVOKE_SERVICE
+	ServiceMethod string            `json:"service_method,omitempty"` // legacy UI alias for INVOKE_SERVICE
+	Params        map[string]any    `json:"params,omitempty"`         // for INVOKE_SERVICE
 }

@@ -6,16 +6,17 @@ import { simulateRules, type SimulationResult } from '../../../config/studioApi'
 
 interface RuleSimulatorProps {
   entityType: string
+  ruleSetKey: string
 }
 
-export function RuleSimulator({ entityType }: RuleSimulatorProps) {
+export function RuleSimulator({ entityType, ruleSetKey }: RuleSimulatorProps) {
   const [payload, setPayload] = useState('{\n  \n}')
   const [triggerType, setTriggerType] = useState('on_create')
 
   const mutation = useMutation({
     mutationFn: () => {
       const parsed = JSON.parse(payload)
-      return simulateRules({ entity_type: entityType, trigger_type: triggerType, payload: parsed })
+      return simulateRules({ rule_set_key: ruleSetKey, entity_type: entityType, trigger_type: triggerType, payload: parsed })
     },
   })
 
@@ -86,6 +87,14 @@ export function RuleSimulator({ entityType }: RuleSimulatorProps) {
 // ─── Results Display ──────────────────────────────────────────────────────────
 
 function SimulationResults({ result }: { result: SimulationResult }) {
+  const warnings = result.warnings ?? []
+  const mutations = result.mutations ?? {}
+  const fieldBehaviors = result.field_behaviors ?? []
+  const approvalRequests = result.approval_requests ?? []
+  const conflictLog = result.conflict_log ?? []
+  const firedRules = result.fired_rules ?? []
+  const trace = result.trace ?? []
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* Status banner */}
@@ -96,7 +105,7 @@ function SimulationResults({ result }: { result: SimulationResult }) {
           background: 'var(--error-50)', border: '1px solid var(--error-200)',
           color: 'var(--error-700)', fontSize: 'var(--text-sm)', fontWeight: 600,
         }}>
-          <XCircle size={16} /> BLOCKED: {result.blockMessage}
+          <XCircle size={16} /> BLOCKED: {result.block_message}
         </div>
       ) : (
         <div style={{
@@ -105,14 +114,14 @@ function SimulationResults({ result }: { result: SimulationResult }) {
           background: 'var(--success-50)', border: '1px solid var(--success-200)',
           color: 'var(--success-700)', fontSize: 'var(--text-sm)', fontWeight: 600,
         }}>
-          <CheckCircle size={16} /> ALLOWED — {result.firedRules.length} rule(s) fired
+          <CheckCircle size={16} /> ALLOWED - {firedRules.length} rule(s) fired
         </div>
       )}
 
       {/* Warnings */}
-      {result.warnings.length > 0 && (
+      {warnings.length > 0 && (
         <Section title="Warnings" icon={<AlertTriangle size={14} />} color="var(--warning-600)">
-          {result.warnings.map((w, i) => (
+          {warnings.map((w, i) => (
             <div key={i} style={{
               padding: '6px 10px', background: 'var(--warning-50)',
               border: '1px solid var(--warning-200)', borderRadius: 'var(--radius-md)',
@@ -125,13 +134,13 @@ function SimulationResults({ result }: { result: SimulationResult }) {
       )}
 
       {/* Mutations */}
-      {Object.keys(result.mutations).length > 0 && (
+      {Object.keys(mutations).length > 0 && (
         <Section title="Field Mutations" icon={<Activity size={14} />} color="var(--brand-600)">
           <div style={{
             display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 12px',
             fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)',
           }}>
-            {Object.entries(result.mutations).map(([field, value]) => (
+            {Object.entries(mutations).map(([field, value]) => (
               <Fragment key={field}>
                 <span style={{ color: 'var(--fg-secondary)', fontWeight: 600 }}>{field}:</span>
                 <span style={{ color: 'var(--brand-600)' }}>{JSON.stringify(value)}</span>
@@ -142,12 +151,12 @@ function SimulationResults({ result }: { result: SimulationResult }) {
       )}
 
       {/* Field Behaviors */}
-      {Object.keys(result.fieldBehaviors).length > 0 && (
+      {fieldBehaviors.length > 0 && (
         <Section title="Field Behaviors" icon={<Activity size={14} />} color="var(--fg-secondary)">
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {Object.entries(result.fieldBehaviors).map(([field, behavior]) => (
-              <Badge key={field} variant="gray">
-                {field}: {behavior}
+            {fieldBehaviors.map((item) => (
+              <Badge key={`${item.field}-${item.behavior}`} variant="gray">
+                {item.field}: {item.behavior}
               </Badge>
             ))}
           </div>
@@ -155,28 +164,28 @@ function SimulationResults({ result }: { result: SimulationResult }) {
       )}
 
       {/* Approval Requests */}
-      {result.approvalRequests.length > 0 && (
+      {approvalRequests.length > 0 && (
         <Section title="Approval Required" icon={<AlertTriangle size={14} />} color="var(--warning-600)">
-          {result.approvalRequests.map((a, i) => (
+          {approvalRequests.map((a, i) => (
             <div key={i} style={{
               padding: '6px 10px', background: 'var(--warning-50)',
               border: '1px solid var(--warning-200)', borderRadius: 'var(--radius-md)',
               fontSize: 'var(--text-xs)',
             }}>
-              <strong>{a.category}</strong>: {a.reason} (approver: {a.approverRole})
+              <strong>{a.category}</strong>: {a.reason} (approver: {a.approver_role})
             </div>
           ))}
         </Section>
       )}
 
       {/* Conflict Log */}
-      {result.conflictLog.length > 0 && (
+      {conflictLog.length > 0 && (
         <Section title="Conflict Resolution" icon={<Activity size={14} />} color="var(--fg-secondary)">
           <div style={{ fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)' }}>
-            {result.conflictLog.map((c, i) => (
+            {conflictLog.map((c, i) => (
               <div key={i} style={{ padding: '4px 0', borderBottom: '1px solid var(--border-secondary)' }}>
                 <span style={{ color: 'var(--fg-secondary)' }}>{c.field}</span>
-                {' → '}
+                {' -> '}
                 <span style={{ color: 'var(--brand-600)' }}>{c.resolution}</span>
                 {' (winner: '}
                 <span style={{ fontWeight: 600 }}>{c.winner}</span>{')'}
@@ -187,10 +196,10 @@ function SimulationResults({ result }: { result: SimulationResult }) {
       )}
 
       {/* Trace */}
-      {result.trace.length > 0 && (
+      {trace.length > 0 && (
         <Section title="Execution Trace" icon={<Activity size={14} />} color="var(--fg-tertiary)">
           <div style={{ fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)', maxHeight: 200, overflowY: 'auto' }}>
-            {result.trace.map((t, i) => (
+            {trace.map((t, i) => (
               <div key={i} style={{
                 display: 'flex', gap: 8, padding: '3px 0',
                 borderBottom: '1px solid var(--border-secondary)',
@@ -199,8 +208,8 @@ function SimulationResults({ result }: { result: SimulationResult }) {
                 <span style={{ color: t.matched ? 'var(--success-600)' : 'var(--fg-tertiary)', minWidth: 12 }}>
                   {t.matched ? '✓' : '✗'}
                 </span>
-                <span style={{ color: 'var(--fg-primary)' }}>{t.ruleKey}</span>
-                {t.rowId && <span style={{ color: 'var(--fg-tertiary)' }}>row:{t.rowId}</span>}
+                <span style={{ color: 'var(--fg-primary)' }}>{t.rule_key}</span>
+                {t.row_id && <span style={{ color: 'var(--fg-tertiary)' }}>row:{t.row_id}</span>}
                 {t.error && <span style={{ color: 'var(--error-500)' }}>ERR: {t.error}</span>}
               </div>
             ))}

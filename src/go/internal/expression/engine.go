@@ -3,6 +3,7 @@ package expression
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/dop251/goja"
@@ -59,6 +60,16 @@ func (e *Engine) Evaluate(ctx context.Context, expr string, data map[string]any)
 		e.pool.Put(vm)
 		return nil, fmt.Errorf("expression: set context: %w", err)
 	}
+	bindings := map[string]any{}
+	for key, value := range data {
+		if key == "$data" {
+			continue
+		}
+		if strings.HasPrefix(key, "$") && len(key) > 1 {
+			bindings[strings.TrimPrefix(key, "$")] = value
+		}
+		_ = vm.Set(key, value)
+	}
 
 	// Evaluate via jsonata if available, otherwise direct eval
 	var result goja.Value
@@ -74,7 +85,11 @@ func (e *Engine) Evaluate(ctx context.Context, expr string, data map[string]any)
 		}
 		evaluateFn, ok := goja.AssertFunction(exprObj.ToObject(vm).Get("evaluate"))
 		if ok {
-			result, runErr = evaluateFn(exprObj, vm.ToValue(data))
+			if len(bindings) > 0 {
+				result, runErr = evaluateFn(exprObj, vm.ToValue(data), vm.ToValue(bindings))
+			} else {
+				result, runErr = evaluateFn(exprObj, vm.ToValue(data))
+			}
 		} else {
 			e.pool.Put(vm)
 			return nil, fmt.Errorf("expression: jsonata evaluate not found")

@@ -1,10 +1,12 @@
 import { X, Plus, Trash2, GripVertical } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Button, Toggle } from '../../../design-system'
 import type {
   ApprovalConfig, ApprovalMode, ApprovalPolicy,
   ServiceCallConfig, ScriptConfig, WaitConfig, SubWorkflowConfig,
   RuleEvalConfig, ApproverDef, EscalationConfig,
 } from '../../../config/studioApi'
+import { listRuleSetsV2 } from '../../../config/studioApi'
 import type { WorkflowNodeData } from './WorkflowNodes'
 
 interface NodeConfigPanelProps {
@@ -100,7 +102,7 @@ export function NodeConfigPanel({ node, onUpdate, onClose, onDelete }: NodeConfi
         )}
         {node.stepType === 'rule_evaluation' && (
           <RuleEvalConfigPanel
-            config={(node.config as unknown as RuleEvalConfig | undefined) ?? { entityType: '' }}
+            config={(node.config as unknown as RuleEvalConfig | undefined) ?? { ruleSetKey: '', entityType: '' }}
             onChange={(cfg) => update({ config: cfg as unknown as Record<string, unknown> })}
           />
         )}
@@ -309,11 +311,27 @@ function SubWorkflowConfigPanel({ config, onChange }: { config: SubWorkflowConfi
 // ─── Rule Evaluation Config ──────────────────────────────────────────────────
 
 function RuleEvalConfigPanel({ config, onChange }: { config: RuleEvalConfig; onChange: (c: RuleEvalConfig) => void }) {
+  const { data } = useQuery({
+    queryKey: ['workflow-rule-node-rule-sets', config.entityType],
+    queryFn: () => listRuleSetsV2(config.entityType || undefined),
+  })
+  const rules = data?.items ?? []
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <SectionTitle title="Rule Evaluation Settings" />
       <Field label="Entity Type">
         <input style={{ ...inputStyle, fontFamily: 'var(--font-mono)' }} placeholder="e.g. order, invoice" value={config.entityType} onChange={(e) => onChange({ ...config, entityType: e.target.value })} />
+      </Field>
+      <Field label="Rule / Decision">
+        <select style={selectStyle} value={config.ruleSetKey ?? ''} onChange={(e) => onChange({ ...config, ruleSetKey: e.target.value })}>
+          <option value="">Select a published rule or decision</option>
+          {rules.map(rule => (
+            <option key={rule.rule_set_key || rule.id} value={rule.rule_set_key || rule.id}>
+              {rule.name} ({rule.rule_category})
+            </option>
+          ))}
+        </select>
       </Field>
       <Field label="Trigger Type">
         <select style={selectStyle} value={config.triggerType ?? 'on_create'} onChange={(e) => onChange({ ...config, triggerType: e.target.value })}>

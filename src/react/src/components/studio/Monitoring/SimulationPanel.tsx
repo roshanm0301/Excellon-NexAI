@@ -45,12 +45,13 @@ export function SimulationPanel() {
 
 function RuleSimulation() {
   const [entityType, setEntityType] = useState('')
+  const [ruleSetKey, setRuleSetKey] = useState('')
   const [triggerType, setTriggerType] = useState('on_change')
   const [payloadStr, setPayloadStr] = useState('{\n  \n}')
   const [parseError, setParseError] = useState('')
 
   const simMutation = useMutation({
-    mutationFn: (body: { entity_type: string; trigger_type?: string; payload: Record<string, unknown> }) =>
+    mutationFn: (body: { rule_set_key: string; entity_type: string; trigger_type?: string; payload: Record<string, unknown> }) =>
       simulateRules(body),
   })
 
@@ -67,7 +68,11 @@ function RuleSimulation() {
       setParseError('Entity type is required')
       return
     }
-    simMutation.mutate({ entity_type: entityType, trigger_type: triggerType || undefined, payload })
+    if (!ruleSetKey.trim()) {
+      setParseError('Rule set key is required')
+      return
+    }
+    simMutation.mutate({ rule_set_key: ruleSetKey, entity_type: entityType, trigger_type: triggerType || undefined, payload })
   }
 
   const result = simMutation.data
@@ -79,6 +84,10 @@ function RuleSimulation() {
         <div>
           <label style={labelStyle}>Entity Type</label>
           <Input value={entityType} onChange={(e) => setEntityType(e.target.value)} placeholder="e.g. order" />
+        </div>
+        <div>
+          <label style={labelStyle}>Rule Set Key</label>
+          <Input value={ruleSetKey} onChange={(e) => setRuleSetKey(e.target.value)} placeholder="e.g. order.validation" />
         </div>
         <div>
           <label style={labelStyle}>Trigger</label>
@@ -132,6 +141,12 @@ function RuleSimulation() {
 
 function SimulationResultView({ result }: { result: SimulationResult }) {
   const [expandedTrace, setExpandedTrace] = useState<Set<number>>(new Set())
+  const warnings = result.warnings ?? []
+  const mutations = result.mutations ?? {}
+  const firedRules = result.fired_rules ?? []
+  const conflictLog = result.conflict_log ?? []
+  const fieldBehaviors = result.field_behaviors ?? []
+  const trace = result.trace ?? []
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border-primary)', paddingTop: 16 }}>
@@ -142,32 +157,32 @@ function SimulationResultView({ result }: { result: SimulationResult }) {
         ) : (
           <Badge variant="success"><CheckCircle size={12} /> Passed</Badge>
         )}
-        <Badge variant="neutral">{result.firedRules.length} rules fired</Badge>
-        <Badge variant="neutral">{Object.keys(result.mutations).length} mutations</Badge>
-        {result.warnings.length > 0 && <Badge variant="warning">{result.warnings.length} warnings</Badge>}
-        {result.conflictLog.length > 0 && <Badge variant="info">{result.conflictLog.length} conflicts</Badge>}
+        <Badge variant="neutral">{firedRules.length} rules fired</Badge>
+        <Badge variant="neutral">{Object.keys(mutations).length} mutations</Badge>
+        {warnings.length > 0 && <Badge variant="warning">{warnings.length} warnings</Badge>}
+        {conflictLog.length > 0 && <Badge variant="info">{conflictLog.length} conflicts</Badge>}
       </div>
 
-      {result.blocked && result.blockMessage && (
-        <Banner variant="error" title={result.blockMessage} />
+      {result.blocked && result.block_message && (
+        <Banner variant="error" title={result.block_message} />
       )}
 
       {/* Warnings */}
-      {result.warnings.length > 0 && (
+      {warnings.length > 0 && (
         <div style={{ background: 'var(--warning-50)', border: '1px solid var(--warning-200)', borderRadius: 6, padding: 10 }}>
           <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--warning-700)', marginBottom: 4 }}>Warnings</div>
-          {result.warnings.map((w, i) => (
+          {warnings.map((w, i) => (
             <div key={i} style={{ fontSize: 'var(--text-xs)', color: 'var(--warning-700)' }}>• {w}</div>
           ))}
         </div>
       )}
 
       {/* Mutations */}
-      {Object.keys(result.mutations).length > 0 && (
+      {Object.keys(mutations).length > 0 && (
         <div style={{ background: 'var(--bg-secondary)', borderRadius: 6, padding: 12, border: '1px solid var(--border-primary)' }}>
           <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--fg-primary)', marginBottom: 8 }}>Mutations</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {Object.entries(result.mutations).map(([field, val]) => (
+            {Object.entries(mutations).map(([field, val]) => (
               <div key={field} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 'var(--text-xs)' }}>
                 <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--brand-600)' }}>{field}</span>
                 <ArrowRight size={10} color="var(--fg-tertiary)" />
@@ -179,12 +194,12 @@ function SimulationResultView({ result }: { result: SimulationResult }) {
       )}
 
       {/* Conflict Log */}
-      {result.conflictLog.length > 0 && (
+      {conflictLog.length > 0 && (
         <div style={{ background: 'var(--bg-secondary)', borderRadius: 6, padding: 12, border: '1px solid var(--border-primary)' }}>
           <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--fg-primary)', marginBottom: 8 }}>
             <AlertTriangle size={12} style={{ display: 'inline', marginRight: 4 }} />Conflict Resolution
           </div>
-          {result.conflictLog.map((c, i) => (
+          {conflictLog.map((c, i) => (
             <div key={i} style={{ fontSize: 'var(--text-xs)', padding: '4px 0', borderBottom: '1px solid var(--border-secondary)' }}>
               <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--brand-600)' }}>{c.field}</span>
               <span style={{ color: 'var(--fg-tertiary)', margin: '0 6px' }}>→</span>
@@ -196,12 +211,12 @@ function SimulationResultView({ result }: { result: SimulationResult }) {
       )}
 
       {/* Execution Trace */}
-      {result.trace.length > 0 && (
+      {trace.length > 0 && (
         <div style={{ background: 'var(--bg-secondary)', borderRadius: 6, padding: 12, border: '1px solid var(--border-primary)' }}>
           <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--fg-primary)', marginBottom: 8 }}>
             <Zap size={12} style={{ display: 'inline', marginRight: 4 }} />Execution Trace
           </div>
-          {result.trace.map((t, i) => (
+          {trace.map((t, i) => (
             <TraceRow
               key={i}
               trace={t}
@@ -217,13 +232,13 @@ function SimulationResultView({ result }: { result: SimulationResult }) {
       )}
 
       {/* Field Behaviors */}
-      {Object.keys(result.fieldBehaviors).length > 0 && (
+      {fieldBehaviors.length > 0 && (
         <div style={{ background: 'var(--bg-secondary)', borderRadius: 6, padding: 12, border: '1px solid var(--border-primary)' }}>
           <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--fg-primary)', marginBottom: 8 }}>Field Behaviors</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {Object.entries(result.fieldBehaviors).map(([field, behavior]) => (
-              <Badge key={field} variant={behavior === 'HIDDEN' ? 'error' : behavior === 'READONLY' ? 'warn' : 'gray'}>
-                {field}: {behavior}
+            {fieldBehaviors.map((item) => (
+              <Badge key={`${item.field}:${item.behavior}`} variant={item.behavior === 'hidden' ? 'error' : item.behavior === 'readonly' ? 'warn' : 'gray'}>
+                {item.field}: {item.behavior}
               </Badge>
             ))}
           </div>
@@ -246,14 +261,14 @@ function TraceRow({ trace, expanded, onToggle }: {
         <Badge variant={trace.matched ? 'success' : 'gray'} style={{ fontSize: 9 }}>
           {trace.matched ? 'MATCH' : 'SKIP'}
         </Badge>
-        <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--fg-primary)' }}>{trace.ruleKey}</span>
-        {trace.rowId && (
-          <span style={{ color: 'var(--fg-tertiary)', marginLeft: 'auto' }}>row: {trace.rowId}</span>
+        <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--fg-primary)' }}>{trace.rule_key}</span>
+        {trace.row_id && (
+          <span style={{ color: 'var(--fg-tertiary)', marginLeft: 'auto' }}>row: {trace.row_id}</span>
         )}
       </div>
       {expanded && (
         <div style={{ paddingLeft: 20, color: 'var(--fg-tertiary)', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>
-          conditionOk: {String(trace.conditionOk)}
+          conditionOk: {String(trace.condition_ok)}
           {trace.error && <div style={{ color: 'var(--error-600)' }}>error: {trace.error}</div>}
         </div>
       )}

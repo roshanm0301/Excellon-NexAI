@@ -6,10 +6,10 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/excellon/nexai/internal/db"
 	"github.com/excellon/nexai/internal/expression"
 	"github.com/excellon/nexai/internal/middleware"
+	"github.com/go-chi/chi/v5"
 )
 
 // HandlerV2 provides HTTP endpoints for DAG-based workflow operations.
@@ -36,6 +36,27 @@ func NewHandlerV2(pool *db.Pool, expr *expression.Engine) *HandlerV2 {
 		logger:   logger,
 		repo:     repo,
 	}
+}
+
+// SetServiceInvoker wires the workflow executor to the service registry.
+func (h *HandlerV2) SetServiceInvoker(invoker ServiceInvoker) {
+	h.executor.SetServiceInvoker(invoker)
+}
+
+// SetRuleEvaluator wires the workflow executor to the rule engine.
+func (h *HandlerV2) SetRuleEvaluator(evaluator RuleEvaluator) {
+	h.executor.SetRuleEvaluator(evaluator)
+}
+
+// Executor exposes the configured executor for internal integrations such as
+// the entity event trigger.
+func (h *HandlerV2) Executor() *DAGExecutor {
+	return h.executor
+}
+
+// Resolver exposes the configured resolver for internal integrations.
+func (h *HandlerV2) Resolver() *WorkflowResolver {
+	return h.resolver
 }
 
 // RegisterRoutesV2 mounts the v2 workflow routes under a chi.Router.

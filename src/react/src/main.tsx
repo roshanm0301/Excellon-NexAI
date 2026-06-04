@@ -10,13 +10,11 @@ import AppLayout from './components/studio/AppLayout'
 const EntityDesignerPage = lazy(() => import('./pages/admin/EntityDesignerPage'))
 const EntityEditorPage = lazy(() => import('./pages/studio/EntityEditorPage'))
 const EntityMapPage = lazy(() => import('./pages/studio/EntityMapPage'))
-const RuleBuilderPage = lazy(() => import('./pages/admin/RuleBuilderPage'))
-const RuleEditorPage = lazy(() => import('./pages/studio/RuleEditorPage'))
+const RuleBuilderPage = lazy(() => import('./pages/admin/RuleBuilderPageV2'))
+const RuleEditorPage = lazy(() => import('./pages/studio/RuleEditorPageV2'))
 const WorkflowPage = lazy(() => import('./pages/admin/WorkflowListPage'))
 const WorkflowEditorPage = lazy(() => import('./pages/studio/WorkflowEditorPage'))
 const WorkflowInstancesPage = lazy(() => import('./pages/studio/WorkflowInstancesPage'))
-const RuleBuilderPageV2 = lazy(() => import('./pages/admin/RuleBuilderPageV2'))
-const RuleEditorPageV2 = lazy(() => import('./pages/studio/RuleEditorPageV2'))
 const OverlayStudioPage = lazy(() => import('./pages/admin/OverlayStudioPage'))
 const NodeTreePage = lazy(() => import('./pages/admin/NodeTreePage'))
 const ExpressionStudioPage = lazy(() => import('./pages/studio/ExpressionStudioPage'))
@@ -50,7 +48,7 @@ const router = createBrowserRouter(
         { path: 'admin/entities/:id/edit', element: wrap(<EntityEditorPage />) },
         { path: 'admin/entities/map', element: wrap(<EntityMapPage />) },
         { path: 'admin/rules', element: wrap(<RuleBuilderPage />) },
-        { path: 'admin/rules/new', element: wrap(<RuleEditorPage />) },
+        { path: 'admin/rules/new', element: <Navigate to="/admin/rules" replace /> },
         { path: 'admin/rules/:id/edit', element: wrap(<RuleEditorPage />) },
         { path: 'admin/overlays', element: wrap(<OverlayStudioPage />) },
         { path: 'admin/nodes', element: wrap(<NodeTreePage />) },
@@ -61,8 +59,8 @@ const router = createBrowserRouter(
         { path: 'workflow/:id/edit', element: wrap(<WorkflowEditorPage />) },
         { path: 'workflow/:id/instances', element: wrap(<WorkflowInstancesPage />) },
         { path: 'workflow/:id/instances/:instanceId', element: wrap(<WorkflowInstancesPage />) },
-        { path: 'rules/v2', element: wrap(<RuleBuilderPageV2 />) },
-        { path: 'rules/v2/:id', element: wrap(<RuleEditorPageV2 />) },
+        { path: 'rules/v2', element: <Navigate to="/admin/rules" replace /> },
+        { path: 'rules/v2/:id', element: wrap(<RuleEditorPage />) },
         { path: 'monitoring', element: wrap(<MonitoringPage />) },
         { path: '*', element: wrap(<NotFoundPage />) },
       ],

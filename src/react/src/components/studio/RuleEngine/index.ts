@@ -1,4 +1,5 @@
 export { DecisionTableEditor, createBlankDecisionTable } from './DecisionTableEditor'
+export { DecisionGraphEditor, createBlankDecisionGraph } from './DecisionGraphEditor'
 export { ConditionTreeBuilder, createBlankConditionTree } from './ConditionTreeBuilder'
 export { ConflictMatrixPanel } from './ConflictMatrixPanel'
 export { RuleSimulator } from './RuleSimulator'

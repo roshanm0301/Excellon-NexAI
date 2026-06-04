@@ -9,14 +9,20 @@ import { useMemo } from 'react'
 import { useCanvasStore } from './useCanvasStore'
 import { getRenderer } from './ComponentRenderMap'
 import type { ComponentNode } from '../../../types/viewStudio'
+import { applyRuleStateToComponentTree, type RuntimeRuleState } from '../../../lib/ruleRuntime'
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function PreviewCanvas() {
   const { payload, selectedKey } = useCanvasStore()
   const tree = payload?.component_tree
+  const runtimeRuleState = payload?.meta?.runtime_rule_state as RuntimeRuleState | undefined
+  const runtimeTree = useMemo(
+    () => tree ? applyRuleStateToComponentTree(tree, runtimeRuleState) : null,
+    [tree, runtimeRuleState],
+  )
 
-  if (!tree) {
+  if (!runtimeTree) {
     return (
       <div className="prev-empty">
         <p>No component tree to preview.</p>
@@ -27,7 +33,7 @@ export function PreviewCanvas() {
   return (
     <div className="prev-canvas">
       <div className="prev-canvas__frame">
-        <RenderNode node={tree} selectedKey={selectedKey} />
+        <RenderNode node={runtimeTree} selectedKey={selectedKey} />
       </div>
     </div>
   )
@@ -38,6 +44,10 @@ export function PreviewCanvas() {
 function RenderNode({ node, selectedKey }: { node: ComponentNode; selectedKey: string | null }) {
   const Renderer = useMemo(() => getRenderer(node.component_code), [node.component_code])
   const isSelected = node.component_key === selectedKey
+
+  if (node.props?.__runtime_hidden === true) {
+    return null
+  }
 
   // Check visibility (skip hidden nodes in preview)
   if (node.visibility) {

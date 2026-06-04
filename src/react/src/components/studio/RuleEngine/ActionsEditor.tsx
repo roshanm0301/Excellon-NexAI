@@ -15,11 +15,10 @@ const ACTION_TYPE_OPTIONS: { value: ActionTypeV2; label: string }[] = [
 ]
 
 const BEHAVIOR_OPTIONS: { value: FieldBehaviorType; label: string }[] = [
-  { value: 'HIDDEN', label: 'Hidden' },
-  { value: 'READONLY', label: 'Read Only' },
-  { value: 'REQUIRED', label: 'Required' },
-  { value: 'OPTIONAL', label: 'Optional' },
-  { value: 'DISABLED', label: 'Disabled' },
+  { value: 'hidden', label: 'Hidden' },
+  { value: 'readonly', label: 'Read Only' },
+  { value: 'mandatory', label: 'Required' },
+  { value: 'editable', label: 'Editable' },
 ]
 
 interface ActionsEditorProps {
@@ -137,8 +136,8 @@ function ActionRow({ action, onChange, onDelete }: { action: ActionV2; onChange:
           <input
             style={{ ...inputStyle, flex: 1 }}
             placeholder="Approver role"
-            value={action.approverRole ?? ''}
-            onChange={(e) => onChange({ approverRole: e.target.value })}
+            value={action.approver_role ?? ''}
+            onChange={(e) => onChange({ approver_role: e.target.value })}
           />
           <input
             style={{ ...inputStyle, flex: 1 }}
@@ -165,7 +164,7 @@ function ActionRow({ action, onChange, onDelete }: { action: ActionV2; onChange:
               color: 'var(--fg-primary)', fontSize: 'var(--text-sm)',
               appearance: 'none',
             }}
-            value={action.behavior ?? 'HIDDEN'}
+            value={action.behavior ?? 'hidden'}
             onChange={(e) => onChange({ behavior: e.target.value as FieldBehaviorType })}
           >
             {BEHAVIOR_OPTIONS.map(o => (
@@ -180,14 +179,14 @@ function ActionRow({ action, onChange, onDelete }: { action: ActionV2; onChange:
           <input
             style={{ ...inputStyle, flex: 1 }}
             placeholder="Service key"
-            value={action.serviceKey ?? ''}
-            onChange={(e) => onChange({ serviceKey: e.target.value })}
+            value={action.service_key ?? ''}
+            onChange={(e) => onChange({ service_key: e.target.value })}
           />
           <input
             style={{ ...inputStyle, flex: 1 }}
             placeholder="Method name"
-            value={action.serviceMethod ?? ''}
-            onChange={(e) => onChange({ serviceMethod: e.target.value })}
+            value={action.method ?? action.service_method ?? ''}
+            onChange={(e) => onChange({ method: e.target.value, service_method: e.target.value })}
           />
         </div>
       )}
@@ -206,8 +205,8 @@ function ActionRow({ action, onChange, onDelete }: { action: ActionV2; onChange:
           <input
             style={{ ...inputStyle, flex: 1 }}
             placeholder="Escalation role"
-            value={action.approverRole ?? ''}
-            onChange={(e) => onChange({ approverRole: e.target.value })}
+            value={action.approver_role ?? ''}
+            onChange={(e) => onChange({ approver_role: e.target.value })}
           />
           <input
             style={{ ...inputStyle, flex: 1 }}

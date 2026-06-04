@@ -42,7 +42,38 @@ func (r *Repo) EnsureTable(ctx context.Context) error {
 			created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
 			updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
 			deleted_at  TIMESTAMPTZ
-		)`)
+		);
+		ALTER TABLE rule_set ADD COLUMN IF NOT EXISTS classifications TEXT[] DEFAULT '{}';
+		ALTER TABLE rule_set ADD COLUMN IF NOT EXISTS content_type VARCHAR(30) NOT NULL DEFAULT 'condition_tree';
+		ALTER TABLE rule_set ADD COLUMN IF NOT EXISTS priority INT NOT NULL DEFAULT 100;
+		ALTER TABLE rule_set ADD COLUMN IF NOT EXISTS hit_policy VARCHAR(20) DEFAULT 'First';
+		ALTER TABLE rule_set ADD COLUMN IF NOT EXISTS rule_set_key TEXT;
+		ALTER TABLE rule_set ADD COLUMN IF NOT EXISTS rule_category TEXT NOT NULL DEFAULT 'Validation';
+		ALTER TABLE rule_set ADD COLUMN IF NOT EXISTS version_status TEXT NOT NULL DEFAULT 'Draft';
+		UPDATE rule_set SET rule_set_key = COALESCE(NULLIF(rule_set_key, ''), id::text) WHERE rule_set_key IS NULL OR rule_set_key = '';
+		ALTER TABLE rule_set ALTER COLUMN rule_set_key SET NOT NULL;
+		DO $$
+		BEGIN
+			IF EXISTS (
+				SELECT 1 FROM pg_constraint
+				WHERE conrelid = 'rule_set'::regclass
+				  AND conname = 'rule_set_content_type_check'
+			) THEN
+				ALTER TABLE rule_set DROP CONSTRAINT rule_set_content_type_check;
+			END IF;
+		END $$;
+		ALTER TABLE rule_set ADD CONSTRAINT rule_set_content_type_check
+			CHECK (content_type IN ('condition_tree', 'decision_table', 'decision_graph'));
+		DO $$
+		BEGIN
+			IF NOT EXISTS (
+				SELECT 1 FROM pg_constraint
+				WHERE conrelid = 'rule_set'::regclass
+				  AND conname = 'uq_rule_set_tenant_key'
+			) THEN
+				ALTER TABLE rule_set ADD CONSTRAINT uq_rule_set_tenant_key UNIQUE (tenant_id, rule_set_key);
+			END IF;
+		END $$;`)
 	return err
 }
 

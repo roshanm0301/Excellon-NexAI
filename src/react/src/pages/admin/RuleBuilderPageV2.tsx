@@ -7,17 +7,21 @@ import {
   DataTable, Badge, useToast, type Column,
 } from '../../design-system'
 import {
-  listRuleSetsV2, createRuleSetV2, saveRuleSetV2, deleteRuleSet,
-  type RuleSetV2, type RuleClassification, type ContentType,
+  listRuleSetsV2, createRuleSetV2, saveRuleSetV2, deleteRuleSetV2,
+  type RuleSetV2, type RuleCategory, type ContentType,
 } from '../../config/studioApi'
 
-const CLASSIFICATION_OPTIONS: { value: RuleClassification; label: string; color: string }[] = [
-  { value: 'VALIDATION', label: 'Validation', color: 'error' },
-  { value: 'DERIVATION', label: 'Derivation', color: 'info' },
-  { value: 'APPROVAL', label: 'Approval', color: 'warn' },
-  { value: 'FIELD_CONTROL', label: 'Field Control', color: 'success' },
-  { value: 'ELIGIBILITY', label: 'Eligibility', color: 'gray' },
-  { value: 'EXTENSION', label: 'Extension', color: 'gray' },
+const CATEGORY_OPTIONS: { value: RuleCategory; label: string; color: string; defaultBuilder: ContentType }[] = [
+  { value: 'Validation', label: 'Validation', color: 'error', defaultBuilder: 'decision_table' },
+  { value: 'Approval', label: 'Approval', color: 'warn', defaultBuilder: 'decision_table' },
+  { value: 'Pricing', label: 'Pricing', color: 'info', defaultBuilder: 'decision_table' },
+  { value: 'ChargeDiscount', label: 'Charge / Discount', color: 'info', defaultBuilder: 'decision_table' },
+  { value: 'Taxation', label: 'Taxation', color: 'error', defaultBuilder: 'decision_table' },
+  { value: 'Accounting', label: 'Accounting', color: 'error', defaultBuilder: 'decision_table' },
+  { value: 'BusinessProcess', label: 'Business Process', color: 'success', defaultBuilder: 'decision_graph' },
+  { value: 'Eligibility', label: 'Eligibility', color: 'gray', defaultBuilder: 'decision_table' },
+  { value: 'FieldBehavior', label: 'Field Behavior', color: 'success', defaultBuilder: 'decision_table' },
+  { value: 'DerivationCalculation', label: 'Derivation / Calculation', color: 'info', defaultBuilder: 'decision_graph' },
 ]
 
 export function RuleBuilderPageV2() {
@@ -25,11 +29,12 @@ export function RuleBuilderPageV2() {
   const { toast } = useToast()
   const qc = useQueryClient()
 
-  const [filter, setFilter] = useState<RuleClassification | ''>('')
+  const [filter, setFilter] = useState<RuleCategory | ''>('')
   const [creating, setCreating] = useState(false)
   const [newName, setNewName] = useState('')
   const [newEntityType, setNewEntityType] = useState('')
-  const [newContentType, setNewContentType] = useState<ContentType>('condition_tree')
+  const [newCategory, setNewCategory] = useState<RuleCategory>('Validation')
+  const [newContentType, setNewContentType] = useState<ContentType>('decision_table')
   const [deleteTarget, setDeleteTarget] = useState<RuleSetV2 | null>(null)
 
   const { data, isLoading } = useQuery({
@@ -42,7 +47,9 @@ export function RuleBuilderPageV2() {
       entity_type: newEntityType.trim(),
       name: newName.trim(),
       content_type: newContentType,
-      classifications: [],
+      rule_category: newCategory,
+      classifications: [newCategory],
+      hit_policy: 'First',
     }),
     onSuccess: (rs) => {
       qc.invalidateQueries({ queryKey: ['ruleSetsV2'] })
@@ -50,7 +57,9 @@ export function RuleBuilderPageV2() {
       setCreating(false)
       setNewName('')
       setNewEntityType('')
-      navigate(`/rules/v2/${rs.id}`)
+      setNewCategory('Validation')
+      setNewContentType('decision_table')
+      navigate(`/admin/rules/${rs.id}/edit`)
     },
     onError: () => toast('error', 'Failed to create rule set'),
   })
@@ -62,7 +71,7 @@ export function RuleBuilderPageV2() {
   })
 
   const deleteMut = useMutation({
-    mutationFn: (id: string) => deleteRuleSet(id),
+    mutationFn: (id: string) => deleteRuleSetV2(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ruleSetsV2'] })
       setDeleteTarget(null)
@@ -89,7 +98,7 @@ export function RuleBuilderPageV2() {
       render: (row) => (
         <button
           style={{ fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-primary)', padding: 0, textAlign: 'left' }}
-          onClick={(e) => { e.stopPropagation(); navigate(`/rules/v2/${row.id}`) }}
+          onClick={(e) => { e.stopPropagation(); navigate(`/admin/rules/${row.id}/edit`) }}
         >
           {row.name}
         </button>
@@ -103,19 +112,19 @@ export function RuleBuilderPageV2() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {row.content_type === 'decision_table'
             ? <><Table2 size={13} style={{ color: 'var(--brand-500)' }} /> <span style={{ fontSize: 'var(--text-xs)' }}>Decision Table</span></>
-            : <><GitBranch size={13} style={{ color: 'var(--success-500)' }} /> <span style={{ fontSize: 'var(--text-xs)' }}>Condition Tree</span></>
+            : <><GitBranch size={13} style={{ color: 'var(--success-500)' }} /> <span style={{ fontSize: 'var(--text-xs)' }}>{row.content_type === 'decision_graph' ? 'Decision Graph' : 'Condition Tree'}</span></>
           }
         </div>
       ),
     },
     {
-      key: 'classifications',
-      label: 'Classifications',
+      key: 'rule_category',
+      label: 'Category',
       width: 220,
       render: (row) => (
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {(row.classifications ?? []).map(cls => {
-            const opt = CLASSIFICATION_OPTIONS.find(o => o.value === cls)
+            const opt = CATEGORY_OPTIONS.find(o => o.value === cls)
             return <Badge key={cls} variant={opt?.color as 'error' | 'info' | 'warn' | 'success' | 'gray' ?? 'gray'}>{opt?.label ?? cls}</Badge>
           })}
           {(!row.classifications || row.classifications.length === 0) && (
@@ -152,7 +161,7 @@ export function RuleBuilderPageV2() {
       width: 130,
       render: (row) => (
         <div style={{ display: 'flex', gap: 4 }}>
-          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/rules/v2/${row.id}`) }} icon={<Edit2 size={14} />}>
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/admin/rules/${row.id}/edit`) }} icon={<Edit2 size={14} />}>
             Edit
           </Button>
           <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setDeleteTarget(row) }} icon={<Trash2 size={14} />} style={{ color: 'var(--error-600)' }} />
@@ -178,7 +187,7 @@ export function RuleBuilderPageV2() {
       {/* Filter row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <Filter size={14} style={{ color: 'var(--fg-tertiary)' }} />
-        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-tertiary)' }}>Classification:</span>
+        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-tertiary)' }}>Category:</span>
         <button
           onClick={() => setFilter('')}
           style={{
@@ -191,7 +200,7 @@ export function RuleBuilderPageV2() {
         >
           All
         </button>
-        {CLASSIFICATION_OPTIONS.map(cls => (
+        {CATEGORY_OPTIONS.map(cls => (
           <button
             key={cls.value}
             onClick={() => setFilter(cls.value)}
@@ -214,7 +223,7 @@ export function RuleBuilderPageV2() {
         rows={items as unknown as Record<string, unknown>[]}
         loading={isLoading}
         emptyTitle="No rule sets found. Create one to get started."
-        onRowClick={(row) => navigate(`/rules/v2/${(row as unknown as RuleSetV2).id}`)}
+        onRowClick={(row) => navigate(`/admin/rules/${(row as unknown as RuleSetV2).id}/edit`)}
       />
 
       {/* Create modal */}
@@ -250,8 +259,27 @@ export function RuleBuilderPageV2() {
             />
           </div>
           <div>
+            <label style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--fg-secondary)', marginBottom: 4, display: 'block' }}>Category</label>
+            <select
+              style={{
+                width: '100%', height: 36, padding: '0 12px',
+                border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-lg)',
+                background: 'var(--bg-primary)', color: 'var(--fg-primary)',
+                fontSize: 'var(--text-sm)', boxSizing: 'border-box',
+              }}
+              value={newCategory}
+              onChange={(e) => {
+                const category = e.target.value as RuleCategory
+                setNewCategory(category)
+                setNewContentType(CATEGORY_OPTIONS.find(o => o.value === category)?.defaultBuilder ?? 'decision_table')
+              }}
+            >
+              {CATEGORY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+          <div>
             <label style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--fg-secondary)', marginBottom: 4, display: 'block' }}>Content Type</label>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button
                 onClick={() => setNewContentType('condition_tree')}
                 style={{
@@ -282,6 +310,22 @@ export function RuleBuilderPageV2() {
                 </div>
                 <div style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-tertiary)', marginTop: 4 }}>
                   Spreadsheet-like DMN table with hit policies
+                </div>
+              </button>
+              <button
+                onClick={() => setNewContentType('decision_graph')}
+                style={{
+                  flex: '1 1 160px', padding: '10px 12px', borderRadius: 'var(--radius-lg)',
+                  border: newContentType === 'decision_graph' ? '2px solid var(--brand-400)' : '1px solid var(--border-secondary)',
+                  background: newContentType === 'decision_graph' ? 'var(--brand-50)' : 'var(--bg-primary)',
+                  cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, fontSize: 'var(--text-sm)' }}>
+                  <GitBranch size={14} /> Decision Graph
+                </div>
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-tertiary)', marginTop: 4 }}>
+                  GoRules graph for multi-step enterprise decisions
                 </div>
               </button>
             </div>

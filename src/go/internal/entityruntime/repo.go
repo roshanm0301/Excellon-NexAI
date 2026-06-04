@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/excellon/nexai/internal/db"
 	"github.com/excellon/nexai/internal/idgen"
+	"github.com/jackc/pgx/v5"
 )
 
 type Repo struct {
@@ -18,14 +18,21 @@ func NewRepo(pool *db.Pool) *Repo {
 }
 
 func (r *Repo) Create(ctx context.Context, tenantID, entityType, nodeID, createdBy string, payload []byte) (*EntityRecord, error) {
+	return r.CreateWithStatus(ctx, tenantID, entityType, nodeID, createdBy, payload, "DRAFT")
+}
+
+func (r *Repo) CreateWithStatus(ctx context.Context, tenantID, entityType, nodeID, createdBy string, payload []byte, status string) (*EntityRecord, error) {
 	id := idgen.NewV7()
+	if status == "" {
+		status = "DRAFT"
+	}
 	const q = `
 		INSERT INTO entity_record (id, tenant_id, entity_type, node_id, payload, status, version_no, created_by, updated_by)
-		VALUES ($1, $2, $3, NULLIF($4,''), $5, 'DRAFT', 1, $6, $6)
+		VALUES ($1, $2, $3, NULLIF($4,''), $5, $6, 1, $7, $7)
 		RETURNING id, entity_type, COALESCE(entity_category,''), tenant_id, COALESCE(node_id,''),
 		          status, version_no, created_by, updated_by, created_at, updated_at,
 		          deleted_at, COALESCE(deleted_by,''), payload`
-	return scanRecord(r.pool.QueryRow(ctx, q, id, tenantID, entityType, nodeID, payload, createdBy))
+	return scanRecord(r.pool.QueryRow(ctx, q, id, tenantID, entityType, nodeID, payload, status, createdBy))
 }
 
 func (r *Repo) GetByID(ctx context.Context, tenantID, entityType, id string) (*EntityRecord, error) {
@@ -75,13 +82,32 @@ func (r *Repo) List(ctx context.Context, tenantID, entityType string, limit, off
 }
 
 func (r *Repo) Update(ctx context.Context, tenantID, entityType, id, updatedBy string, payload []byte) (*EntityRecord, error) {
+	return r.UpdateWithStatus(ctx, tenantID, entityType, id, updatedBy, payload, "")
+}
+
+func (r *Repo) UpdateWithStatus(ctx context.Context, tenantID, entityType, id, updatedBy string, payload []byte, status string) (*EntityRecord, error) {
+	if status != "" {
+		const q = `
+			UPDATE entity_record
+			SET payload = $4, status = $5, updated_by = $6, updated_at = now(), version_no = version_no + 1
+			WHERE id = $1 AND tenant_id = $2 AND entity_type = $3 AND deleted_at IS NULL
+			RETURNING id, entity_type, COALESCE(entity_category,''), tenant_id, COALESCE(node_id,''),
+			          status, version_no, created_by, updated_by, created_at, updated_at,
+			          deleted_at, COALESCE(deleted_by,''), payload`
+		rec, err := scanRecord(r.pool.QueryRow(ctx, q, id, tenantID, entityType, payload, status, updatedBy))
+		if err == pgx.ErrNoRows {
+			return nil, fmt.Errorf("entity %s/%s: not found", entityType, id)
+		}
+		return rec, err
+	}
+
 	const q = `
-		UPDATE entity_record SET payload = $5, updated_by = $6, updated_at = now(), version_no = version_no + 1
+		UPDATE entity_record SET payload = $4, updated_by = $5, updated_at = now(), version_no = version_no + 1
 		WHERE id = $1 AND tenant_id = $2 AND entity_type = $3 AND deleted_at IS NULL
 		RETURNING id, entity_type, COALESCE(entity_category,''), tenant_id, COALESCE(node_id,''),
 		          status, version_no, created_by, updated_by, created_at, updated_at,
 		          deleted_at, COALESCE(deleted_by,''), payload`
-	rec, err := scanRecord(r.pool.QueryRow(ctx, q, id, tenantID, entityType, nil, payload, updatedBy))
+	rec, err := scanRecord(r.pool.QueryRow(ctx, q, id, tenantID, entityType, payload, updatedBy))
 	if err == pgx.ErrNoRows {
 		return nil, fmt.Errorf("entity %s/%s: not found", entityType, id)
 	}

@@ -8,23 +8,28 @@ import {
 } from '../../design-system'
 import {
   getRuleSetV2, saveRuleSetV2,
-  type RuleSetV2, type RuleClassification,
+  type RuleSetV2, type RuleCategory,
 } from '../../config/studioApi'
 import {
   DecisionTableEditor, createBlankDecisionTable,
+  DecisionGraphEditor, createBlankDecisionGraph,
   ConditionTreeBuilder, createBlankConditionTree,
   ConflictMatrixPanel, RuleSimulator, ActionsEditor,
 } from '../../components/studio/RuleEngine'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CLASSIFICATION_OPTIONS: { value: RuleClassification; label: string; color: string }[] = [
-  { value: 'VALIDATION', label: 'Validation', color: 'var(--error-500)' },
-  { value: 'DERIVATION', label: 'Derivation', color: 'var(--brand-500)' },
-  { value: 'APPROVAL', label: 'Approval', color: 'var(--warning-500)' },
-  { value: 'FIELD_CONTROL', label: 'Field Control', color: 'var(--success-500)' },
-  { value: 'ELIGIBILITY', label: 'Eligibility', color: 'var(--neutral-500)' },
-  { value: 'EXTENSION', label: 'Extension', color: 'var(--fg-tertiary)' },
+const CATEGORY_OPTIONS: { value: RuleCategory; label: string; color: string }[] = [
+  { value: 'Validation', label: 'Validation', color: 'var(--error-500)' },
+  { value: 'Approval', label: 'Approval', color: 'var(--warning-500)' },
+  { value: 'Pricing', label: 'Pricing', color: 'var(--brand-500)' },
+  { value: 'ChargeDiscount', label: 'Charge / Discount', color: 'var(--brand-500)' },
+  { value: 'Taxation', label: 'Taxation', color: 'var(--error-500)' },
+  { value: 'Accounting', label: 'Accounting', color: 'var(--error-500)' },
+  { value: 'BusinessProcess', label: 'Business Process', color: 'var(--success-500)' },
+  { value: 'Eligibility', label: 'Eligibility', color: 'var(--neutral-500)' },
+  { value: 'FieldBehavior', label: 'Field Behavior', color: 'var(--success-500)' },
+  { value: 'DerivationCalculation', label: 'Derivation / Calculation', color: 'var(--brand-500)' },
 ]
 
 // ─── Page Component ───────────────────────────────────────────────────────────
@@ -77,12 +82,7 @@ export default function RuleEditorPageV2() {
     setLocalRule({ ...rule, ...updates })
   }
 
-  const toggleClassification = (cls: RuleClassification) => {
-    if (!rule) return
-    const current = rule.classifications ?? []
-    const updated = current.includes(cls) ? current.filter(c => c !== cls) : [...current, cls]
-    updateRule({ classifications: updated })
-  }
+  const setCategory = (category: RuleCategory) => updateRule({ rule_category: category, classifications: [category] })
 
   // ─── Loading / Error states ─────────────────────────────────────────────────
 
@@ -119,7 +119,7 @@ export default function RuleEditorPageV2() {
   // ─── Visual mode ────────────────────────────────────────────────────────────
 
   const tabs = [
-    { id: 'conditions', label: rule.content_type === 'decision_table' ? 'Decision Table' : 'Conditions' },
+    { id: 'conditions', label: rule.content_type === 'decision_table' ? 'Decision Table' : rule.content_type === 'decision_graph' ? 'Decision Graph' : 'Conditions' },
     { id: 'actions', label: 'Actions' },
     { id: 'conflicts', label: 'Conflicts' },
     { id: 'simulator', label: 'Simulator' },
@@ -158,15 +158,15 @@ export default function RuleEditorPageV2() {
           </div>
         </div>
 
-        {/* Classifications row */}
+        {/* Category row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-tertiary)', fontWeight: 600 }}>Classifications:</span>
-          {CLASSIFICATION_OPTIONS.map(cls => {
-            const active = (rule.classifications ?? []).includes(cls.value)
+          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-tertiary)', fontWeight: 600 }}>Category:</span>
+          {CATEGORY_OPTIONS.map(cls => {
+            const active = rule.rule_category === cls.value
             return (
               <button
                 key={cls.value}
-                onClick={() => toggleClassification(cls.value)}
+                onClick={() => setCategory(cls.value)}
                 style={{
                   padding: '3px 10px', borderRadius: 'var(--radius-full)',
                   border: `1px solid ${active ? cls.color : 'var(--border-secondary)'}`,
@@ -217,6 +217,11 @@ export default function RuleEditorPageV2() {
                 table={rule.decision_table ?? createBlankDecisionTable()}
                 onChange={(dt) => updateRule({ decision_table: dt })}
               />
+            ) : rule.content_type === 'decision_graph' ? (
+              <DecisionGraphEditor
+                graph={rule.decision_graph ?? createBlankDecisionGraph()}
+                onChange={(graph) => updateRule({ decision_graph: graph })}
+              />
             ) : (
               <ConditionTreeBuilder
                 condition={rule.conditions ?? createBlankConditionTree()}
@@ -231,10 +236,10 @@ export default function RuleEditorPageV2() {
             />
           )}
           {activeTab === 'conflicts' && (
-            <ConflictMatrixPanel ruleSetKey={rule.id} />
+            <ConflictMatrixPanel ruleSetKey={rule.rule_set_key || rule.id} />
           )}
           {activeTab === 'simulator' && (
-            <RuleSimulator entityType={rule.entity_type} />
+            <RuleSimulator entityType={rule.entity_type} ruleSetKey={rule.rule_set_key || rule.id} />
           )}
         </div>
       </div>

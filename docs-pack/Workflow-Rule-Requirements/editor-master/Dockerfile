@@ -12,7 +12,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@9
 RUN pnpm i
 RUN pnpm run build
 

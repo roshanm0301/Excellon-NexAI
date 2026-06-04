@@ -12,7 +12,17 @@ import { workflowNodeTypes, type WorkflowNodeData } from './WorkflowNodes'
 import { workflowEdgeTypes, type WorkflowEdgeData } from './WorkflowEdge'
 import { NodePalette } from './NodePalette'
 import { NodeConfigPanel } from './NodeConfigPanel'
-import type { DAGDefinition, DAGNode, DAGEdge, DAGGateway, StepType, GatewayType } from '../../../config/studioApi'
+import type {
+  ApprovalConfig,
+  DAGDefinition,
+  DAGEdge,
+  DAGGateway,
+  DAGNode,
+  GatewayType,
+  RuleEvalConfig,
+  ServiceCallConfig,
+  StepType,
+} from '../../../config/studioApi'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -208,6 +218,33 @@ function validateDAG(nodes: Node[], edges: Edge[]): ValidationIssue[] {
     const hasIn = edges.some(e => e.target === node.id)
     if (!hasIn) {
       issues.push({ level: 'warning', message: `"${(node.data as WorkflowNodeData).label}" has no incoming edge` })
+    }
+  }
+
+  // Check enterprise task bindings that must be valid before the workflow can run.
+  for (const node of nodes) {
+    const data = node.data as WorkflowNodeData
+    const label = data.label || node.id
+    if (data.stepType === 'rule_evaluation') {
+      const cfg = (data.config ?? {}) as Partial<RuleEvalConfig>
+      if (!cfg.ruleSetKey?.trim()) {
+        issues.push({ level: 'error', message: `"${label}" must select a rule or decision` })
+      }
+      if (!cfg.entityType?.trim()) {
+        issues.push({ level: 'warning', message: `"${label}" should declare an entity type for rule lookup and traceability` })
+      }
+    }
+    if (data.stepType === 'service_call') {
+      const cfg = (data.config ?? {}) as Partial<ServiceCallConfig>
+      if (!cfg.serviceKey?.trim() || !cfg.method?.trim()) {
+        issues.push({ level: 'error', message: `"${label}" must define both service key and method` })
+      }
+    }
+    if (data.stepType === 'approval') {
+      const cfg = (data.config ?? {}) as Partial<ApprovalConfig>
+      if (!cfg.approvers?.length) {
+        issues.push({ level: 'error', message: `"${label}" must include at least one approver` })
+      }
     }
   }
 

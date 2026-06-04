@@ -69,7 +69,7 @@ func (bus *EventBus) Publish(ctx context.Context, event Event) {
 					slog.Error("event_bus: handler panicked", "event", event.Type, "entity", event.EntityType, "panic", r)
 				}
 			}()
-			handler(ctx, event)
+			handler(context.Background(), event)
 		}(h)
 	}
 }

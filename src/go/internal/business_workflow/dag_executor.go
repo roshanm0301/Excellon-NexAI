@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/excellon/nexai/internal/db"
 	"github.com/excellon/nexai/internal/expression"
 	"github.com/excellon/nexai/internal/idgen"
+	"github.com/jackc/pgx/v5"
 )
 
 // ServiceInvoker is the interface for invoking external/internal services.
@@ -34,15 +36,21 @@ type ServiceInvokeResponse struct {
 	Error   string
 }
 
+// RuleEvaluator is implemented by the rule engine used by rule_evaluation nodes.
+type RuleEvaluator interface {
+	EvaluateRuleSet(ctx context.Context, tenantID, ruleSetKey string, payload map[string]any, triggerType string) (any, error)
+}
+
 // DAGExecutor drives execution of DAG-based workflows.
 type DAGExecutor struct {
-	pool     *db.Pool
-	expr     *expression.Engine
-	repo     *Repo
-	approval *ApprovalHandler
-	parallel *ParallelRunner
-	logger   *ExecutionLogger
-	svcInvoker ServiceInvoker
+	pool          *db.Pool
+	expr          *expression.Engine
+	repo          *Repo
+	approval      *ApprovalHandler
+	parallel      *ParallelRunner
+	logger        *ExecutionLogger
+	svcInvoker    ServiceInvoker
+	ruleEvaluator RuleEvaluator
 }
 
 // NewDAGExecutor constructs a DAGExecutor with all dependencies.
@@ -62,6 +70,11 @@ func NewDAGExecutor(pool *db.Pool, expr *expression.Engine) *DAGExecutor {
 // SetServiceInvoker injects the service invoker (avoids circular import).
 func (e *DAGExecutor) SetServiceInvoker(invoker ServiceInvoker) {
 	e.svcInvoker = invoker
+}
+
+// SetRuleEvaluator injects the rule evaluator.
+func (e *DAGExecutor) SetRuleEvaluator(evaluator RuleEvaluator) {
+	e.ruleEvaluator = evaluator
 }
 
 // StartDAGInstance creates and begins executing a DAG workflow instance.
@@ -179,6 +192,13 @@ func (e *DAGExecutor) executeReadyNodes(ctx context.Context, tenantID string, de
 		// Re-propagate after synchronous completions
 		e.propagateReadiness(def.DAG, inst.DAGState)
 
+		// If any node failed, mark the instance failed and stop executing.
+		if failedNode := firstFailedNode(inst.DAGState); failedNode != nil {
+			inst.Status = "failed"
+			inst.ErrorMessage = failedNode.Error
+			break
+		}
+
 		// If DAG is terminal, mark instance complete
 		if inst.DAGState.IsTerminal() {
 			now := time.Now().UTC()
@@ -221,10 +241,8 @@ func (e *DAGExecutor) executeNode(ctx context.Context, tenantID string, def *Pro
 		return e.executeApproval(ctx, tenantID, inst, node)
 
 	case StepHumanTask:
+		return e.executeHumanTask(ctx, tenantID, inst, node)
 		// Human tasks go to "waiting" — external resume triggers completion
-		ns.Status = NodeWaiting
-		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "waiting", nil, nil)
-		return nil
 
 	case StepNotification:
 		return e.executeNotification(ctx, tenantID, inst, node)
@@ -297,19 +315,165 @@ func (e *DAGExecutor) executeApproval(ctx context.Context, tenantID string, inst
 	return nil
 }
 
-// executeNotification is a fire-and-forget step.
+// executeHumanTask creates a durable work item and pauses until an external resume.
+func (e *DAGExecutor) executeHumanTask(ctx context.Context, tenantID string, inst *ProcessInstanceV2, node *DAGNode) error {
+	if e.pool == nil {
+		errMsg := "workflow database is not wired"
+		e.failNode(inst.DAGState, node.ID, errMsg)
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", node.Config, map[string]any{"error": errMsg})
+		return nil
+	}
+	cfg := node.Config
+	taskType := workflowString(cfg, "taskType", "task_type", "taskKey", "task_key")
+	if taskType == "" {
+		taskType = node.ID
+	}
+	title := workflowString(cfg, "title")
+	if title == "" {
+		title = node.Name
+	}
+	if title == "" {
+		title = fmt.Sprintf("Workflow task %s", node.ID)
+	}
+	description := workflowString(cfg, "description")
+	assigneeRole := workflowString(cfg, "assigneeRole", "assignee_role", "role")
+	dueAt := workflowDueAt(workflowInt(cfg, "dueHours", "due_hours", "timeoutHours", "timeout_hours"))
+	if dueAt == nil && node.TimeoutMins > 0 {
+		due := time.Now().UTC().Add(time.Duration(node.TimeoutMins) * time.Minute)
+		dueAt = &due
+	}
+
+	tx, err := e.pool.Begin(ctx)
+	if err != nil {
+		errMsg := fmt.Sprintf("human task transaction error: %v", err)
+		e.failNode(inst.DAGState, node.ID, errMsg)
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", cfg, map[string]any{"error": errMsg})
+		return nil
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && err != pgx.ErrTxClosed {
+			slog.Warn("dag_executor: human task rollback failed", "error", err, "node", node.ID, "instance", inst.ID)
+		}
+	}()
+
+	var taskID string
+	if err := tx.QueryRow(ctx, `
+		INSERT INTO human_task (tenant_id, entity_type, entity_id, task_type, assigned_role, title, description, due_at, status)
+		VALUES ($1, $2, $3, $4, NULLIF($5,''), $6, NULLIF($7,''), $8, 'open')
+		RETURNING id`,
+		tenantID, inst.EntityType, inst.EntityID, taskType, assigneeRole, title, description, dueAt,
+	).Scan(&taskID); err != nil {
+		errMsg := fmt.Sprintf("human task create error: %v", err)
+		e.failNode(inst.DAGState, node.ID, errMsg)
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", cfg, map[string]any{"error": errMsg})
+		return nil
+	}
+	if _, err := tx.Exec(ctx, `
+		INSERT INTO workflow_human_task (tenant_id, entity_type, entity_id, task_key, title, assignee_role, due_at, status)
+		VALUES ($1, $2, $3, $4, $5, NULLIF($6,''), $7, 'pending')`,
+		tenantID, inst.EntityType, inst.EntityID, taskType, title, assigneeRole, dueAt,
+	); err != nil {
+		errMsg := fmt.Sprintf("workflow human task mirror error: %v", err)
+		e.failNode(inst.DAGState, node.ID, errMsg)
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", cfg, map[string]any{"error": errMsg, "taskId": taskID})
+		return nil
+	}
+	if err := tx.Commit(ctx); err != nil {
+		errMsg := fmt.Sprintf("human task commit error: %v", err)
+		e.failNode(inst.DAGState, node.ID, errMsg)
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", cfg, map[string]any{"error": errMsg, "taskId": taskID})
+		return nil
+	}
+
+	output := map[string]any{"taskId": taskID, "taskType": taskType, "assigneeRole": assigneeRole}
+	ns := inst.DAGState.NodeStates[node.ID]
+	ns.Status = NodeWaiting
+	ns.Output = output
+	e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "waiting", cfg, output)
+	return nil
+}
+
+// executeNotification sends a notification through the service registry.
 func (e *DAGExecutor) executeNotification(ctx context.Context, tenantID string, inst *ProcessInstanceV2, node *DAGNode) error {
-	// In production this would call a notification service.
-	// For now, log and complete.
-	slog.Info("dag_executor: notification step", "node", node.ID, "instance", inst.ID)
-	e.completeNode(inst.DAGState, node.ID, nil)
-	e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "completed", node.Config, nil)
+	cfg := node.Config
+	serviceKey := workflowString(cfg, "serviceKey", "service_key")
+	if serviceKey == "" {
+		serviceKey = "notification"
+	}
+	method := workflowString(cfg, "method")
+	if method == "" {
+		method = "send"
+	}
+	input, err := e.workflowServiceInput(ctx, inst, cfg)
+	if err != nil {
+		errMsg := fmt.Sprintf("notification input error: %v", err)
+		e.failNode(inst.DAGState, node.ID, errMsg)
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", cfg, map[string]any{"error": errMsg})
+		return nil
+	}
+	evalData := e.buildEvalData(inst)
+	if workflowString(input, "recipient") == "" {
+		input["recipient"] = workflowString(evalData, "$userId")
+	}
+	if workflowString(input, "recipient") == "" {
+		input["recipient"] = "workflow"
+	}
+	if workflowString(input, "channel") == "" && serviceKey == "notification" {
+		input["channel"] = "in_app"
+	}
+	if workflowString(input, "message") == "" {
+		label := node.Name
+		if label == "" {
+			label = node.ID
+		}
+		input["message"] = fmt.Sprintf("Workflow %s reached %s", inst.ID, label)
+	}
+
+	if e.svcInvoker == nil {
+		errMsg := "service registry is not wired"
+		e.failNode(inst.DAGState, node.ID, errMsg)
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", input, map[string]any{"error": errMsg})
+		return nil
+	}
+	resp, err := e.svcInvoker.Invoke(ctx, &ServiceInvokeRequest{
+		ServiceKey: serviceKey,
+		Method:     method,
+		TenantID:   tenantID,
+		Caller:     fmt.Sprintf("workflow:%s:step:%s", inst.ID, node.ID),
+		Input:      input,
+	})
+	if err != nil {
+		e.failNode(inst.DAGState, node.ID, fmt.Sprintf("notification error: %v", err))
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", input, map[string]any{"error": err.Error()})
+		return nil
+	}
+	output := resp.Output
+	if output == nil {
+		output = map[string]any{}
+	}
+	if !resp.Success {
+		errMsg := resp.Error
+		if errMsg == "" {
+			errMsg = "notification service returned an unsuccessful response"
+		}
+		e.failNode(inst.DAGState, node.ID, errMsg)
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", input, output)
+		return nil
+	}
+	e.completeNode(inst.DAGState, node.ID, output)
+	e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "completed", input, output)
 	return nil
 }
 
 // executeServiceCall invokes an external service.
 func (e *DAGExecutor) executeServiceCall(ctx context.Context, tenantID string, inst *ProcessInstanceV2, node *DAGNode) error {
 	cfg := parseServiceCallConfig(node.Config)
+	if cfg.ServiceKey == "" || cfg.Method == "" {
+		errMsg := "service call requires serviceKey and method"
+		e.failNode(inst.DAGState, node.ID, errMsg)
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", node.Config, map[string]any{"error": errMsg})
+		return nil
+	}
 
 	// Build input from config or expression
 	var input map[string]any
@@ -361,27 +525,67 @@ func (e *DAGExecutor) executeServiceCall(ctx context.Context, tenantID string, i
 		return nil
 	}
 
-	// Fallback: no invoker configured — complete with stub
-	output := map[string]any{"serviceKey": cfg.ServiceKey, "method": cfg.Method, "input": input, "status": "no_invoker"}
-	e.completeNode(inst.DAGState, node.ID, output)
-	e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "completed", input, output)
+	errMsg := "service registry is not wired"
+	e.failNode(inst.DAGState, node.ID, errMsg)
+	e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", input, map[string]any{"error": errMsg})
 	return nil
 }
 
 // executeRuleEval invokes the rule engine for the entity.
 func (e *DAGExecutor) executeRuleEval(ctx context.Context, tenantID string, inst *ProcessInstanceV2, node *DAGNode) error {
 	cfg := parseRuleEvalConfig(node.Config)
-
-	// Build entity payload from workflow context
-	data := e.buildEvalData(inst)
-	output := map[string]any{
-		"entityType":  cfg.EntityType,
-		"triggerType": cfg.TriggerType,
-		"evaluated":   true,
+	if cfg.RuleSetKey == "" {
+		errMsg := "rule evaluation requires ruleSetKey"
+		e.failNode(inst.DAGState, node.ID, errMsg)
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", node.Config, map[string]any{"error": errMsg})
+		return nil
+	}
+	if e.ruleEvaluator == nil {
+		errMsg := "rule evaluator is not wired"
+		e.failNode(inst.DAGState, node.ID, errMsg)
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", node.Config, map[string]any{"error": errMsg})
+		return nil
 	}
 
-	// TODO: Wire to rules.EvaluatorV2 once cross-package dependency is set up.
-	// For now, mark as completed with stub output.
+	data := e.buildEvalData(inst)
+	triggerType := cfg.TriggerType
+	if triggerType == "" {
+		triggerType = "workflow"
+	}
+	result, err := e.ruleEvaluator.EvaluateRuleSet(ctx, tenantID, cfg.RuleSetKey, data, triggerType)
+	if err != nil {
+		e.failNode(inst.DAGState, node.ID, fmt.Sprintf("rule evaluation error: %v", err))
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", data, map[string]any{"error": err.Error()})
+		return nil
+	}
+	resultMap := workflowAnyMap(result)
+	if workflowBool(resultMap, "blocked") {
+		msg := workflowString(resultMap, "block_message", "blockMessage")
+		if msg == "" {
+			msg = "workflow rule evaluation blocked the instance"
+		}
+		e.failNode(inst.DAGState, node.ID, msg)
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", data, map[string]any{"error": msg, "result": resultMap})
+		return nil
+	}
+	serviceResults, err := e.executeRuleServiceInvocations(ctx, tenantID, inst, node, resultMap)
+	if err != nil {
+		resultMap["service_results"] = serviceResults
+		e.failNode(inst.DAGState, node.ID, err.Error())
+		e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "failed", data, map[string]any{"error": err.Error(), "result": resultMap})
+		return nil
+	}
+	if len(serviceResults) > 0 {
+		resultMap["service_results"] = serviceResults
+		result = resultMap
+	}
+
+	output := map[string]any{
+		"ruleSetKey":  cfg.RuleSetKey,
+		"entityType":  cfg.EntityType,
+		"triggerType": triggerType,
+		"result":      result,
+	}
 	e.completeNode(inst.DAGState, node.ID, output)
 	e.logger.LogAsync(ctx, tenantID, inst.ID, node.ID, node.Type, "completed", data, output)
 	return nil
@@ -688,6 +892,108 @@ func parseSubWorkflowConfig(cfg map[string]any) SubWorkflowConfig {
 	return sc
 }
 
+func (e *DAGExecutor) workflowServiceInput(ctx context.Context, inst *ProcessInstanceV2, cfg map[string]any) (map[string]any, error) {
+	if cfg == nil {
+		return map[string]any{}, nil
+	}
+	if expr := workflowString(cfg, "inputExpr", "input_expr"); expr != "" {
+		result, err := e.expr.Evaluate(ctx, expr, e.buildEvalData(inst))
+		if err != nil {
+			return nil, err
+		}
+		if input, ok := result.(map[string]any); ok {
+			return input, nil
+		}
+		return nil, fmt.Errorf("input expression must return an object")
+	}
+	if input, ok := workflowMap(cfg["input"]); ok {
+		return input, nil
+	}
+	input := map[string]any{}
+	for k, v := range cfg {
+		switch k {
+		case "serviceKey", "service_key", "method", "input", "inputExpr", "input_expr", "outputMap", "output_map":
+			continue
+		default:
+			input[k] = v
+		}
+	}
+	return input, nil
+}
+
+func (e *DAGExecutor) executeRuleServiceInvocations(ctx context.Context, tenantID string, inst *ProcessInstanceV2, node *DAGNode, result map[string]any) ([]map[string]any, error) {
+	rawInvocations, ok := result["service_invocations"].([]any)
+	if !ok || len(rawInvocations) == 0 {
+		return nil, nil
+	}
+	if e.svcInvoker == nil {
+		return []map[string]any{{"success": false, "error": "service registry is not wired"}}, fmt.Errorf("service registry is not wired")
+	}
+	var serviceResults []map[string]any
+	for _, raw := range rawInvocations {
+		invocation, ok := workflowMap(raw)
+		if !ok {
+			continue
+		}
+		serviceKey := workflowString(invocation, "service_key", "serviceKey")
+		params, _ := workflowMap(invocation["params"])
+		method := workflowString(invocation, "method")
+		if method == "" {
+			method = workflowString(params, "method")
+		}
+		if method == "" {
+			method = "execute"
+		}
+		ruleKey := workflowString(invocation, "rule_key", "ruleKey")
+		policy := workflowFailurePolicy(invocation, params, "block")
+		entry := map[string]any{
+			"service_key": serviceKey,
+			"method":      method,
+			"rule_key":    ruleKey,
+			"success":     false,
+		}
+		if serviceKey == "" {
+			entry["error"] = "service_key is required"
+			serviceResults = append(serviceResults, entry)
+			if workflowShouldBlock(policy) {
+				return serviceResults, fmt.Errorf("rule service invocation failed: service_key is required")
+			}
+			continue
+		}
+		resp, err := e.svcInvoker.Invoke(ctx, &ServiceInvokeRequest{
+			ServiceKey: serviceKey,
+			Method:     method,
+			TenantID:   tenantID,
+			Caller:     fmt.Sprintf("workflow:%s:step:%s:rule:%s", inst.ID, node.ID, ruleKey),
+			Input:      workflowServiceParams(params),
+		})
+		if err != nil {
+			entry["error"] = err.Error()
+			serviceResults = append(serviceResults, entry)
+			if workflowShouldBlock(policy) {
+				return serviceResults, fmt.Errorf("rule service invocation failed: %w", err)
+			}
+			continue
+		}
+		entry["success"] = resp.Success
+		if resp.Output != nil {
+			entry["output"] = resp.Output
+		}
+		if resp.Error != "" {
+			entry["error"] = resp.Error
+		}
+		serviceResults = append(serviceResults, entry)
+		if !resp.Success && workflowShouldBlock(policy) {
+			errMsg := resp.Error
+			if errMsg == "" {
+				errMsg = "service returned an unsuccessful response"
+			}
+			return serviceResults, fmt.Errorf("rule service invocation failed: %s", errMsg)
+		}
+	}
+	return serviceResults, nil
+}
+
 // --- Utilities ---
 
 func removeFromSlice(slice []string, item string) []string {
@@ -698,6 +1004,138 @@ func removeFromSlice(slice []string, item string) []string {
 		}
 	}
 	return result
+}
+
+func workflowString(payload map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if value, ok := payload[key]; ok {
+			switch typed := value.(type) {
+			case string:
+				if typed != "" {
+					return typed
+				}
+			case fmt.Stringer:
+				if typed.String() != "" {
+					return typed.String()
+				}
+			}
+		}
+	}
+	return ""
+}
+
+func workflowInt(payload map[string]any, keys ...string) int {
+	for _, key := range keys {
+		if value, ok := payload[key]; ok {
+			switch typed := value.(type) {
+			case int:
+				return typed
+			case int64:
+				return int(typed)
+			case float64:
+				return int(typed)
+			case string:
+				var parsed int
+				if _, err := fmt.Sscanf(typed, "%d", &parsed); err == nil {
+					return parsed
+				}
+			}
+		}
+	}
+	return 0
+}
+
+func workflowDueAt(hours int) *time.Time {
+	if hours <= 0 {
+		return nil
+	}
+	due := time.Now().UTC().Add(time.Duration(hours) * time.Hour)
+	return &due
+}
+
+func workflowAnyMap(value any) map[string]any {
+	if mapped, ok := workflowMap(value); ok {
+		return mapped
+	}
+	raw, err := json.Marshal(value)
+	if err != nil {
+		return map[string]any{}
+	}
+	var mapped map[string]any
+	if err := json.Unmarshal(raw, &mapped); err != nil || mapped == nil {
+		return map[string]any{}
+	}
+	return mapped
+}
+
+func workflowMap(value any) (map[string]any, bool) {
+	switch typed := value.(type) {
+	case map[string]any:
+		return typed, true
+	default:
+		return nil, false
+	}
+}
+
+func workflowBool(payload map[string]any, key string) bool {
+	value, ok := payload[key]
+	if !ok {
+		return false
+	}
+	switch typed := value.(type) {
+	case bool:
+		return typed
+	case string:
+		return typed == "true"
+	default:
+		return false
+	}
+}
+
+func workflowServiceParams(params map[string]any) map[string]any {
+	input := map[string]any{}
+	for k, v := range params {
+		switch k {
+		case "method", "failure_policy", "failurePolicy", "async", "service_key", "serviceKey":
+			continue
+		default:
+			input[k] = v
+		}
+	}
+	return input
+}
+
+func workflowFailurePolicy(invocation, params map[string]any, fallback string) string {
+	for _, source := range []map[string]any{invocation, params} {
+		if policy := workflowString(source, "failure_policy", "failurePolicy"); policy != "" {
+			return policy
+		}
+	}
+	if fallback == "" {
+		return "block"
+	}
+	return fallback
+}
+
+func workflowShouldBlock(policy string) bool {
+	switch strings.ToLower(strings.TrimSpace(policy)) {
+	case "continue", "ignore", "non_blocking", "non-blocking":
+		return false
+	default:
+		return true
+	}
+}
+
+func firstFailedNode(state *DAGState) *NodeState {
+	if state == nil {
+		return nil
+	}
+	for _, ns := range state.NodeStates {
+		if ns.Status == NodeFailed {
+			return ns
+		}
+	}
+	return nil
 }
 
 func sortEdgesByPriority(edges []DAGEdge) {

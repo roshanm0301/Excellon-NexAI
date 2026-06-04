@@ -14,12 +14,14 @@ import (
 	chimw "github.com/go-chi/chi/v5/middleware"
 
 	"github.com/excellon/nexai/internal/admin"
+	business_workflow "github.com/excellon/nexai/internal/business_workflow"
 	"github.com/excellon/nexai/internal/compiler"
 	"github.com/excellon/nexai/internal/db"
 	"github.com/excellon/nexai/internal/entityruntime"
 	"github.com/excellon/nexai/internal/expression"
 	"github.com/excellon/nexai/internal/indexmgmt"
 	"github.com/excellon/nexai/internal/middleware"
+	"github.com/excellon/nexai/internal/monitoring"
 	"github.com/excellon/nexai/internal/nlp"
 	"github.com/excellon/nexai/internal/overlay"
 	"github.com/excellon/nexai/internal/pii"
@@ -27,10 +29,9 @@ import (
 	"github.com/excellon/nexai/internal/recycle"
 	"github.com/excellon/nexai/internal/retention"
 	"github.com/excellon/nexai/internal/rules"
-	"github.com/excellon/nexai/internal/monitoring"
+	"github.com/excellon/nexai/internal/service"
 	"github.com/excellon/nexai/internal/viewstudio"
 	"github.com/excellon/nexai/internal/workflow"
-	business_workflow "github.com/excellon/nexai/internal/business_workflow"
 )
 
 func main() {
@@ -84,6 +85,8 @@ func main() {
 	rulesEvalV2 := rules.NewEvaluatorV2(pool, expression.NewEngine(""), rulesConflictResolver, rulesExecLogger)
 	rulesSimulator := rules.NewSimulator(rulesEvalV2, rulesExecLogger)
 	rulesHandlerV2 := rules.NewHandlerV2(rulesSimulator, rulesConflictResolver, rulesExecLogger, rulesRepo)
+	runtimePolicy := entityruntime.NewRuntimePolicy(pool, rulesEvalV2)
+	entityHandler.SetRuntimePolicy(runtimePolicy)
 
 	workflowRuntime := workflow.NewRuntime(pool)
 	_ = workflowRuntime
@@ -105,6 +108,14 @@ func main() {
 	}
 	bwHandler := business_workflow.NewHandler(bwEngine, pool)
 	bwHandlerV2 := business_workflow.NewHandlerV2(pool, exprEngine)
+
+	serviceRegistry := service.NewRegistry(pool)
+	service.RegisterBuiltinServices(serviceRegistry)
+	serviceHandler := service.NewHandler(serviceRegistry)
+	runtimePolicy.SetServiceInvoker(serviceRegistry)
+	bwHandlerV2.SetServiceInvoker(service.NewWorkflowServiceAdapter(serviceRegistry))
+	bwHandlerV2.SetRuleEvaluator(&workflowRuleEvaluator{eval: rulesEvalV2})
+	business_workflow.NewEventTrigger(bwHandlerV2.Resolver(), bwHandlerV2.Executor())
 
 	// NLP handler
 	nlpHandler := nlp.NewHandler(os.Getenv("ANTHROPIC_API_KEY"), "claude-haiku-4-5-20251001")
@@ -158,6 +169,7 @@ func main() {
 			r.Route("/indexes", func(r chi.Router) {
 				indexHandler.RegisterRoutes(r)
 			})
+			serviceHandler.RegisterRoutes(r)
 			r.Route("/recycle-bin", func(r chi.Router) {
 				recycleHandler.RegisterRoutes(r)
 			})
@@ -216,6 +228,14 @@ func main() {
 		slog.Error("shutdown error", "error", err)
 	}
 	slog.Info("server stopped")
+}
+
+type workflowRuleEvaluator struct {
+	eval *rules.EvaluatorV2
+}
+
+func (w *workflowRuleEvaluator) EvaluateRuleSet(ctx context.Context, tenantID, ruleSetKey string, payload map[string]any, triggerType string) (any, error) {
+	return w.eval.EvaluateRuleSet(ctx, tenantID, ruleSetKey, payload, triggerType)
 }
 
 func healthHandler(pool *db.Pool) http.HandlerFunc {

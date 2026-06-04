@@ -13,8 +13,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/excellon/nexai/internal/middleware"
+	"github.com/go-chi/chi/v5"
 )
 
 // HandlerV2 provides HTTP endpoints for the v2 rule engine features.
@@ -42,6 +42,16 @@ func NewHandlerV2(
 
 // RegisterRoutes mounts v2 rule engine routes.
 func (h *HandlerV2) RegisterRoutes(r chi.Router) {
+	// Enterprise category metadata
+	r.Get("/categories", h.listCategories)
+
+	// Enterprise rule-set CRUD
+	r.Post("/sets", h.createRuleSet)
+	r.Get("/sets", h.listRuleSets)
+	r.Get("/sets/{id}", h.getRuleSet)
+	r.Put("/sets/{id}", h.updateRuleSet)
+	r.Delete("/sets/{id}", h.deleteRuleSet)
+
 	// Simulation
 	r.Post("/simulate", h.simulate)
 
@@ -55,6 +65,92 @@ func (h *HandlerV2) RegisterRoutes(r chi.Router) {
 
 	// Classification-filtered listing
 	r.Get("/classified", h.listByClassification)
+}
+
+func (h *HandlerV2) listCategories(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]any{"items": EnterpriseRuleCategories()})
+}
+
+func (h *HandlerV2) createRuleSet(w http.ResponseWriter, r *http.Request) {
+	tID := tenantID(r)
+	userID := middleware.UserID(r.Context())
+	if userID == "" {
+		userID = "00000000-0000-0000-0000-000000000001"
+	}
+
+	body, _ := io.ReadAll(io.LimitReader(r.Body, 1<<20))
+	var rs RuleSetV2
+	if err := json.Unmarshal(body, &rs); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+		return
+	}
+	result, err := h.repo.SaveV2(r.Context(), tID, userID, rs)
+	if err != nil {
+		slog.Error("create rule set v2", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to create rule set"})
+		return
+	}
+	writeJSON(w, http.StatusCreated, result)
+}
+
+func (h *HandlerV2) listRuleSets(w http.ResponseWriter, r *http.Request) {
+	tID := tenantID(r)
+	entityType := r.URL.Query().Get("entity_type")
+	category := r.URL.Query().Get("category")
+	items, err := h.repo.ListV2(r.Context(), tID, entityType, category)
+	if err != nil {
+		slog.Error("list rule sets v2", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to list rule sets"})
+		return
+	}
+	if items == nil {
+		items = []RuleSetV2{}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"items": items})
+}
+
+func (h *HandlerV2) getRuleSet(w http.ResponseWriter, r *http.Request) {
+	tID := tenantID(r)
+	id := chi.URLParam(r, "id")
+	rs, err := h.repo.GetV2(r.Context(), tID, id)
+	if err != nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "rule set not found"})
+		return
+	}
+	writeJSON(w, http.StatusOK, rs)
+}
+
+func (h *HandlerV2) updateRuleSet(w http.ResponseWriter, r *http.Request) {
+	tID := tenantID(r)
+	userID := middleware.UserID(r.Context())
+	if userID == "" {
+		userID = "00000000-0000-0000-0000-000000000001"
+	}
+
+	body, _ := io.ReadAll(io.LimitReader(r.Body, 1<<20))
+	var rs RuleSetV2
+	if err := json.Unmarshal(body, &rs); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+		return
+	}
+	rs.ID = chi.URLParam(r, "id")
+	result, err := h.repo.SaveV2(r.Context(), tID, userID, rs)
+	if err != nil {
+		slog.Error("update rule set v2", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to update rule set"})
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *HandlerV2) deleteRuleSet(w http.ResponseWriter, r *http.Request) {
+	tID := tenantID(r)
+	id := chi.URLParam(r, "id")
+	if err := h.repo.Delete(r.Context(), tID, id); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to delete rule set"})
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // ─── Simulation ──────────────────────────────────────────────────────────────
@@ -113,9 +209,9 @@ func (h *HandlerV2) listConflictMatrix(w http.ResponseWriter, r *http.Request) {
 }
 
 type upsertConflictReq struct {
-	ResolutionType ResolutionType `json:"resolution_type"`
-	CustomRuleKey  string         `json:"custom_rule_key,omitempty"`
-	PriorityOverride *int        `json:"priority_override,omitempty"`
+	ResolutionType   ResolutionType `json:"resolution_type"`
+	CustomRuleKey    string         `json:"custom_rule_key,omitempty"`
+	PriorityOverride *int           `json:"priority_override,omitempty"`
 }
 
 func (h *HandlerV2) upsertConflictEntry(w http.ResponseWriter, r *http.Request) {
@@ -287,72 +383,18 @@ func (h *HandlerV2) listByClassification(w http.ResponseWriter, r *http.Request)
 	tID := tenantID(r)
 	entityType := r.URL.Query().Get("entity_type")
 	classification := r.URL.Query().Get("classification")
-
-	query := `
-		SELECT id, tenant_id, entity_type, name, definition, enabled, content_type,
-		       classifications, priority, hit_policy, created_at, updated_at
-		FROM rule_set
-		WHERE tenant_id = $1 AND deleted_at IS NULL`
-	args := []any{tID}
-	argN := 2
-
-	if entityType != "" {
-		query += " AND entity_type = $" + strconv.Itoa(argN)
-		args = append(args, entityType)
-		argN++
+	category := r.URL.Query().Get("category")
+	if category == "" {
+		category = classification
 	}
-	if classification != "" {
-		query += " AND $" + strconv.Itoa(argN) + " = ANY(classifications)"
-		args = append(args, classification)
-		argN++
-	}
-	query += " ORDER BY priority ASC, created_at DESC"
-
-	rows, err := h.conflictResolver.pool.Query(r.Context(), query, args...)
+	items, err := h.repo.ListV2(r.Context(), tID, entityType, category)
 	if err != nil {
 		slog.Error("list rules by classification", "error", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to list rules"})
 		return
 	}
-	defer rows.Close()
-
-	type ruleItem struct {
-		ID              string   `json:"id"`
-		TenantID        string   `json:"tenant_id"`
-		EntityType      string   `json:"entity_type"`
-		Name            string   `json:"name"`
-		Enabled         bool     `json:"enabled"`
-		ContentType     string   `json:"content_type"`
-		Classifications []string `json:"classifications"`
-		Priority        int      `json:"priority"`
-		HitPolicy       *string  `json:"hit_policy"`
-		CreatedAt       string   `json:"created_at"`
-		UpdatedAt       string   `json:"updated_at"`
-	}
-
-	var items []ruleItem
-	for rows.Next() {
-		var item ruleItem
-		var definition json.RawMessage
-		var classifications []string
-		var createdAt, updatedAt interface{}
-		if err := rows.Scan(
-			&item.ID, &item.TenantID, &item.EntityType, &item.Name,
-			&definition, &item.Enabled, &item.ContentType,
-			&classifications, &item.Priority, &item.HitPolicy,
-			&createdAt, &updatedAt,
-		); err != nil {
-			slog.Error("scan rule item", "error", err)
-			continue
-		}
-		item.Classifications = classifications
-		if item.Classifications == nil {
-			item.Classifications = []string{}
-		}
-		items = append(items, item)
-	}
 	if items == nil {
-		items = []ruleItem{}
+		items = []RuleSetV2{}
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"items": items})
 }

@@ -20,13 +20,13 @@ type SimulationRequest struct {
 
 // SimulationTrace records per-rule evaluation details.
 type SimulationTrace struct {
-	RuleKey     string `json:"rule_key"`
-	RuleID      string `json:"rule_id,omitempty"`
-	RowID       string `json:"row_id,omitempty"` // for DT rows
-	Matched     bool   `json:"matched"`
-	ConditionOK bool   `json:"condition_ok"`
+	RuleKey     string     `json:"rule_key"`
+	RuleID      string     `json:"rule_id,omitempty"`
+	RowID       string     `json:"row_id,omitempty"` // for DT rows
+	Matched     bool       `json:"matched"`
+	ConditionOK bool       `json:"condition_ok"`
 	Actions     []ActionV2 `json:"actions,omitempty"` // actions produced (only if matched)
-	Error       string `json:"error,omitempty"`
+	Error       string     `json:"error,omitempty"`
 }
 
 // SimulationResult is the complete output of a rule simulation.
@@ -42,12 +42,13 @@ type SimulationResult struct {
 	FiredRules         []FiredRuleEntry      `json:"fired_rules,omitempty"`
 	Trace              []SimulationTrace     `json:"trace"`
 	ExecutionMs        int                   `json:"execution_ms"`
+	DecisionOutput     any                   `json:"decision_output,omitempty"`
 }
 
 // Simulator runs rule sets in dry-run mode with full tracing.
 type Simulator struct {
-	evaluator  *EvaluatorV2
-	logger     *ExecutionLogger
+	evaluator *EvaluatorV2
+	logger    *ExecutionLogger
 }
 
 // NewSimulator creates a new Simulator.

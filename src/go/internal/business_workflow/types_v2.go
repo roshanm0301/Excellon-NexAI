@@ -7,12 +7,12 @@ import (
 
 // Extended step types for DAG workflows
 const (
-	StepGateway       StepType = "gateway"
-	StepServiceCall   StepType = "service_call"
-	StepRuleEval      StepType = "rule_evaluation"
-	StepWait          StepType = "wait"
-	StepSubWorkflow   StepType = "sub_workflow"
-	StepScript        StepType = "script"
+	StepGateway     StepType = "gateway"
+	StepServiceCall StepType = "service_call"
+	StepRuleEval    StepType = "rule_evaluation"
+	StepWait        StepType = "wait"
+	StepSubWorkflow StepType = "sub_workflow"
+	StepScript      StepType = "script"
 )
 
 // TriggerEvent constants for workflow bindings
@@ -50,30 +50,31 @@ type ApproverDef struct {
 
 // ApprovalConfig is stored in DAGNode.Config for approval-type steps.
 type ApprovalConfig struct {
-	Mode      ApprovalMode   `json:"mode"`
-	Policy    ApprovalPolicy `json:"policy"`
-	Approvers []ApproverDef  `json:"approvers"`
+	Mode       ApprovalMode      `json:"mode"`
+	Policy     ApprovalPolicy    `json:"policy"`
+	Approvers  []ApproverDef     `json:"approvers"`
 	Escalation *EscalationConfig `json:"escalation,omitempty"`
 }
 
 // EscalationConfig defines what happens when approval times out.
 type EscalationConfig struct {
 	TimeoutMins  int    `json:"timeoutMins"`
-	EscalateTo   string `json:"escalateTo"`            // Role or user to escalate to
+	EscalateTo   string `json:"escalateTo"`             // Role or user to escalate to
 	AutoDecision string `json:"autoDecision,omitempty"` // "approve" or "reject" on final timeout
 }
 
 // ServiceCallConfig is stored in DAGNode.Config for service_call steps.
 type ServiceCallConfig struct {
-	ServiceKey string         `json:"serviceKey"`          // Registry key of the service
-	Method     string         `json:"method"`              // Method/action to invoke
-	Input      map[string]any `json:"input,omitempty"`     // Static input params
-	InputExpr  string         `json:"inputExpr,omitempty"` // JSONata expression for dynamic input
+	ServiceKey string            `json:"serviceKey"`          // Registry key of the service
+	Method     string            `json:"method"`              // Method/action to invoke
+	Input      map[string]any    `json:"input,omitempty"`     // Static input params
+	InputExpr  string            `json:"inputExpr,omitempty"` // JSONata expression for dynamic input
 	OutputMap  map[string]string `json:"outputMap,omitempty"` // Maps service output fields to workflow variables
 }
 
 // RuleEvalConfig is stored in DAGNode.Config for rule_evaluation steps.
 type RuleEvalConfig struct {
+	RuleSetKey  string `json:"ruleSetKey"`
 	EntityType  string `json:"entityType"`
 	TriggerType string `json:"triggerType,omitempty"`
 }
@@ -113,17 +114,17 @@ type ApprovalRecord struct {
 
 // WorkflowBinding maps entity events to workflow definitions.
 type WorkflowBinding struct {
-	ID           string     `json:"id"`
-	TenantID     string     `json:"tenantId"`
-	EntityType   string     `json:"entityType"`
-	TriggerEvent string     `json:"triggerEvent"`
-	DefinitionID string     `json:"definitionId"`
-	Priority     int        `json:"priority"`
-	Condition    string     `json:"condition,omitempty"` // JSONata condition — empty = always
-	Enabled      bool       `json:"enabled"`
-	CreatedBy    string     `json:"createdBy"`
-	CreatedAt    time.Time  `json:"createdAt"`
-	UpdatedAt    time.Time  `json:"updatedAt"`
+	ID           string    `json:"id"`
+	TenantID     string    `json:"tenantId"`
+	EntityType   string    `json:"entityType"`
+	TriggerEvent string    `json:"triggerEvent"`
+	DefinitionID string    `json:"definitionId"`
+	Priority     int       `json:"priority"`
+	Condition    string    `json:"condition,omitempty"` // JSONata condition — empty = always
+	Enabled      bool      `json:"enabled"`
+	CreatedBy    string    `json:"createdBy"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 // WorkflowExecutionLog records step-level execution details.
@@ -144,18 +145,18 @@ type WorkflowExecutionLog struct {
 
 // ProcessDefinitionV2 extends ProcessDefinition with DAG support.
 type ProcessDefinitionV2 struct {
-	ID            string         `json:"id"`
-	TenantID      string         `json:"tenantId"`
-	Name          string         `json:"name"`
-	EntityType    string         `json:"entityType"`
-	Version       int            `json:"version"`
-	TriggerEvent  string         `json:"triggerEvent,omitempty"`
-	DAG           *DAGDefinition `json:"dag,omitempty"`
-	Steps         []StepDefinition `json:"steps,omitempty"`    // Legacy linear steps (backward compat)
-	InitialStep   string         `json:"initialStep,omitempty"` // Legacy
-	CreatedBy     string         `json:"createdBy"`
-	CreatedAt     time.Time      `json:"createdAt"`
-	UpdatedAt     time.Time      `json:"updatedAt"`
+	ID           string           `json:"id"`
+	TenantID     string           `json:"tenantId"`
+	Name         string           `json:"name"`
+	EntityType   string           `json:"entityType"`
+	Version      int              `json:"version"`
+	TriggerEvent string           `json:"triggerEvent,omitempty"`
+	DAG          *DAGDefinition   `json:"dag,omitempty"`
+	Steps        []StepDefinition `json:"steps,omitempty"`       // Legacy linear steps (backward compat)
+	InitialStep  string           `json:"initialStep,omitempty"` // Legacy
+	CreatedBy    string           `json:"createdBy"`
+	CreatedAt    time.Time        `json:"createdAt"`
+	UpdatedAt    time.Time        `json:"updatedAt"`
 }
 
 // IsDAGWorkflow returns true if this definition uses the DAG model.

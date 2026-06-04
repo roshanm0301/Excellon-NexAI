@@ -140,12 +140,45 @@ export interface EntityRecord {
   created_by: string
   created_at: string
   updated_at: string
+  rule_result?: RuleRuntimeResult
 }
 
 export interface EntityListResponse {
   items: EntityRecord[]
   total: number
   next_cursor?: string
+}
+
+export interface RuleRuntimeResult {
+  blocked?: boolean
+  block_message?: string
+  warnings?: string[]
+  mutations?: Record<string, unknown>
+  field_behaviors?: Array<{ field: string; behavior: FieldBehaviorType; rule_key?: string; reason?: string }>
+  approval_requests?: Array<{ category: string; reason: string; approver_role: string; priority: string; rule_key: string }>
+  service_invocations?: Array<{ service_key: string; method?: string; params?: Record<string, unknown>; rule_key: string }>
+  service_results?: Array<{ service_key: string; method?: string; rule_key?: string; success: boolean; output?: Record<string, unknown>; error?: string }>
+  required_fields?: string[]
+  conflict_log?: unknown[]
+  fired_rules?: Array<{ rule_key: string; rule_id?: string; row_id?: string; priority: number }>
+  execution_ms?: number
+  decision_output?: unknown
+}
+
+export interface WorkflowStateResponse {
+  entity_id: string
+  entity_type: string
+  current_status: string
+  initial_status?: string
+  statuses: Array<{ key?: string; name?: string; label?: string; initial?: boolean; isInitial?: boolean; terminal?: boolean }>
+  available_transitions: Array<{ from: string; to: string; command?: string; label?: string; roles?: string[]; role_guards?: string[]; rule_guards?: string[] }>
+}
+
+export interface TransitionResponse {
+  record: EntityRecord
+  transition?: { from: string; to: string; command?: string; label?: string }
+  rule_guards?: Record<string, RuleRuntimeResult>
+  action_results?: Array<{ type: string; status: string; output?: Record<string, unknown>; error?: string; skipped?: boolean }>
 }
 
 export const listEntityRecords = (type: string, params?: Record<string, string>) =>
@@ -159,6 +192,12 @@ export const createEntityRecord = (type: string, payload: Record<string, unknown
 
 export const updateEntityRecord = (type: string, id: string, payload: Record<string, unknown>) =>
   studioFetch<EntityRecord>(`/entities/${type}/${id}`, { method: 'PUT', body: JSON.stringify({ payload }) })
+
+export const getEntityWorkflowState = (type: string, id: string) =>
+  studioFetch<WorkflowStateResponse>(`/entities/${type}/${id}/workflow-state`)
+
+export const transitionEntityRecord = (type: string, id: string, body: { command?: string; to_status?: string; note?: string; payload?: Record<string, unknown> }) =>
+  studioFetch<TransitionResponse>(`/entities/${type}/${id}/transition`, { method: 'POST', body: JSON.stringify(body) })
 
 export const deleteEntityRecord = (type: string, id: string) =>
   studioFetch<void>(`/entities/${type}/${id}`, { method: 'DELETE' })
@@ -438,22 +477,42 @@ export const removePlugin = (pluginID: string) =>
 
 // ── Rule Engine V2 API ────────────────────────────────────────────────────────
 
-export type HitPolicy = 'FIRST' | 'UNIQUE' | 'ANY' | 'COLLECT' | 'PRIORITY' | 'RULE_ORDER'
-export type RuleClassification = 'VALIDATION' | 'DERIVATION' | 'APPROVAL' | 'FIELD_CONTROL' | 'ELIGIBILITY' | 'EXTENSION'
-export type ContentType = 'condition_tree' | 'decision_table'
+export type HitPolicy = 'First' | 'Unique' | 'Any' | 'Collect' | 'Priority' | 'RuleOrder'
+export type RuleCategory =
+  | 'Validation'
+  | 'Approval'
+  | 'Pricing'
+  | 'ChargeDiscount'
+  | 'Taxation'
+  | 'Accounting'
+  | 'BusinessProcess'
+  | 'Eligibility'
+  | 'FieldBehavior'
+  | 'DerivationCalculation'
+export type RuleClassification = RuleCategory | 'Derivation' | 'FieldControl' | 'Extension'
+export type ContentType = 'condition_tree' | 'decision_table' | 'decision_graph'
 export type ActionTypeV2 = 'BLOCK' | 'WARN' | 'SET_FIELD' | 'REQUIRE_APPROVAL' | 'FIELD_BEHAVIOR' | 'INVOKE_SERVICE' | 'REQUIRE_FIELD' | 'NOTIFY' | 'ESCALATE'
-export type FieldBehaviorType = 'HIDDEN' | 'READONLY' | 'REQUIRED' | 'OPTIONAL' | 'DISABLED'
+export type FieldBehaviorType = 'hidden' | 'readonly' | 'mandatory' | 'editable'
+
+export interface RuleCategoryMetadata {
+  category: RuleCategory
+  label: string
+  default_builder: ContentType
+  conflict_strategy: string
+  runtime_behavior: string
+}
 
 export interface DTColumn {
-  id: string
-  name: string
-  fieldPath: string
-  direction: 'input' | 'output'
-  dataType?: string
+  key: string
+  label: string
+  column_type: 'input' | 'output'
+  field_path?: string
+  action_type?: ActionTypeV2
+  field_name?: string
 }
 
 export interface DTCell {
-  columnId: string
+  column_key: string
   expression: string
 }
 
@@ -467,7 +526,13 @@ export interface DTRow {
 export interface DecisionTable {
   columns: DTColumn[]
   rows: DTRow[]
-  hitPolicy: HitPolicy
+  hit_policy: HitPolicy
+}
+
+export interface GoRulesDecisionGraph {
+  contentType?: 'application/vnd.gorules.decision'
+  nodes: Array<Record<string, unknown>>
+  edges: Array<Record<string, unknown>>
 }
 
 export interface ActionV2 {
@@ -477,53 +542,64 @@ export interface ActionV2 {
   value?: unknown
   behavior?: FieldBehaviorType
   category?: string
-  approverRole?: string
-  serviceKey?: string
-  serviceMethod?: string
-  priority?: number
+  approver_role?: string
+  service_key?: string
+  method?: string
+  service_method?: string
+  priority?: string
+  params?: Record<string, unknown>
 }
 
 export interface RuleSetV2 {
   id: string
   tenant_id?: string
+  rule_set_key: string
   entity_type: string
   name: string
+  rule_category: RuleCategory
   content_type: ContentType
   classifications: RuleClassification[]
   priority: number
   hit_policy?: HitPolicy
   decision_table?: DecisionTable
+  decision_graph?: GoRulesDecisionGraph
   conditions?: Condition
   actions: ActionV2[]
   enabled: boolean
+  version_status?: 'Draft' | 'Testing' | 'Published' | 'Retired'
   created_at: string
   updated_at: string
 }
 
 export interface ConflictMatrixEntry {
   field: string
+  field_name?: string
   resolution_type: 'last_writer' | 'first_writer' | 'most_restrictive' | 'custom_rule'
   custom_expr?: string
+  custom_rule_key?: string
 }
 
 export interface SimulationTrace {
-  ruleKey: string
-  rowId?: string
+  rule_key: string
+  row_id?: string
   matched: boolean
-  conditionOk: boolean
+  condition_ok: boolean
   error?: string
 }
 
 export interface SimulationResult {
   blocked: boolean
-  blockMessage?: string
+  block_message?: string
   warnings: string[]
   mutations: Record<string, unknown>
-  fieldBehaviors: Record<string, FieldBehaviorType>
-  approvalRequests: Array<{ category: string; reason: string; approverRole: string }>
-  firedRules: Array<{ ruleKey: string; rowId?: string; priority: number }>
-  conflictLog: Array<{ field: string; resolution: string; winner: string }>
+  field_behaviors: Array<{ field: string; behavior: FieldBehaviorType; rule_key?: string; reason?: string }>
+  approval_requests: Array<{ category: string; reason: string; approver_role: string; priority?: string; rule_key?: string }>
+  service_invocations?: Array<{ service_key: string; method?: string; params?: Record<string, unknown>; rule_key?: string }>
+  service_results?: Array<{ service_key: string; method?: string; rule_key?: string; success: boolean; output?: Record<string, unknown>; error?: string }>
+  fired_rules: Array<{ rule_key: string; row_id?: string; priority: number }>
+  conflict_log: Array<{ field: string; resolution: string; winner: string }>
   trace: SimulationTrace[]
+  decision_output?: unknown
 }
 
 export interface ExecutionLogEntry {
@@ -540,30 +616,38 @@ export interface ExecutionLogEntry {
 }
 
 // Rule Sets V2
-export const listRuleSetsV2 = (entityType?: string, classification?: RuleClassification) => {
+export const listRuleCategories = () =>
+  studioFetch<{ items: RuleCategoryMetadata[] }>('/admin/rules/v2/categories')
+
+export const listRuleSetsV2 = (entityType?: string, category?: RuleCategory | RuleClassification) => {
   const params = new URLSearchParams()
   if (entityType) params.set('entity_type', entityType)
-  if (classification) params.set('classification', classification)
-  return studioFetch<{ items: RuleSetV2[] }>(`/admin/rules/v2/classified?${params.toString()}`)
+  if (category) params.set('category', category)
+  return studioFetch<{ items: RuleSetV2[] }>(`/admin/rules/v2/sets?${params.toString()}`)
 }
 
 export const getRuleSetV2 = (id: string) =>
-  studioFetch<RuleSetV2>(`/admin/rules/${id}`)
+  studioFetch<RuleSetV2>(`/admin/rules/v2/sets/${id}`)
 
 export const saveRuleSetV2 = (id: string, body: Partial<RuleSetV2>) =>
-  studioFetch<RuleSetV2>(`/admin/rules/${id}`, { method: 'PUT', body: JSON.stringify(body) })
+  studioFetch<RuleSetV2>(`/admin/rules/v2/sets/${id}`, { method: 'PUT', body: JSON.stringify(body) })
 
 export const createRuleSetV2 = (body: {
   entity_type: string
   name: string
   content_type: ContentType
+  rule_category?: RuleCategory
   classifications?: RuleClassification[]
   hit_policy?: HitPolicy
 }) =>
-  studioFetch<RuleSetV2>('/admin/rules', { method: 'POST', body: JSON.stringify(body) })
+  studioFetch<RuleSetV2>('/admin/rules/v2/sets', { method: 'POST', body: JSON.stringify(body) })
+
+export const deleteRuleSetV2 = (id: string) =>
+  studioFetch<void>(`/admin/rules/v2/sets/${id}`, { method: 'DELETE' })
 
 // Simulation
 export const simulateRules = (body: {
+  rule_set_key: string
   entity_type: string
   trigger_type?: string
   payload: Record<string, unknown>
@@ -572,12 +656,18 @@ export const simulateRules = (body: {
 
 // Conflict Matrix
 export const getConflictMatrix = (ruleSetKey: string) =>
-  studioFetch<{ items: ConflictMatrixEntry[] }>(`/admin/rules/v2/${ruleSetKey}/conflict-matrix`)
+  studioFetch<{ items: ConflictMatrixEntry[] }>(`/admin/rules/v2/${ruleSetKey}/conflict-matrix`).then(response => ({
+    items: response.items.map(entry => ({
+      ...entry,
+      field: entry.field ?? entry.field_name ?? '',
+      custom_expr: entry.custom_expr ?? entry.custom_rule_key,
+    })),
+  }))
 
 export const saveConflictMatrixEntry = (ruleSetKey: string, entry: ConflictMatrixEntry) =>
   studioFetch<ConflictMatrixEntry>(`/admin/rules/v2/${ruleSetKey}/conflict-matrix/${entry.field}`, {
     method: 'PUT',
-    body: JSON.stringify(entry),
+    body: JSON.stringify({ ...entry, custom_rule_key: entry.custom_expr ?? entry.custom_rule_key }),
   })
 
 export const deleteConflictMatrixEntry = (ruleSetKey: string, field: string) =>
@@ -680,6 +770,7 @@ export interface SubWorkflowConfig {
 }
 
 export interface RuleEvalConfig {
+  ruleSetKey: string
   entityType: string
   triggerType?: string
 }

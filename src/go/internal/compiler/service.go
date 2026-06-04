@@ -84,6 +84,10 @@ func parse(payload []byte) (*RawEntitySchema, error) {
 	}
 	seen := map[string]bool{}
 	for i, f := range raw.Fields {
+		if f.Key == "" && f.Name != "" {
+			raw.Fields[i].Key = f.Name
+			f.Key = f.Name
+		}
 		if f.Key == "" {
 			return nil, fmt.Errorf("field[%d]: key is required", i)
 		}
@@ -104,6 +108,16 @@ func parse(payload []byte) (*RawEntitySchema, error) {
 		}
 		if f.Type == "" {
 			raw.Fields[i].Type = "text"
+		}
+	}
+	for i, status := range raw.Statuses {
+		if status.Key == "" && status.Name != "" {
+			raw.Statuses[i].Key = status.Name
+		}
+	}
+	for i, transition := range raw.Transitions {
+		if transition.Command == "" && transition.Label != "" {
+			raw.Transitions[i].Command = transition.Label
 		}
 	}
 	return &raw, nil
@@ -158,6 +172,8 @@ func compileSchema(entityType string, version int, raw *RawEntitySchema) (*Compi
 		Version:       version,
 		Sections:      raw.Sections,
 		Relationships: raw.Relationships,
+		Statuses:      raw.Statuses,
+		Transitions:   raw.Transitions,
 		Capabilities:  caps,
 		Settings:      settings,
 		Retention:     raw.Retention,
