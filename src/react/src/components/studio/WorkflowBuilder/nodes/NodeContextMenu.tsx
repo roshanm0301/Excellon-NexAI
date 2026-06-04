@@ -1,11 +1,12 @@
 import { useEffect, useRef, useCallback } from 'react'
-import { Copy, Trash2 } from 'lucide-react'
+import { Copy, Clipboard, Trash2 } from 'lucide-react'
 
 interface NodeContextMenuProps {
   x: number
   y: number
   nodeId: string
   onDuplicate: (nodeId: string) => void
+  onCopy: (nodeId: string) => void
   onDelete: (nodeId: string) => void
   onClose: () => void
 }
@@ -15,6 +16,7 @@ export function NodeContextMenu({
   y,
   nodeId,
   onDuplicate,
+  onCopy,
   onDelete,
   onClose,
 }: NodeContextMenuProps) {
@@ -108,6 +110,20 @@ export function NodeContextMenu({
         <span>Duplicate</span>
         <span style={{ marginLeft: 'auto', fontSize: '0.6875rem', color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>
           Ctrl+D
+        </span>
+      </button>
+
+      <button
+        role="menuitem"
+        style={itemStyle}
+        onClick={() => { onCopy(nodeId); onClose() }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-2, #f9fafb)' }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none' }}
+      >
+        <Clipboard size={14} />
+        <span>Copy</span>
+        <span style={{ marginLeft: 'auto', fontSize: '0.6875rem', color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>
+          Ctrl+C
         </span>
       </button>
 

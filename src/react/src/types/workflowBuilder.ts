@@ -216,6 +216,8 @@ export interface WorkflowStep {
    * - Parallel:    { [branchKey]: WorkflowStep[] }
    */
   branches?: Record<string, WorkflowStep[]>
+  /** Optional annotation shown as tooltip on the canvas node */
+  note?: string
 }
 
 // ── NodeConfig — discriminated union for well-known task types ───────────────

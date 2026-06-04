@@ -1,6 +1,6 @@
 import { Handle, Position } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
-import { Layers } from 'lucide-react'
+import { Layers, StickyNote } from 'lucide-react'
 import type { WorkflowStep } from '../../../../types/workflowBuilder'
 import { getTaskConfig } from '../toolbox/taskTypeRegistry'
 import { BRANCHING_TASK_TYPES, type TaskType } from '../../../../types/workflowBuilder'
@@ -35,6 +35,8 @@ export function TaskNode({ data, selected }: NodeProps) {
     ? Object.keys(nodeData.step.branches).length
     : 0
 
+  const hasNote = Boolean(nodeData.step.note)
+
   return (
     <div
       style={{
@@ -51,6 +53,7 @@ export function TaskNode({ data, selected }: NodeProps) {
         transition: 'box-shadow 0.15s, border-color 0.15s',
         cursor: 'grab',
         fontFamily: 'inherit',
+        position: 'relative',
       }}
     >
       {/* Color strip at left edge */}
@@ -65,6 +68,29 @@ export function TaskNode({ data, selected }: NodeProps) {
           borderRadius: '8px 0 0 8px',
         }}
       />
+
+      {/* Sticky-note indicator (top-right corner) */}
+      {hasNote && (
+        <div
+          title={nodeData.step.note}
+          style={{
+            position: 'absolute',
+            top: 4,
+            right: 4,
+            width: 18,
+            height: 18,
+            borderRadius: '50%',
+            background: '#fbbf24',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 5,
+            cursor: 'default',
+          }}
+        >
+          <StickyNote size={10} color="#78350f" />
+        </div>
+      )}
 
       {/* Node content */}
       <div style={{ padding: '10px 12px 10px 16px' }}>

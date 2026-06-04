@@ -10,8 +10,11 @@ import { CanvasToolbar } from '../../../components/studio/WorkflowBuilder/toolba
 import { StepSettingsPanel } from '../../../components/studio/WorkflowBuilder/panels/StepSettingsPanel'
 import { GlobalSettingsPanel } from '../../../components/studio/WorkflowBuilder/panels/GlobalSettingsPanel'
 import { VersionHistoryPanel } from '../../../components/studio/WorkflowBuilder/panels/VersionHistoryPanel'
+import { ImportExportPanel } from '../../../components/studio/WorkflowBuilder/panels/ImportExportPanel'
 import { ValidationPanel } from '../../../components/studio/WorkflowBuilder/validation/ValidationPanel'
 import { NodeContextMenu } from '../../../components/studio/WorkflowBuilder/nodes/NodeContextMenu'
+import { TemplateGallery } from '../../../components/studio/WorkflowBuilder/templates/TemplateGallery'
+import { GlobalWorkflowSearch } from '../../../components/studio/WorkflowBuilder/search/GlobalWorkflowSearch'
 import { useWorkflowArtifact, useSaveWorkflowDraft, usePublishWorkflow } from '../../../hooks/useWorkflowBuilder'
 import { useToast, Spinner } from '../../../design-system'
 import type { WorkflowStep, WorkflowDefinition } from '../../../types/workflowBuilder'
@@ -40,6 +43,8 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
   const getActiveTab = useWorkflowBuilderStore(s => s.getActiveTab)
   const duplicateStep = useWorkflowBuilderStore(s => s.duplicateStep)
   const deleteStep = useWorkflowBuilderStore(s => s.deleteStep)
+  const copyStep = useWorkflowBuilderStore(s => s.copyStep)
+  const pasteStep = useWorkflowBuilderStore(s => s.pasteStep)
   const selectNode = useWorkflowBuilderStore(s => s.selectNode)
 
   const tab = getActiveTab()
@@ -52,10 +57,19 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
   // Version history panel state
   const [historyOpen, setHistoryOpen] = useState(false)
 
+  // Template gallery state
+  const [showTemplateGallery, setShowTemplateGallery] = useState(false)
+
+  // Import/Export panel state
+  const [showImportExport, setShowImportExport] = useState(false)
+
+  // Global search state
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false)
+
   // Context menu state (local — not in global store per spec)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null)
 
-  // Search state
+  // Canvas-level search state (Ctrl+F inline search)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchIndex, setSearchIndex] = useState(0)
@@ -171,7 +185,7 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
         return
       }
 
-      // Ctrl+F — toggle search
+      // Ctrl+F — toggle canvas search
       if (meta && e.key === 'f') {
         e.preventDefault()
         setSearchOpen(v => !v)
@@ -212,6 +226,24 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
         if (currentTab?.selectedNodeId) {
           state.duplicateStep(tabRef.current, currentTab.selectedNodeId)
         }
+        return
+      }
+
+      // Ctrl+C — copy selected node to clipboard (skip when in input)
+      if (meta && e.key === 'c' && !isInput) {
+        e.preventDefault()
+        const state = useWorkflowBuilderStore.getState()
+        const currentTab = state.getTab(tabRef.current)
+        if (currentTab?.selectedNodeId) {
+          state.copyStep(tabRef.current, currentTab.selectedNodeId)
+        }
+        return
+      }
+
+      // Ctrl+V — paste from clipboard (skip when in input)
+      if (meta && e.key === 'v' && !isInput) {
+        e.preventDefault()
+        useWorkflowBuilderStore.getState().pasteStep(tabRef.current)
         return
       }
 
@@ -265,6 +297,9 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
         onSave={handleSave}
         onPublish={handlePublish}
         onOpenHistory={() => setHistoryOpen(true)}
+        onOpenTemplates={() => setShowTemplateGallery(true)}
+        onOpenImportExport={() => setShowImportExport(true)}
+        onOpenGlobalSearch={() => setShowGlobalSearch(true)}
         isSaving={saveMut.isPending}
         isPublishing={publishMut.isPending}
       />
@@ -297,7 +332,7 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
             </div>
           )}
 
-          {/* Search overlay */}
+          {/* Canvas search overlay (Ctrl+F) */}
           {searchOpen && (
             <div
               style={{
@@ -402,6 +437,7 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
           y={contextMenu.y}
           nodeId={contextMenu.nodeId}
           onDuplicate={(nodeId) => duplicateStep(activeTabId, nodeId)}
+          onCopy={(nodeId) => copyStep(activeTabId, nodeId)}
           onDelete={(nodeId) => deleteStep(activeTabId, nodeId)}
           onClose={() => setContextMenu(null)}
         />
@@ -413,6 +449,38 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
         onClose={() => setHistoryOpen(false)}
         artifactId={id ?? ''}
       />
+
+      {/* Template Gallery Modal */}
+      {showTemplateGallery && (
+        <TemplateGallery
+          onClose={() => setShowTemplateGallery(false)}
+          onApply={(definition) => {
+            updateDefinition(activeTabId, definition)
+            setShowTemplateGallery(false)
+          }}
+        />
+      )}
+
+      {/* Import / Export Panel */}
+      {tab && (
+        <ImportExportPanel
+          isOpen={showImportExport}
+          onClose={() => setShowImportExport(false)}
+          tabId={activeTabId}
+          definition={tab.definition}
+          onImport={(def) => {
+            updateDefinition(activeTabId, def)
+            setShowImportExport(false)
+          }}
+        />
+      )}
+
+      {/* Global Workflow Search */}
+      {showGlobalSearch && (
+        <GlobalWorkflowSearch
+          onClose={() => setShowGlobalSearch(false)}
+        />
+      )}
     </div>
   )
 }

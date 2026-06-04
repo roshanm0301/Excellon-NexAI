@@ -27,6 +27,8 @@ interface WorkflowBuilderState {
   activeTabId: string | null
   toolboxOpen: boolean
   showMinimap: boolean
+  /** Clipboard holds a single copied step */
+  clipboard: WorkflowStep | null
 
   // Tab management
   openTab: (tab: Omit<WorkflowTab, 'isDirty' | 'history' | 'historyIndex' | 'nodes' | 'edges' | 'selectedNodeId'>) => void
@@ -48,6 +50,10 @@ interface WorkflowBuilderState {
   // Step actions
   duplicateStep: (tabId: string, stepId: string) => void
   deleteStep: (tabId: string, stepId: string) => void
+  /** Copy a step to the clipboard */
+  copyStep: (tabId: string, stepId: string) => void
+  /** Paste the clipboard step into the tab, offset by +80/+80 */
+  pasteStep: (tabId: string) => void
 
   // Save
   markSaved: (tabId: string, newVersionId?: string) => void
@@ -188,6 +194,7 @@ export const useWorkflowBuilderStore = create<WorkflowBuilderState>((set, get) =
   activeTabId: null,
   toolboxOpen: true,
   showMinimap: false,
+  clipboard: null,
 
   openTab(tab) {
     const existing = get().tabs.find(t => t.id === tab.id)
@@ -323,6 +330,53 @@ export const useWorkflowBuilderStore = create<WorkflowBuilderState>((set, get) =
     if (tab.selectedNodeId === stepId) {
       get().selectNode(tabId, null)
     }
+  },
+
+  copyStep(tabId, stepId) {
+    const tab = get().tabs.find(t => t.id === tabId)
+    if (!tab) return
+    // Search top-level only (branches are not clipboard-copyable independently)
+    const found = tab.definition.sequence.find(s => s.id === stepId)
+    if (!found) return
+    set({ clipboard: found })
+  },
+
+  pasteStep(tabId) {
+    const { clipboard } = get()
+    if (!clipboard) return
+    const tab = get().tabs.find(t => t.id === tabId)
+    if (!tab) return
+
+    const existingIds = collectAllIds(tab.definition.sequence)
+
+    // Build a new unique ID with _paste suffix
+    let candidateId = `${clipboard.id}_paste`
+    let suffix = 2
+    while (existingIds.has(candidateId)) {
+      candidateId = `${clipboard.id}_paste${suffix}`
+      suffix++
+    }
+
+    const stepWithPos = clipboard as WorkflowStep & { position?: { x: number; y: number } }
+    const originalPos = stepWithPos.position
+
+    const pasted: WorkflowStep = {
+      ...clipboard,
+      id: candidateId,
+      name: `${clipboard.name} (paste)`,
+      properties: {
+        ...clipboard.properties,
+        taskSettings: { ...clipboard.properties.taskSettings },
+      },
+      ...(originalPos
+        ? { position: { x: originalPos.x + 80, y: originalPos.y + 80 } }
+        : {}),
+    }
+
+    get().updateDefinition(tabId, {
+      ...tab.definition,
+      sequence: [...tab.definition.sequence, pasted],
+    })
   },
 
   markSaved(tabId, newVersionId) {

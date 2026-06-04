@@ -2,7 +2,7 @@ import { X } from 'lucide-react'
 import type { WorkflowStep } from '../../../../types/workflowBuilder'
 import { getTaskConfig } from '../toolbox/taskTypeRegistry'
 import { TaskIcon } from '../nodes/TaskIcon'
-import { Input } from '../../../../design-system'
+import { Input, Textarea } from '../../../../design-system'
 import { DocumentSettings } from './settings/DocumentSettings'
 import { GenericSettings } from './settings/GenericSettings'
 import { HttpSettings } from './settings/HttpSettings'
@@ -330,8 +330,39 @@ export function StepSettingsPanel({ step, onChange, onClose }: StepSettingsPanel
       )}
 
       {/* Type-specific settings */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
-        {renderSettings()}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div>{renderSettings()}</div>
+
+        {/* Note / annotation — available on all non-start/end steps */}
+        {step.type !== 'start' && step.type !== 'end' && (
+          <div
+            style={{
+              borderTop: '1px solid var(--color-border)',
+              paddingTop: 12,
+            }}
+          >
+            <label
+              style={{
+                display: 'block',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'var(--color-text-primary)',
+                marginBottom: 4,
+              }}
+            >
+              Note / annotation
+            </label>
+            <Textarea
+              value={step.note ?? ''}
+              onChange={e => onChange({ note: e.target.value || undefined })}
+              placeholder="Add a note visible as a tooltip on the canvas node…"
+              rows={3}
+            />
+            <div style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
+              Shown as a tooltip indicator on the canvas node.
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

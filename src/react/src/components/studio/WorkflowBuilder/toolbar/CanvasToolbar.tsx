@@ -1,4 +1,4 @@
-import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize2, LayoutGrid, Save, Send, Wrench, Map, History } from 'lucide-react'
+import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize2, LayoutGrid, Save, Send, Wrench, Map, History, LayoutTemplate, FolderOpen, Search } from 'lucide-react'
 import { useReactFlow } from '@xyflow/react'
 import { useWorkflowBuilderStore } from '../../../../pages/studio/workflow-builder/useWorkflowBuilderStore'
 import { applyAutoLayout } from '../utils/layoutUtils'
@@ -28,11 +28,14 @@ interface CanvasToolbarProps {
   onSave: () => void
   onPublish: () => void
   onOpenHistory?: () => void
+  onOpenTemplates?: () => void
+  onOpenImportExport?: () => void
+  onOpenGlobalSearch?: () => void
   isSaving?: boolean
   isPublishing?: boolean
 }
 
-export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, isSaving, isPublishing }: CanvasToolbarProps) {
+export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, onOpenTemplates, onOpenImportExport, onOpenGlobalSearch, isSaving, isPublishing }: CanvasToolbarProps) {
   const { zoomIn, zoomOut, fitView } = useReactFlow()
   const undo = useWorkflowBuilderStore(s => s.undo)
   const redo = useWorkflowBuilderStore(s => s.redo)
@@ -167,6 +170,44 @@ export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, isSavin
         >
           <History size={13} />
           <span>History</span>
+        </button>
+      )}
+
+      <div style={{ width: 1, height: 20, background: 'var(--color-border)', margin: '0 4px' }} />
+
+      {/* Templates button */}
+      {onOpenTemplates && (
+        <button
+          style={btnStyle()}
+          onClick={onOpenTemplates}
+          title="Browse workflow templates"
+        >
+          <LayoutTemplate size={13} />
+          <span>Templates</span>
+        </button>
+      )}
+
+      {/* Import / Export button */}
+      {onOpenImportExport && (
+        <button
+          style={btnStyle()}
+          onClick={onOpenImportExport}
+          title="Import or export workflow JSON"
+        >
+          <FolderOpen size={13} />
+          <span>Import/Export</span>
+        </button>
+      )}
+
+      {/* Global search button */}
+      {onOpenGlobalSearch && (
+        <button
+          style={btnStyle()}
+          onClick={onOpenGlobalSearch}
+          title="Search all workflows"
+        >
+          <Search size={13} />
+          <span>Search all</span>
         </button>
       )}
 
