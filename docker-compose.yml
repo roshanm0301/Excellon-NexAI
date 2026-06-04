@@ -38,6 +38,16 @@ services:
       - ./db/migrations:/migrations
     command: ["-path=/migrations", "-database=postgres://nexai:nexai@postgres:5432/nexai?sslmode=disable", "up"]
 
+  decision-service:
+    build:
+      context: ./docs-pack/Workflow-Rule-Requirements/editor-master
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      CORS_PERMISSIVE: "1"
+    ports:
+      - "3001:3000"
+
   api:
     build:
       context: ./src/go
@@ -48,9 +58,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      decision-service:
+        condition: service_started
     environment:
       DATABASE_URL: postgres://nexai:nexai@postgres:5432/nexai?sslmode=disable
       REDIS_URL: redis://redis:6379
+      ZEN_DECISION_URL: http://decision-service:3000
       PORT: "8080"
       LOG_LEVEL: info
     ports:

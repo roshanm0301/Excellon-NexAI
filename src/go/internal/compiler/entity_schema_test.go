@@ -173,6 +173,49 @@ func TestStep3_StatusFlowCompilation(t *testing.T) {
 
 // ── Step 4: Index Generation ──────────────────────────────────────────────────
 
+func TestStep3_StatusLifecycleMetadataCompilation(t *testing.T) {
+	payload := []byte(`{
+		"fields": [
+			{"name": "order_no", "type": "string"}
+		],
+		"statuses": [
+			{"name": "draft", "label": "Draft", "isInitial": true},
+			{"name": "approved", "label": "Approved", "terminal": true}
+		],
+		"transitions": [
+			{"from": "draft", "to": "approved", "label": "approve"}
+		]
+	}`)
+
+	raw, err := parse(payload)
+	if err != nil {
+		t.Fatalf("parse failed: %v", err)
+	}
+	compiled, err := compileSchema("order", 1, raw)
+	if err != nil {
+		t.Fatalf("compileSchema failed: %v", err)
+	}
+
+	if _, ok := compiled.FieldIndex["order_no"]; !ok {
+		t.Fatal("designer field name should be normalized to compiled key")
+	}
+	if len(compiled.Statuses) != 2 {
+		t.Fatalf("expected 2 statuses, got %d", len(compiled.Statuses))
+	}
+	if compiled.Statuses[0].Key != "draft" {
+		t.Errorf("first status key = %q, want draft", compiled.Statuses[0].Key)
+	}
+	if !compiled.Statuses[0].IsInitial {
+		t.Error("designer isInitial flag should be preserved")
+	}
+	if len(compiled.Transitions) != 1 {
+		t.Fatalf("expected 1 transition, got %d", len(compiled.Transitions))
+	}
+	if compiled.Transitions[0].Command != "approve" {
+		t.Errorf("transition command = %q, want approve", compiled.Transitions[0].Command)
+	}
+}
+
 func TestStep4_IndexGeneration(t *testing.T) {
 	payload := []byte(`{
 		"fields": [

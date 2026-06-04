@@ -26,11 +26,7 @@ import (
 	"github.com/excellon/nexai/internal/purge"
 	"github.com/excellon/nexai/internal/recycle"
 	"github.com/excellon/nexai/internal/retention"
-	"github.com/excellon/nexai/internal/rules"
-	"github.com/excellon/nexai/internal/monitoring"
 	"github.com/excellon/nexai/internal/viewstudio"
-	"github.com/excellon/nexai/internal/workflow"
-	business_workflow "github.com/excellon/nexai/internal/business_workflow"
 )
 
 func main() {
@@ -45,12 +41,6 @@ func main() {
 		os.Exit(1)
 	}
 	defer pool.Close()
-
-	// Ensure runtime-created tables exist
-	rulesRepo := rules.NewRepo(pool)
-	if err := rulesRepo.EnsureTable(context.Background()); err != nil {
-		slog.Warn("rules table ensure failed", "error", err)
-	}
 
 	// Initialize Redis cache for overlay resolution (graceful degradation)
 	var overlayCache *overlay.Cache
@@ -77,34 +67,12 @@ func main() {
 	entityRepo := entityruntime.NewRepo(pool)
 	entityHandler := entityruntime.NewHandlerWithPool(entityRepo, pool)
 
-	rulesEvaluator := rules.NewProductionEvaluator()
-	rulesHandler := rules.NewHandler(rulesRepo, rulesEvaluator)
-	rulesExecLogger := rules.NewExecutionLogger(pool)
-	rulesConflictResolver := rules.NewConflictResolver(pool)
-	rulesEvalV2 := rules.NewEvaluatorV2(pool, expression.NewEngine(""), rulesConflictResolver, rulesExecLogger)
-	rulesSimulator := rules.NewSimulator(rulesEvalV2, rulesExecLogger)
-	rulesHandlerV2 := rules.NewHandlerV2(rulesSimulator, rulesConflictResolver, rulesExecLogger, rulesRepo)
-
-	workflowRuntime := workflow.NewRuntime(pool)
-	_ = workflowRuntime
+	runtimePolicy := entityruntime.NewRuntimePolicy(pool, nil)
+	entityHandler.SetRuntimePolicy(runtimePolicy)
 
 	// Expression engine
 	exprEngine := expression.NewEngine("")
 	expressionHandler := expression.NewHandler(exprEngine)
-
-	// SLA worker — runs in background
-	slaWorker := workflow.NewSLAWorker(pool, 5*time.Minute)
-	workerCtx, cancelWorker := context.WithCancel(context.Background())
-	go slaWorker.Start(workerCtx)
-
-	// Business workflow engine
-	bwEngine := business_workflow.NewEngine(pool)
-	bwRepo := business_workflow.NewRepo(pool)
-	if err := bwRepo.EnsureTables(context.Background()); err != nil {
-		slog.Warn("business workflow tables ensure failed", "error", err)
-	}
-	bwHandler := business_workflow.NewHandler(bwEngine, pool)
-	bwHandlerV2 := business_workflow.NewHandlerV2(pool, exprEngine)
 
 	// NLP handler
 	nlpHandler := nlp.NewHandler(os.Getenv("ANTHROPIC_API_KEY"), "claude-haiku-4-5-20251001")
@@ -112,9 +80,6 @@ func main() {
 	// View Studio
 	viewStudioRepo := viewstudio.NewRepo(pool)
 	viewStudioHandler := viewstudio.NewHandler(viewStudioRepo)
-
-	// Monitoring
-	monitoringHandler := monitoring.NewHandler(pool)
 
 	// Index management
 	indexService := indexmgmt.NewService(pool)
@@ -127,7 +92,8 @@ func main() {
 	// Retention + Purge
 	retentionService := retention.NewService()
 	purgeAgent := purge.NewAgent(pool, retentionService)
-	go purgeAgent.Start(workerCtx)
+	purgeCtx, cancelPurge := context.WithCancel(context.Background())
+	go purgeAgent.Start(purgeCtx)
 
 	r := chi.NewRouter()
 	r.Use(chimw.RequestID)
@@ -146,12 +112,6 @@ func main() {
 			entityHandler.RegisterRoutes(r)
 		})
 		r.Route("/admin", func(r chi.Router) {
-			r.Route("/rules", func(r chi.Router) {
-				rulesHandler.RegisterRoutes(r)
-				r.Route("/v2", func(r chi.Router) {
-					rulesHandlerV2.RegisterRoutes(r)
-				})
-			})
 			r.Route("/overlay-deltas", func(r chi.Router) {
 				overlayHandler.RegisterRoutes(r)
 			})
@@ -165,17 +125,8 @@ func main() {
 		r.Route("/expressions", func(r chi.Router) {
 			expressionHandler.RegisterRoutes(r)
 		})
-		r.Route("/processes", func(r chi.Router) {
-			bwHandler.RegisterRoutes(r)
-		})
-		r.Route("/workflows", func(r chi.Router) {
-			bwHandlerV2.RegisterRoutesV2(r)
-		})
 		r.Route("/studio", func(r chi.Router) {
 			viewStudioHandler.RegisterRoutes(r)
-		})
-		r.Route("/monitoring", func(r chi.Router) {
-			monitoringHandler.RegisterRoutes(r)
 		})
 	})
 	r.Route("/api/nlp", func(r chi.Router) {
@@ -206,8 +157,7 @@ func main() {
 	<-stop
 	slog.Info("shutting down")
 
-	cancelWorker()
-	slaWorker.Stop()
+	cancelPurge()
 	purgeAgent.Stop()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

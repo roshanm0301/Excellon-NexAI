@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/excellon/nexai/internal/db"
 	"github.com/excellon/nexai/internal/idgen"
+	"github.com/jackc/pgx/v5"
 )
 
 // ArtifactRepo handles CRUD for artifact_header + artifact_version.
@@ -84,7 +84,7 @@ func (r *ArtifactRepo) Create(ctx context.Context, tenantID, artifactName, artif
 func (r *ArtifactRepo) GetByID(ctx context.Context, tenantID, versionID string) (*ArtifactVersion, error) {
 	const q = `
 		SELECT av.version_id, av.artifact_id, av.version_no, av.payload, av.is_active, av.is_draft,
-		       av.created_by, av.created_at, av.published_at, av.published_by,
+		       av.created_by, av.created_at, av.published_at, COALESCE(av.published_by,''),
 		       ah.artifact_name, ah.artifact_type, ah.tenant_id, COALESCE(ah.node_id,'')
 		FROM artifact_version av
 		JOIN artifact_header ah ON ah.artifact_id = av.artifact_id
@@ -122,7 +122,7 @@ func (r *ArtifactRepo) List(ctx context.Context, tenantID, artifactType string, 
 	args = append(args, limit, offset)
 	rows, err := r.pool.Query(ctx, fmt.Sprintf(`
 		SELECT av.version_id, av.artifact_id, av.version_no, av.payload, av.is_active, av.is_draft,
-		       av.created_by, av.created_at, av.published_at, av.published_by,
+		       av.created_by, av.created_at, av.published_at, COALESCE(av.published_by,''),
 		       ah.artifact_name, ah.artifact_type, ah.tenant_id, COALESCE(ah.node_id,'')
 		FROM artifact_version av
 		JOIN artifact_header ah ON ah.artifact_id = av.artifact_id
@@ -156,7 +156,7 @@ func (r *ArtifactRepo) Save(ctx context.Context, tenantID, versionID string, pay
 		WHERE av.version_id = $1 AND ah.artifact_id = av.artifact_id AND ah.tenant_id = $2
 		  AND av.is_draft = TRUE
 		RETURNING av.version_id, av.artifact_id, av.version_no, av.payload, av.is_active, av.is_draft,
-		          av.created_by, av.created_at, av.published_at, av.published_by`
+		          av.created_by, av.created_at, av.published_at, COALESCE(av.published_by,'')`
 	av := &ArtifactVersion{}
 	err := r.pool.QueryRow(ctx, q, versionID, tenantID, payload).Scan(
 		&av.VersionID, &av.ArtifactID, &av.VersionNo, &av.Payload, &av.IsActive, &av.IsDraft,
@@ -198,7 +198,7 @@ func (r *ArtifactRepo) Publish(ctx context.Context, tenantID, versionID, publish
 		       published_at = NOW(), published_by = $2
 		WHERE version_id = $1
 		RETURNING version_id, artifact_id, version_no, payload, is_active, is_draft,
-		          created_by, created_at, published_at, published_by`,
+		          created_by, created_at, published_at, COALESCE(published_by,'')`,
 		versionID, publishedBy,
 	).Scan(
 		&av.VersionID, &av.ArtifactID, &av.VersionNo, &av.Payload, &av.IsActive, &av.IsDraft,
