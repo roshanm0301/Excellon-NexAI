@@ -1,16 +1,38 @@
-import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize2, LayoutTemplate, Save, Send, Wrench } from 'lucide-react'
+import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize2, LayoutGrid, Save, Send, Wrench, Map, History } from 'lucide-react'
 import { useReactFlow } from '@xyflow/react'
 import { useWorkflowBuilderStore } from '../../../../pages/studio/workflow-builder/useWorkflowBuilderStore'
+import { applyAutoLayout } from '../utils/layoutUtils'
+import type { WorkflowStep } from '../../../../types/workflowBuilder'
+import { BRANCHING_TASK_TYPES } from '../../../../types/workflowBuilder'
+
+// Count steps recursively — optionally only branching types
+function countSteps(steps: WorkflowStep[], branchingOnly = false): number {
+  let count = 0
+  for (const step of steps) {
+    if (step.type !== 'start' && step.type !== 'end') {
+      if (!branchingOnly || BRANCHING_TASK_TYPES.has(step.type)) {
+        count++
+      }
+    }
+    if (step.branches) {
+      for (const branch of Object.values(step.branches)) {
+        count += countSteps(branch, branchingOnly)
+      }
+    }
+  }
+  return count
+}
 
 interface CanvasToolbarProps {
   tabId: string
   onSave: () => void
   onPublish: () => void
+  onOpenHistory?: () => void
   isSaving?: boolean
   isPublishing?: boolean
 }
 
-export function CanvasToolbar({ tabId, onSave, onPublish, isSaving, isPublishing }: CanvasToolbarProps) {
+export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, isSaving, isPublishing }: CanvasToolbarProps) {
   const { zoomIn, zoomOut, fitView } = useReactFlow()
   const undo = useWorkflowBuilderStore(s => s.undo)
   const redo = useWorkflowBuilderStore(s => s.redo)
@@ -19,6 +41,21 @@ export function CanvasToolbar({ tabId, onSave, onPublish, isSaving, isPublishing
   const isDirty = useWorkflowBuilderStore(s => s.tabs.find(t => t.id === tabId)?.isDirty ?? false)
   const toggleToolbox = useWorkflowBuilderStore(s => s.toggleToolbox)
   const toolboxOpen = useWorkflowBuilderStore(s => s.toolboxOpen)
+  const showMinimap = useWorkflowBuilderStore(s => s.showMinimap)
+  const toggleMinimap = useWorkflowBuilderStore(s => s.toggleMinimap)
+  const setNodes = useWorkflowBuilderStore(s => s.setNodes)
+  const tab = useWorkflowBuilderStore(s => s.tabs.find(t => t.id === tabId))
+
+  const stepCount = tab ? countSteps(tab.definition.sequence) : 0
+  const branchCount = tab ? countSteps(tab.definition.sequence, true) : 0
+
+  const handleAutoLayout = () => {
+    if (!tab) return
+    const laid = applyAutoLayout(tab.nodes, tab.edges)
+    setNodes(tabId, laid)
+    // Fit view after layout
+    requestAnimationFrame(() => fitView({ padding: 0.2, duration: 300 }))
+  }
 
   const btnStyle = (disabled = false): React.CSSProperties => ({
     display: 'flex',
@@ -91,10 +128,53 @@ export function CanvasToolbar({ tabId, onSave, onPublish, isSaving, isPublishing
       <button style={btnStyle()} onClick={() => fitView({ padding: 0.2 })} title="Fit view">
         <Maximize2 size={13} />
       </button>
-      <button style={btnStyle()} title="Auto-layout" onClick={() => fitView({ padding: 0.2 })}>
-        <LayoutTemplate size={13} />
-        <span>Layout</span>
+
+      {/* Auto-layout */}
+      <button style={btnStyle()} title="Auto-arrange nodes (BFS layout)" onClick={handleAutoLayout}>
+        <LayoutGrid size={13} />
+        <span>Auto-arrange</span>
       </button>
+
+      <div style={{ width: 1, height: 20, background: 'var(--color-border)', margin: '0 4px' }} />
+
+      {/* Minimap toggle */}
+      <button
+        style={iconBtn(showMinimap)}
+        onClick={toggleMinimap}
+        title="Toggle minimap"
+        aria-pressed={showMinimap}
+      >
+        <Map size={13} />
+        <span>Map</span>
+      </button>
+
+      {/* History button */}
+      {onOpenHistory && (
+        <button
+          style={btnStyle()}
+          onClick={onOpenHistory}
+          title="View version history"
+        >
+          <History size={13} />
+          <span>History</span>
+        </button>
+      )}
+
+      <div style={{ width: 1, height: 20, background: 'var(--color-border)', margin: '0 4px' }} />
+
+      {/* Step counter */}
+      <span
+        style={{
+          fontSize: '0.75rem',
+          color: 'var(--color-text-muted)',
+          whiteSpace: 'nowrap',
+          padding: '0 4px',
+        }}
+        title="Step and branch counts"
+      >
+        {stepCount} step{stepCount !== 1 ? 's' : ''}
+        {branchCount > 0 && ` · ${branchCount} branch${branchCount !== 1 ? 'es' : ''}`}
+      </span>
 
       {/* Spacer */}
       <div style={{ flex: 1 }} />

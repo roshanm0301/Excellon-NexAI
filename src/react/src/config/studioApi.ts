@@ -434,3 +434,16 @@ export const publishWorkflowArtifact = (id: string) =>
 
 export const deleteWorkflowArtifact = (id: string) =>
   studioFetch<void>(`${WORKFLOW_PREFIX}/${id}`, { method: 'DELETE' })
+
+export interface WorkflowVersion {
+  version: number
+  publishedAt: string
+  publishedBy: string
+}
+
+export interface WorkflowVersionsResponse {
+  items: WorkflowVersion[]
+}
+
+export const getWorkflowVersions = (id: string) =>
+  studioFetch<WorkflowVersionsResponse>(`${WORKFLOW_PREFIX}/${id}/versions`)

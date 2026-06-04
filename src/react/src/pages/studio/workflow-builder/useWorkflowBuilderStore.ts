@@ -26,6 +26,7 @@ interface WorkflowBuilderState {
   tabs: WorkflowTab[]
   activeTabId: string | null
   toolboxOpen: boolean
+  showMinimap: boolean
 
   // Tab management
   openTab: (tab: Omit<WorkflowTab, 'isDirty' | 'history' | 'historyIndex' | 'nodes' | 'edges' | 'selectedNodeId'>) => void
@@ -42,6 +43,10 @@ interface WorkflowBuilderState {
   updateGlobalSettings: (tabId: string, settings: Partial<ActionSettings>) => void
   updateStep: (tabId: string, stepId: string, patch: Partial<WorkflowStep>) => void
 
+  // Step actions
+  duplicateStep: (tabId: string, stepId: string) => void
+  deleteStep: (tabId: string, stepId: string) => void
+
   // Save
   markSaved: (tabId: string, newVersionId?: string) => void
 
@@ -53,6 +58,9 @@ interface WorkflowBuilderState {
 
   // Toolbox
   toggleToolbox: () => void
+
+  // Minimap
+  toggleMinimap: () => void
 
   // Getters
   getActiveTab: () => WorkflowTab | undefined
@@ -92,10 +100,73 @@ function patchStep(steps: WorkflowStep[], stepId: string, patch: Partial<Workflo
   })
 }
 
+function removeStep(steps: WorkflowStep[], stepId: string): WorkflowStep[] {
+  return steps
+    .filter(s => s.id !== stepId)
+    .map(s => {
+      if (s.branches) {
+        return {
+          ...s,
+          branches: Object.fromEntries(
+            Object.entries(s.branches).map(([k, v]) => [k, removeStep(v, stepId)])
+          ),
+        }
+      }
+      return s
+    })
+}
+
+/** Deep clone a step and assign it a new unique ID with _copy suffix */
+function cloneStep(step: WorkflowStep, existingIds: Set<string>): WorkflowStep {
+  let candidateId = `${step.id}_copy`
+  let suffix = 2
+  while (existingIds.has(candidateId)) {
+    candidateId = `${step.id}_copy${suffix}`
+    suffix++
+  }
+  existingIds.add(candidateId)
+
+  const cloned: WorkflowStep = {
+    ...step,
+    id: candidateId,
+    name: `${step.name} (copy)`,
+    properties: {
+      ...step.properties,
+      taskSettings: { ...step.properties.taskSettings },
+    },
+  }
+
+  if (step.branches) {
+    cloned.branches = Object.fromEntries(
+      Object.entries(step.branches).map(([k, v]) => [
+        k,
+        v.map(s => cloneStep(s, existingIds)),
+      ])
+    )
+  }
+
+  return cloned
+}
+
+function collectAllIds(steps: WorkflowStep[]): Set<string> {
+  const ids = new Set<string>()
+  function walk(seq: WorkflowStep[]) {
+    for (const s of seq) {
+      ids.add(s.id)
+      if (s.branches) {
+        for (const branch of Object.values(s.branches)) walk(branch)
+      }
+    }
+  }
+  walk(steps)
+  return ids
+}
+
 export const useWorkflowBuilderStore = create<WorkflowBuilderState>((set, get) => ({
   tabs: [],
   activeTabId: null,
   toolboxOpen: true,
+  showMinimap: false,
 
   openTab(tab) {
     const existing = get().tabs.find(t => t.id === tab.id)
@@ -177,6 +248,48 @@ export const useWorkflowBuilderStore = create<WorkflowBuilderState>((set, get) =
     get().updateDefinition(tabId, newDef)
   },
 
+  duplicateStep(tabId, stepId) {
+    const tab = get().tabs.find(t => t.id === tabId)
+    if (!tab) return
+
+    // Find the step in the flat sequence (top-level only for now)
+    const original = tab.definition.sequence.find(s => s.id === stepId)
+    if (!original) return
+
+    const existingIds = collectAllIds(tab.definition.sequence)
+    const cloned = cloneStep(original, existingIds)
+
+    // Offset position by +50, +50 if the step has a position
+    const pos = (original as WorkflowStep & { position?: { x: number; y: number } }).position
+    if (pos) {
+      (cloned as WorkflowStep & { position?: { x: number; y: number } }).position = {
+        x: pos.x + 50,
+        y: pos.y + 50,
+      }
+    }
+
+    // Insert the clone right after the original in the sequence
+    const idx = tab.definition.sequence.findIndex(s => s.id === stepId)
+    const newSequence = [
+      ...tab.definition.sequence.slice(0, idx + 1),
+      cloned,
+      ...tab.definition.sequence.slice(idx + 1),
+    ]
+
+    get().updateDefinition(tabId, { ...tab.definition, sequence: newSequence })
+  },
+
+  deleteStep(tabId, stepId) {
+    const tab = get().tabs.find(t => t.id === tabId)
+    if (!tab) return
+    const newSequence = removeStep(tab.definition.sequence, stepId)
+    get().updateDefinition(tabId, { ...tab.definition, sequence: newSequence })
+    // Deselect if deleted node was selected
+    if (tab.selectedNodeId === stepId) {
+      get().selectNode(tabId, null)
+    }
+  },
+
   markSaved(tabId, newVersionId) {
     set(s => ({
       tabs: s.tabs.map(t => {
@@ -226,6 +339,10 @@ export const useWorkflowBuilderStore = create<WorkflowBuilderState>((set, get) =
 
   toggleToolbox() {
     set(s => ({ toolboxOpen: !s.toolboxOpen }))
+  },
+
+  toggleMinimap() {
+    set(s => ({ showMinimap: !s.showMinimap }))
   },
 
   getActiveTab: () => {
