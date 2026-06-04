@@ -29,6 +29,7 @@ export function WorkflowCanvas({ tabId, onNodeContextMenu }: WorkflowCanvasProps
   const setEdges = useWorkflowBuilderStore(s => s.setEdges)
   const selectNode = useWorkflowBuilderStore(s => s.selectNode)
   const updateDefinition = useWorkflowBuilderStore(s => s.updateDefinition)
+  const syncNodePositions = useWorkflowBuilderStore(s => s.syncNodePositions)
   const showMinimap = useWorkflowBuilderStore(s => s.showMinimap)
 
   const onConnect = useCallback(
@@ -108,7 +109,7 @@ export function WorkflowCanvas({ tabId, onNodeContextMenu }: WorkflowCanvasProps
         onNodeContextMenu={handleNodeContextMenu}
         onNodesChange={(changes) => {
           if (!tab) return
-          // Apply position changes back to nodes array
+          // Apply position changes to the visual nodes array
           const updatedNodes = tab.nodes.map(node => {
             const change = changes.find(c => 'id' in c && c.id === node.id)
             if (change && change.type === 'position' && change.position) {
@@ -117,6 +118,19 @@ export function WorkflowCanvas({ tabId, onNodeContextMenu }: WorkflowCanvasProps
             return node
           })
           setNodes(tabId, updatedNodes)
+
+          // When drag completes (dragging===false), write final positions into definition.sequence
+          // so they are persisted on save. Skips history to avoid polluting undo stack.
+          const dragEndChanges = changes.filter(
+            c => c.type === 'position' && 'dragging' in c && c.dragging === false && c.position
+          )
+          if (dragEndChanges.length > 0) {
+            const posMap: Record<string, { x: number; y: number }> = {}
+            for (const c of dragEndChanges) {
+              if (c.type === 'position' && c.position) posMap[c.id] = c.position
+            }
+            syncNodePositions(tabId, posMap)
+          }
         }}
         onEdgesChange={(changes) => {
           if (!tab) return

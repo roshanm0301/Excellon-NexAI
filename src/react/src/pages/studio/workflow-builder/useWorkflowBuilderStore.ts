@@ -37,6 +37,8 @@ interface WorkflowBuilderState {
   setNodes: (tabId: string, nodes: Node[]) => void
   setEdges: (tabId: string, edges: Edge[]) => void
   selectNode: (tabId: string, nodeId: string | null) => void
+  // Syncs node drag positions back into definition.sequence without creating a history entry
+  syncNodePositions: (tabId: string, positions: Record<string, { x: number; y: number }>) => void
 
   // Definition mutations (all push to history)
   updateDefinition: (tabId: string, def: WorkflowDefinition) => void
@@ -148,6 +150,25 @@ function cloneStep(step: WorkflowStep, existingIds: Set<string>): WorkflowStep {
   return cloned
 }
 
+function applyPositions(
+  steps: WorkflowStep[],
+  positions: Record<string, { x: number; y: number }>,
+): WorkflowStep[] {
+  return steps.map(s => {
+    const pos = positions[s.id]
+    const patched = pos ? { ...s, position: pos } : s
+    if (patched.branches) {
+      return {
+        ...patched,
+        branches: Object.fromEntries(
+          Object.entries(patched.branches).map(([k, v]) => [k, applyPositions(v, positions)])
+        ),
+      }
+    }
+    return patched
+  })
+}
+
 function collectAllIds(steps: WorkflowStep[]): Set<string> {
   const ids = new Set<string>()
   function walk(seq: WorkflowStep[]) {
@@ -216,6 +237,20 @@ export const useWorkflowBuilderStore = create<WorkflowBuilderState>((set, get) =
   selectNode(tabId, nodeId) {
     set(s => ({
       tabs: s.tabs.map(t => t.id === tabId ? { ...t, selectedNodeId: nodeId } : t),
+    }))
+  },
+
+  syncNodePositions(tabId, positions) {
+    set(s => ({
+      tabs: s.tabs.map(t => {
+        if (t.id !== tabId) return t
+        const newSequence = applyPositions(t.definition.sequence, positions)
+        return {
+          ...t,
+          isDirty: true,
+          definition: { ...t.definition, sequence: newSequence },
+        }
+      }),
     }))
   },
 

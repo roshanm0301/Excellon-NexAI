@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { Copy, Trash2 } from 'lucide-react'
 
 interface NodeContextMenuProps {
@@ -20,6 +20,11 @@ export function NodeContextMenu({
 }: NodeContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
 
+  // Focus the menu on open for keyboard accessibility
+  useEffect(() => {
+    menuRef.current?.focus()
+  }, [])
+
   // Close on click outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -31,13 +36,20 @@ export function NodeContextMenu({
     return () => document.removeEventListener('mousedown', handler)
   }, [onClose])
 
-  // Close on Escape
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+  // Close on Escape, navigate items with arrow keys
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Escape') { onClose(); return }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      const items = menuRef.current?.querySelectorAll('[role="menuitem"]') as NodeListOf<HTMLElement>
+      if (!items || items.length === 0) return
+      const focused = document.activeElement as HTMLElement
+      const idx = Array.from(items).indexOf(focused)
+      const next = e.key === 'ArrowDown'
+        ? (idx + 1) % items.length
+        : (idx - 1 + items.length) % items.length
+      items[next]?.focus()
     }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
   }, [onClose])
 
   const itemStyle: React.CSSProperties = {
@@ -65,6 +77,9 @@ export function NodeContextMenu({
   return (
     <div
       ref={menuRef}
+      role="menu"
+      aria-label="Node actions"
+      tabIndex={-1}
       style={{
         position: 'fixed',
         top: y,
@@ -77,10 +92,13 @@ export function NodeContextMenu({
         minWidth: 160,
         overflow: 'hidden',
         userSelect: 'none',
+        outline: 'none',
       }}
       onContextMenu={e => e.preventDefault()}
+      onKeyDown={handleKeyDown}
     >
       <button
+        role="menuitem"
         style={itemStyle}
         onClick={() => { onDuplicate(nodeId); onClose() }}
         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-2, #f9fafb)' }}
@@ -93,9 +111,10 @@ export function NodeContextMenu({
         </span>
       </button>
 
-      <div style={{ height: 1, background: 'var(--color-border)', margin: '2px 0' }} />
+      <div role="separator" style={{ height: 1, background: 'var(--color-border)', margin: '2px 0' }} />
 
       <button
+        role="menuitem"
         style={destructiveItemStyle}
         onClick={() => { onDelete(nodeId); onClose() }}
         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--error-50, #fef2f2)' }}

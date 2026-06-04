@@ -44,6 +44,7 @@ export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, isSavin
   const showMinimap = useWorkflowBuilderStore(s => s.showMinimap)
   const toggleMinimap = useWorkflowBuilderStore(s => s.toggleMinimap)
   const setNodes = useWorkflowBuilderStore(s => s.setNodes)
+  const syncNodePositions = useWorkflowBuilderStore(s => s.syncNodePositions)
   const tab = useWorkflowBuilderStore(s => s.tabs.find(t => t.id === tabId))
 
   const stepCount = tab ? countSteps(tab.definition.sequence) : 0
@@ -51,9 +52,18 @@ export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, isSavin
 
   const handleAutoLayout = () => {
     if (!tab) return
+    if (tab.nodes.length > 2) {
+      const ok = window.confirm(
+        'Auto-arrange will reposition all nodes. Any manual layout will be replaced.\n\nYou can undo this with Ctrl+Z.'
+      )
+      if (!ok) return
+    }
     const laid = applyAutoLayout(tab.nodes, tab.edges)
     setNodes(tabId, laid)
-    // Fit view after layout
+    // Persist new positions to definition.sequence so they are saved
+    const posMap: Record<string, { x: number; y: number }> = {}
+    for (const n of laid) posMap[n.id] = n.position
+    syncNodePositions(tabId, posMap)
     requestAnimationFrame(() => fitView({ padding: 0.2, duration: 300 }))
   }
 
