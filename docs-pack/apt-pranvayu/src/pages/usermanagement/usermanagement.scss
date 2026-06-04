@@ -1,0 +1,104 @@
+// ============================================================================
+// USER MANAGEMENT STYLES
+// Modern card-based user management
+// ============================================================================
+
+// User card grid layout
+.user-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--ide-grid-gap);
+  margin-top: var(--space-2);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;                           // min-height — prevents clipping
+  height: auto;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-shadow: var(--ide-card-shadow);
+  border-radius: var(--ide-card-radius);
+  border: 1px solid var(--border-primary);
+  overflow: hidden;
+  position: relative;
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+
+  img {
+    height: 80px;
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-full);
+    display: block;
+    margin: 0 auto;
+  }
+
+  &:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .user-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.text {
+  padding-top: var(--space-6);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+}
+
+.user-card-align {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.fontWeight {
+  font-weight: var(--font-semibold);
+}
+
+.card-actions {
+  position: absolute;
+  bottom: var(--space-2);
+  display: flex;
+  gap: var(--space-1);
+}
+
+.confirm-dialog-content {
+  text-align: center;
+  padding: var(--space-4);
+
+  p {
+    margin-bottom: var(--space-4);
+    color: var(--text-secondary);
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed);
+  }
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.subscription-list {
+  list-style: disc;
+  padding-left: var(--space-6);
+  margin: var(--space-2) 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}

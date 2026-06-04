@@ -1,0 +1,44 @@
+@import "../../themes/generated/variables.base.scss";
+
+// ============================================================================
+// IDE STATUS BAR
+// Dark, dense, information-rich like VS Code / JetBrains status bar
+// All colors use design system tokens
+// ============================================================================
+
+.footer {
+  display: flex;
+  align-items: center;
+  color: var(--text-statusbar);
+  border-top: 1px solid var(--bg-overlay-subtle);
+  padding: 0;
+  font-size: var(--text-2xs);
+  height: var(--footer-height);
+  min-height: var(--footer-height);
+  background: var(--bg-statusbar);
+  gap: 0;
+  flex-shrink: 0;
+  z-index: var(--z-sticky);
+
+  // Status bar items
+  > * {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 0 var(--space-2);
+    height: 100%;
+    white-space: nowrap;
+    transition: background var(--transition-instant);
+    cursor: default;
+
+    &:hover {
+      background: var(--bg-overlay-light);
+    }
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+  }
+}

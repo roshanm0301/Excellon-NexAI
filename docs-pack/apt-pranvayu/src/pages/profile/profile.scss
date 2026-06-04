@@ -1,0 +1,65 @@
+@import "../../themes/generated/variables.base.scss";
+
+// ============================================================================
+// PROFILE PAGE
+// ============================================================================
+
+.form-avatar {
+  float: left;
+  height: 128px;
+  width: 20%;
+  min-width: 128px;
+  flex-shrink: 0;
+  margin-right: var(--space-6);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--ide-card-radius);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: var(--bg-primary);
+  overflow: hidden;
+
+  img {
+    height: 96px;
+    display: block;
+    margin: 0 auto;
+    object-fit: contain;
+  }
+}
+
+.form-avatar-card {
+  display: contents;
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: var(--bg-primary);
+  overflow: hidden;
+
+  img {
+    height: 80px;
+    display: block;
+    margin: 0 auto;
+    object-fit: contain;
+  }
+}
+
+.text-box-css {
+  padding: 0;
+  height: 32px;
+  position: relative;
+  left: 0;
+  outline: none;
+  border: 1px solid var(--border-primary);
+  background-color: var(--bg-primary);
+  font-size: var(--text-lg);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast);
+
+  &:focus {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-focus);
+  }
+}
+

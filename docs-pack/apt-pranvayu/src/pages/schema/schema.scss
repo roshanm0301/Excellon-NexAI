@@ -1,0 +1,372 @@
+// ============================================================================
+// SCHEMA PAGE STYLES
+// Modern token-based styling for tree views and schema management
+// ============================================================================
+
+// ─── Status Badges ──────────────────────────────────────────────────────────
+
+.schema-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.02em;
+  border-radius: var(--radius-full);
+  line-height: 1.6;
+  white-space: nowrap;
+
+  &--draft {
+    background: var(--color-gray-100);
+    color: var(--color-gray-600);
+  }
+
+  &--published {
+    background: var(--color-success-light);
+    color: var(--color-success-dark);
+  }
+
+  &--archived {
+    background: var(--color-warning-light);
+    color: var(--color-warning-dark);
+  }
+}
+
+.schema-bool-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-full);
+  line-height: 1.6;
+
+  &--yes {
+    background: var(--color-primary-50);
+    color: var(--color-primary-600);
+  }
+
+  &--no {
+    background: var(--color-gray-50);
+    color: var(--color-gray-400);
+  }
+}
+
+// ─── Schema Page Overrides ──────────────────────────────────────────────────
+
+.schema-page {
+  // Add breathing room to the form area
+  .content-block.responsive-paddings {
+    padding: var(--space-3);
+    padding-bottom: var(--space-8, 32px);
+  }
+
+  // Remove card hover effect on the main wrapper card
+  > .dx-card {
+    box-shadow: var(--shadow-xs) !important;
+    border: 1px solid var(--border-primary) !important;
+
+    &:hover {
+      box-shadow: var(--shadow-xs) !important;
+    }
+  }
+
+  // Aligned grid header bar
+  .grid-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-1);
+    margin-top: var(--space-2);
+  }
+
+  .action-list-title {
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+  }
+
+  // Slightly more compact grid
+  .dx-datagrid {
+    border-radius: var(--ide-card-radius) !important;
+    box-shadow: none !important;
+    border: 1px solid var(--border-secondary) !important;
+  }
+
+  // Make action icons slightly more visible
+  .dx-datagrid .dx-command-edit .dx-link {
+    opacity: 0.4;
+  }
+
+  .dx-datagrid .dx-data-row:hover .dx-command-edit .dx-link,
+  .dx-datagrid .dx-data-row.dx-state-hover .dx-command-edit .dx-link {
+    opacity: 1;
+  }
+
+  // ── Page list grid: compact rows ──
+  > .dx-card .dx-datagrid .dx-row > td {
+    padding: var(--space-1) var(--space-2) !important;
+    line-height: 1.2 !important;
+    font-size: var(--text-sm) !important;
+    min-height: 0 !important;
+  }
+
+  > .dx-card .dx-datagrid .dx-row,
+  > .dx-card .dx-datagrid .dx-data-row {
+    height: auto !important;
+    min-height: 0 !important;
+    border-top: none !important;
+    border-bottom: none !important;
+  }
+
+  // ── Form grid (Action List): roomier rows (only when NOT dx-card wrapper) ──
+  .content-block.responsive-paddings:not(.dx-card) .dx-datagrid .dx-row > td {
+    padding: var(--space-3) var(--space-2) !important;
+    line-height: 1.5;
+  }
+}
+
+// ─── Core Styles ────────────────────────────────────────────────────────────
+
+.schemaButtons {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.checkoutProcessLabel {
+  display: flex;
+  font-size: var(--text-xl);                  // IDE-density title
+  font-weight: var(--font-semibold);
+  justify-content: center;
+  color: var(--text-primary);
+}
+
+.checkoutProcessButton {
+  display: flex;
+  justify-content: space-evenly;
+  margin-top: var(--space-4);                 // 16px — tighter
+  gap: var(--space-2);                        // 8px btn gap
+}
+
+.columnButtons {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin: var(--space-1) 0;
+  gap: var(--space-1);
+  padding-left: var(--space-2);
+}
+
+.column-form-wrapper {
+  padding: var(--space-1) var(--space-2);
+}
+
+.selected-item {
+  margin-right: var(--space-1);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  flex-direction: row;
+  margin-left: var(--space-1);
+  display: inline-block;
+  max-width: 80px;
+  white-space: nowrap;
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+  font-size: var(--text-sm);
+
+  &:hover {
+    overflow: visible;
+    text-overflow: clip;
+    max-width: 100%;
+  }
+}
+
+.selected-item-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  max-width: 700px;
+  overflow-x: auto;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  gap: var(--space-1);
+}
+
+.selected-item-row-width {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  max-width: 900px;
+  overflow-x: auto;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 900px) {
+  .selected-item-row {
+    width: 100%;
+    max-width: 450px;
+  }
+
+  .selected-item-row-width {
+    width: 100%;
+    max-width: 630px;
+  }
+}
+
+// ─── Schema Tree View Overrides ─────────────────────────────────────────────
+
+.dx-button-for-tree {
+  height: var(--ide-row-height);
+  font-size: var(--text-xs) !important;
+}
+
+.schema-page {
+  .dx-tab {
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--text-sm);
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    scroll-padding-bottom: 0 !important;
+  }
+
+  .dx-treeview-node {
+    padding-left: var(--space-3);
+  }
+
+  .dx-treeview-item {
+    min-height: 24px;
+    line-height: 1.2;
+    padding: var(--space-1) 0;
+  }
+
+  .dx-button-has-icon .dx-icon {
+    font-size: var(--text-2xs);
+  }
+
+  .dx-treeview-toggle-item-visibility {
+    width: var(--space-2);
+    height: var(--ide-row-height-xs);
+  }
+
+  .dx-treeview-search {
+    margin-bottom: 0;
+  }
+
+  .dx-context-menu .dx-menu-item .dx-menu-item-content {
+    padding: var(--space-0-5) var(--space-3);
+  }
+}
+
+.dx-treeview-item-without-checkbox.dx-state-selected > .dx-treeview-item.dx-state-focused {
+  background-color: var(--bg-primary) !important;
+}
+
+.custom-treeview-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.custom-node {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+  font-size: var(--text-sm);
+}
+
+.dx-popup-title.dx-toolbar .dx-toolbar-items-container {
+  height: 32px;
+}
+
+.dx-popup-title.dx-toolbar .dx-toolbar-label {
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+}
+
+.icon {
+  color: var(--color-primary);
+}
+
+.iconSchema {
+  color: var(--color-primary-hover);
+}
+
+.selected-node {
+  display: inline-block;
+  width: 150px;
+  white-space: nowrap;
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+  font-size: var(--text-sm);
+
+  &:hover {
+    overflow: visible;
+    text-overflow: clip;
+    width: auto;
+  }
+}
+
+.lock-image {
+  width: 28px;
+  height: 14px;
+  margin: -2px;
+  opacity: 0.8;
+}
+
+.unlock-image {
+  width: 24px;
+  height: 10px;
+  margin: 0;
+  opacity: 0.8;
+}
+
+// ─── Schema Context Menu ────────────────────────────────────────────────────
+
+.dx-menu-base .dx-icon {
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: var(--color-primary);
+}
+
+.dx-context-menu .dx-menu-item.dx-menu-item-has-text.dx-menu-item-has-icon .dx-icon {
+  // icon spacing handled by DX defaults
+}
+
+.tree-border {
+  border-right: 2px solid transparent;
+  border-image: linear-gradient(
+    0.59turn,
+    var(--color-warning),
+    var(--color-primary),
+    transparent
+  );
+  border-image-slice: 1;
+}
+
+// ─── Schema Search (Sticky) ────────────────────────────────────────────────
+
+.dx-texteditor.dx-editor-filled {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+
+  &.dx-state-hover {
+    background-color: var(--bg-primary) !important;
+  }
+}

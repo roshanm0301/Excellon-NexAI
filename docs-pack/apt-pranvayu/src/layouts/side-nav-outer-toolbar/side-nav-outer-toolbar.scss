@@ -1,0 +1,58 @@
+// ============================================================================
+// IDE LAYOUT SHELL (VS Code Dark Style)
+// Dark chrome: titlebar → [sidebar | editor area] → statusbar
+// ============================================================================
+
+.side-nav-outer-toolbar {
+  flex-direction: column;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  background: var(--bg-primary);       // editor.background
+}
+
+.layout-header {
+  z-index: 1501;
+}
+
+// Drawer — flex-fill remaining space after header
+.side-nav-outer-toolbar .dx-drawer {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
+}
+
+// Ensure DX Drawer's internal content wrapper fills the drawer
+.side-nav-outer-toolbar .dx-drawer-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+// ── Content Area (VS Code editor background) ────────────────────────────────
+.side-nav-outer-toolbar .container {
+  background: var(--bg-primary);
+}
+
+.side-nav-outer-toolbar .content {
+  padding: var(--space-1) var(--space-1) var(--space-2-5) var(--space-1);
+  background: var(--bg-primary);
+}
+
+// Drawer panel — subtle shadow instead of border for depth
+.side-nav-outer-toolbar .dx-drawer-panel-content {
+  box-shadow: 1px 0 0 0 var(--bg-overlay-light);
+  overflow: visible !important;
+}
+
+.side-nav-outer-toolbar .dx-drawer-shrink .dx-drawer-panel-content {
+  overflow: hidden;
+}
+
+// ── Responsive ──────────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .side-nav-outer-toolbar .content {
+    padding: 0;
+  }
+}

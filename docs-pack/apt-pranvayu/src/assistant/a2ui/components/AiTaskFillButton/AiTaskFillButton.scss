@@ -1,0 +1,232 @@
+/* ─── AI Task Fill — Copilot theme ────────────────────────────────────── */
+
+/* ── Container ── */
+.ai-task-fill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  position: relative;
+}
+
+/* ── Sparkle toggle button ── */
+.ai-task-fill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ide-input-height-sm, 28px);
+  height: var(--ide-input-height-sm, 28px);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md, 6px);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  -webkit-user-select: none;
+  user-select: none;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    color: var(--color-primary);
+    background: var(--color-primary-50);
+  }
+  &:active:not(:disabled) {
+    background: var(--color-primary-50, rgba(249, 115, 22, 0.14));
+  }
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
+
+  // Active (prompt open)
+  &--active {
+    color: var(--color-primary);
+    background: var(--color-primary-50);
+  }
+
+  // Loading — pulsing glow
+  &--loading {
+    color: var(--color-primary);
+    cursor: wait;
+    pointer-events: none;
+    animation: ai-fill-glow 1.4s ease-in-out infinite;
+  }
+
+  // Success — green flash
+  &--success {
+    color: var(--color-success);
+    animation: ai-fill-flash 1s ease forwards;
+    --flash-rgb: 26, 127, 55;
+  }
+
+  // Error — red flash
+  &--error {
+    color: var(--color-error);
+    animation: ai-fill-flash 1s ease forwards;
+    --flash-rgb: 209, 36, 47;
+  }
+
+  // Disabled
+  &--disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}
+
+/* ── Icon ── */
+.ai-fill-icon {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+
+  .ai-task-fill-btn:hover:not(:disabled) & {
+    transform: scale(1.15) rotate(12deg);
+  }
+
+  &--spin {
+    fill: none;
+    animation: ai-fill-spin 0.75s linear infinite;
+  }
+}
+
+/* ── Popover prompt bar ── */
+.ai-task-prompt {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);                     // tighter — IDE compact
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--ide-card-radius, 8px);
+  box-shadow: var(--ide-card-shadow, 0 4px 16px rgba(31, 35, 40, 0.12));
+  animation: ai-prompt-pop 0.15s ease-out;
+  white-space: nowrap;
+
+  &__input {
+    width: 220px;
+    height: var(--ide-input-height-sm, 28px);
+    padding: 0 var(--space-2);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md, 6px);
+    font-size: var(--text-xs, 12px);
+    font-family: inherit;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+    &:focus {
+      background: var(--bg-primary);
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.12);
+    }
+
+    &::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    &:disabled {
+      background: var(--bg-secondary);
+      color: var(--text-tertiary);
+      cursor: wait;
+    }
+  }
+
+  &__send {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ide-input-height-sm, 28px);
+    height: var(--ide-input-height-sm, 28px);
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-md, 6px);
+    background: var(--color-primary);
+    color: var(--text-inverse);
+    cursor: pointer;
+    transition: background 0.15s ease, opacity 0.15s ease;
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
+
+/* ─── Keyframes ───────────────────────────────────────────────────────── */
+
+@keyframes ai-fill-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes ai-fill-glow {
+  0%, 100% {
+    background: rgba(249, 115, 22, 0.08);
+    box-shadow: 0 0 4px rgba(249, 115, 22, 0.15);
+  }
+  50% {
+    background: rgba(249, 115, 22, 0.22);
+    box-shadow: 0 0 14px rgba(249, 115, 22, 0.50), 0 0 4px rgba(249, 115, 22, 0.25);
+  }
+}
+
+@keyframes ai-fill-flash {
+  0%  {
+    background: rgba(var(--flash-rgb), 0.22);
+    box-shadow: 0 0 12px rgba(var(--flash-rgb), 0.45);
+  }
+  60% {
+    background: rgba(var(--flash-rgb), 0.10);
+    box-shadow: 0 0 6px rgba(var(--flash-rgb), 0.20);
+  }
+  100% {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+@keyframes ai-prompt-pop {
+  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─── Dark mode — Copilot dark tokens ─────────────────────────────────── */
+.dx-swatch-additional,
+[data-theme="dark"],
+.dx-theme-generic-dark,
+.dx-theme-material-typography.dx-color-scheme-dark {
+  .ai-task-fill-btn {
+    color: var(--text-tertiary);
+    &:hover:not(:disabled) { color: var(--color-primary); background: var(--color-primary-50); }
+    &--active { color: var(--color-primary); background: rgba(249, 115, 22, 0.14); }
+    &--success { color: var(--color-success); }
+    &--error   { color: var(--color-error); }
+  }
+
+  .ai-task-prompt {
+    background: var(--bg-secondary);
+    border-color: var(--border-primary);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.15);
+  }
+
+  .ai-task-prompt__input {
+    background: var(--bg-sunken);
+    border-color: transparent;
+    color: var(--text-primary);
+    &:focus { background: var(--bg-sunken); border-color: var(--color-primary); box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.18); }
+    &::placeholder { color: var(--text-tertiary); }
+    &:disabled { background: var(--bg-secondary); color: var(--text-tertiary); }
+  }
+}

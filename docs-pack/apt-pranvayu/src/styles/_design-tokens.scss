@@ -1,0 +1,293 @@
+// ============================================================================
+// PRANVAYU DESIGN TOKENS v2 — SINGLE SOURCE OF TRUTH
+// ============================================================================
+// This file documents every token, provides SCSS helper maps, and defines
+// the LIGHT THEME MIXIN that mirrors the dark-theme mixin in design-system.scss.
+//
+// ── Token Architecture ──────────────────────────────────────────────────────
+//   :root               → light-mode defaults (base layer)
+//   @mixin light-tokens  → explicit light overrides for [data-theme="light"]
+//   @mixin vscode-dark-tokens → dark overrides (defined in design-system.scss)
+//
+// ── Import Order ────────────────────────────────────────────────────────────
+//   design-system.scss imports this file and _ide-grid.scss.
+//   All tokens are CSS custom properties in :root.
+//   Components must NEVER use raw hex — only var(--token).
+// ============================================================================
+
+// ─── SPACING SCALE (8px base grid) ──────────────────────────────────────────
+// These are the ONLY allowed spacing values. Do not use arbitrary px values.
+//
+//   Token           Value    Alias                   Use Case
+//   --space-1       4px      --spacing-xs            Micro gaps (icon-to-text)
+//   --space-1-5     6px                              Tight vertical rhythm
+//   --space-2       8px      --spacing-sm            Standard small gap
+//   --space-3       12px     --spacing-md            Medium gap (card sections)
+//   --space-4       16px     --spacing-lg            Panel padding, field-group margin
+//   --space-5       20px     --spacing-xl            Card padding (standard)
+//   --space-6       24px     --spacing-2xl           Section gaps
+//   --space-8       32px     --spacing-3xl           Major section breaks
+//   --space-12      48px     --spacing-4xl           Large section padding
+//   --space-16      64px     --spacing-5xl           Page-level spacing
+
+// ─── COMPONENT HEIGHT TOKENS ────────────────────────────────────────────────
+//
+//   Token                    Value    Component
+//   --ide-row-height-xs      24px     Status bar items, minimap labels
+//   --ide-row-height-sm      28px     Compact rows, small toolbar
+//   --ide-row-height         32px     Standard interactive row
+//   --ide-row-height-lg      40px     Toolbar/header height
+//   --ide-input-height-sm    28px     Small inputs, compact fields
+//   --ide-input-height       32px     Standard input height
+//   --ide-toolbar-height-xs  28px     Micro toolbar
+//   --ide-toolbar-height-sm  32px     Compact toolbar
+//   --ide-toolbar-height     40px     Standard toolbar
+
+// ─── COLOR SEMANTIC MAP ─────────────────────────────────────────────────────
+// Use semantic tokens, not raw hex/rgba values:
+//
+//   Surface:     --bg-primary, --bg-secondary, --bg-tertiary, --bg-elevated, --bg-sunken
+//   Panel:       --panel-bg, --panel-hover, --panel-border (aliases)
+//   Text:        --text-primary, --text-secondary, --text-tertiary, --text-muted
+//   Border:      --border-primary, --border-secondary, --border-strong
+//   Brand:       --color-primary, --color-primary-hover, --color-primary-active
+//   Accent:      --accent-primary, --accent-hover (aliases → color-primary)
+//   IDE Focus:   --color-accent (VS Code blue for IDE features)
+//   Status:      --color-success, --color-warning, --color-error, --color-info
+
+// ─── TYPOGRAPHY SCALE ────────────────────────────────────────────────────────
+//
+//   Token          px     Use Case
+//   --text-2xs     10px   Micro labels, status bar, group titles
+//   --text-xs      12px   Secondary text, labels, captions
+//   --text-sm      13px   Default body text, nav items
+//   --text-base    14px   Primary content text
+//   --text-md      15px   Slightly larger body
+//   --text-lg      16px   Section headers
+//   --text-xl      18px   Page titles
+//   --text-2xl     20px   Hero titles
+//   --text-3xl     24px   Display text
+//   --text-4xl     30px   Large display
+//
+// Font aliases:
+//   --font-ui      → var(--font-sans)
+//   --font-mono    → JetBrains Mono / Fira Code / SF Mono
+
+// ─── SCSS HELPER MAPS (for programmatic access) ─────────────────────────────
+
+$spacing-scale: (
+  0: 0,
+  1: 4px,
+  1-5: 6px,
+  2: 8px,
+  2-5: 10px,
+  3: 12px,
+  4: 16px,
+  5: 20px,
+  6: 24px,
+  8: 32px,
+  10: 40px,
+  12: 48px,
+  16: 64px,
+);
+
+$font-sizes: (
+  2xs: 0.625rem,
+  xs: 0.75rem,
+  sm: 0.8125rem,
+  base: 0.875rem,
+  md: 0.9375rem,
+  lg: 1rem,
+  xl: 1.125rem,
+  2xl: 1.25rem,
+  3xl: 1.5rem,
+  4xl: 1.875rem,
+);
+
+$radius-scale: (
+  none: 0,
+  xs: 2px,
+  sm: 3px,
+  md: 5px,
+  lg: 7px,
+  xl: 10px,
+  2xl: 12px,
+  full: 9999px,
+);
+
+// ─── SEMANTIC ALIASES MIXIN ─────────────────────────────────────────────────
+// Applied in :root to create convenient aliases pointing to base tokens.
+
+@mixin semantic-aliases {
+  // Spacing aliases (friendlier names)
+  --spacing-xs:   var(--space-1);   // 4px
+  --spacing-sm:   var(--space-2);   // 8px
+  --spacing-md:   var(--space-3);   // 12px
+  --spacing-lg:   var(--space-4);   // 16px
+  --spacing-xl:   var(--space-5);   // 20px
+  --spacing-2xl:  var(--space-6);   // 24px
+  --spacing-3xl:  var(--space-8);   // 32px
+  --spacing-4xl:  var(--space-12);  // 48px
+  --spacing-5xl:  var(--space-16);  // 64px
+
+  // Shadow aliases
+  --shadow-subtle: var(--shadow-xs);
+
+  // Typography aliases
+  --font-ui: var(--font-sans);
+
+  // Panel semantic aliases (resolve to same underlying tokens)
+  --panel-bg:      var(--bg-primary);
+  --panel-hover:   var(--bg-tertiary);
+  --panel-border:  var(--border-primary);
+
+  // Interactive semantic aliases
+  --accent-primary: var(--color-primary);
+  --accent-hover:   var(--color-primary-hover);
+
+  // IdP brand colors (auth SSO buttons — tokenized, no raw hex in components)
+  --color-idp-keycloak: #4d66a5;
+  --color-idp-azure:    #0078d4;
+}
+
+// ─── LIGHT THEME MIXIN ─────────────────────────────────────────────────────
+// Explicit light-mode overrides. Applied by [data-theme="light"] selector.
+// Uses soft neutral surfaces (not pure white) for professional IDE feel.
+
+@mixin light-tokens {
+  // ── Surfaces ──────────────────────────────────────────────────────────
+  --bg-canvas:       #f5f5f5;
+  --bg-primary:      #ffffff;
+  --bg-secondary:    #f9fafb;
+  --bg-tertiary:     #f3f4f6;
+  --bg-elevated:     #ffffff;
+  --bg-sunken:       #ebedf0;
+  --bg-overlay:      rgba(0, 0, 0, 0.45);
+  --bg-overlay-light: rgba(0, 0, 0, 0.06);
+  --bg-sidebar:      #f3f4f6;
+  --bg-sidebar-hover:  #e5e7eb;
+  --bg-sidebar-active: #dbeafe;
+  --bg-activity-bar: #e5e7eb;
+  --bg-statusbar:    #007acc;
+  --bg-breadcrumb:   transparent;
+
+  // ── Borders ───────────────────────────────────────────────────────────
+  --border-primary:   #e5e7eb;
+  --border-secondary: #f3f4f6;
+  --border-strong:    #d1d5db;
+  --border-focus:     #f97316;
+  --border-accent:    #6366f1;
+  --border-success:   #10b981;
+  --border-error:     #ef4444;
+
+  // ── Text ──────────────────────────────────────────────────────────────
+  --text-primary:    #111827;
+  --text-secondary:  #6b7280;
+  --text-tertiary:   #9ca3af;
+  --text-muted:      #d1d5db;
+  --text-inverse:    #ffffff;
+  --text-link:       #f97316;
+  --text-code:       #e11d48;
+  --text-sidebar:    #374151;
+  --text-sidebar-active: #111827;
+  --text-statusbar:  #ffffff;
+
+  // ── Brand Primary (orange) ────────────────────────────────────────────
+  --color-primary:        #f97316;
+  --color-primary-hover:  #ea580c;
+  --color-primary-active: #c2410c;
+  --color-primary-light:  #fff7ed;
+  --color-primary-50:     #fff7ed;
+  --color-primary-100:    #ffedd5;
+  --color-primary-200:    #fed7aa;
+  --color-primary-300:    #fdba74;
+
+  // ── Accent (indigo for AI features in light mode) ─────────────────────
+  --color-accent:     #6366f1;
+  --color-accent-hover: #4f46e5;
+  --color-accent-light: #eef2ff;
+  --color-accent-50:  #eef2ff;
+  --color-accent-100: #e0e7ff;
+  --color-accent-200: #c7d2fe;
+  --color-accent-500: #6366f1;
+  --color-accent-600: #4f46e5;
+  --color-accent-700: #4338ca;
+
+  // ── Grays (warm neutral) ──────────────────────────────────────────────
+  --color-gray-25:  #fcfcfd;
+  --color-gray-50:  #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-150: #ebedf0;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  // ── Semantic Status ─────────────────────────────────────────────────
+  --color-success:       #10b981;
+  --color-success-light: #ecfdf5;
+  --color-success-50:    #ecfdf5;
+  --color-success-dark:  #059669;
+  --color-error:         #ef4444;
+  --color-error-light:   #fef2f2;
+  --color-error-50:      #fef2f2;
+  --color-error-200:     #fecaca;
+  --color-error-dark:    #dc2626;
+  --color-warning:       #f59e0b;
+  --color-warning-light: #fffbeb;
+  --color-warning-50:    #fffbeb;
+  --color-warning-dark:  #d97706;
+  --color-info:          #3b82f6;
+  --color-info-light:    #eff6ff;
+  --color-info-50:       #eff6ff;
+  --color-info-dark:     #2563eb;
+
+  // ── Shadows (light — subtle depth) ──────────────────────────────────
+  --shadow-xs:           0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm:           0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md:           0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+  --shadow-lg:           0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+  --shadow-xl:           0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  --shadow-2xl:          0 25px 50px -12px rgba(0, 0, 0, 0.12);
+  --shadow-inner:        inset 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-inset:        inset 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-ring:         0 0 0 1px rgba(0, 0, 0, 0.04);
+  --shadow-panel:        0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-card:         0 0 0 1px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover:   0 0 0 1px rgba(0, 0, 0, 0.06), 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+  --shadow-dropdown:     0 4px 16px -2px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  --shadow-modal:        0 16px 48px -8px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --shadow-focus:        0 0 0 2px rgba(249, 115, 22, 0.2);
+  --shadow-focus-accent: 0 0 0 2px rgba(99, 102, 241, 0.25);
+
+  // ── Input / interactive ─────────────────────────────────────────────
+  --ide-input-bg:     #ffffff;
+  --ide-input-border: #e5e7eb;
+
+  // ── Scrollbar for light mode ────────────────────────────────────────
+  scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+}
+
+// ─── ASSISTANT/AI PANEL TOKENS ──────────────────────────────────────────────
+// For AI chat panels, copilot features — use design system tokens:
+//
+//   Background:    var(--bg-primary) or var(--bg-secondary)
+//   Text:          var(--text-primary), var(--text-secondary)
+//   Border:        var(--border-primary)
+//   Accent:        var(--color-primary) for brand, var(--color-accent) for IDE
+//   Font:          var(--font-sans)
+//   Shadow:        var(--shadow-panel), var(--shadow-card)
+//   Radius:        var(--ide-card-radius)
+//   Spacing:       var(--space-2) through var(--space-4) for compact panels
+
+// ─── WORKFLOW DESIGNER TOKENS ───────────────────────────────────────────────
+// Node/canvas tokens (in :root):
+//
+//   --ide-node-gap:      32px   Space between workflow nodes
+//   --ide-node-padding:  16px   Internal node padding
+//   Canvas bg:           var(--bg-sunken) or var(--bg-canvas)

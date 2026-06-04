@@ -1,0 +1,23 @@
+export const conditionOperator: any[] = [
+	"equals",
+	"notEquals",
+	"in",
+	"notIn",
+	"contains",
+	"notContains",
+	"greaterThan",
+	"greaterThanEquals",
+	"lessThan",
+	"lessThanEquals",
+	"isObject",
+	"notObject",
+	"isNaN",
+	"isNumber",
+	"isArray",
+	"notArray",
+	"notNull",
+	"exactEquals",
+	"regex",
+	"hasProperty",
+	"between"
+];
