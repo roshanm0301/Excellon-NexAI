@@ -1,7 +1,9 @@
 import { Handle, Position } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
+import { Layers } from 'lucide-react'
 import type { WorkflowStep } from '../../../../types/workflowBuilder'
 import { getTaskConfig } from '../toolbox/taskTypeRegistry'
+import { BRANCHING_TASK_TYPES, type TaskType } from '../../../../types/workflowBuilder'
 import { TaskIcon } from './TaskIcon'
 
 interface TaskNodeData {
@@ -10,22 +12,37 @@ interface TaskNodeData {
   taskType: string
 }
 
+const CONTAINER_TYPES = new Set(['Loop', 'Iterator', 'Transaction', 'Sequence', 'Parallel', 'Promise'])
+
 export function TaskNode({ data, selected }: NodeProps) {
   const nodeData = data as unknown as TaskNodeData
   const config = getTaskConfig(nodeData.taskType)
+  const isContainer = CONTAINER_TYPES.has(nodeData.taskType)
+  const isBranching = BRANCHING_TASK_TYPES.has(nodeData.taskType as TaskType)
 
   const borderColor = selected
     ? 'var(--brand-400, #60a5fa)'
-    : 'var(--color-border, #e5e7eb)'
+    : isContainer
+      ? 'var(--color-border-strong, #d1d5db)'
+      : 'var(--color-border, #e5e7eb)'
+
   const stripColor = config?.color ?? 'var(--brand-500)'
-  const bgColor = 'var(--color-surface, #ffffff)'
+  const bgColor = isContainer
+    ? 'var(--color-surface-raised, #fafafa)'
+    : 'var(--color-surface, #ffffff)'
+
+  const branchCount = nodeData.step.branches
+    ? Object.keys(nodeData.step.branches).length
+    : 0
 
   return (
     <div
       style={{
         width: 220,
         background: bgColor,
-        border: `1.5px solid ${borderColor}`,
+        border: isContainer
+          ? `1.5px dashed ${selected ? 'var(--brand-400, #60a5fa)' : 'var(--color-border-strong, #d1d5db)'}`
+          : `1.5px solid ${borderColor}`,
         borderRadius: 8,
         boxShadow: selected
           ? '0 0 0 2px rgba(59,130,246,0.25), 0 4px 12px rgba(0,0,0,0.08)'
@@ -67,22 +84,45 @@ export function TaskNode({ data, selected }: NodeProps) {
           >
             {nodeData.label}
           </span>
+          {isContainer && (
+            <span title="Contains child steps" style={{ color: stripColor, flexShrink: 0 }}>
+              <Layers size={11} />
+            </span>
+          )}
         </div>
 
-        {/* Step ID badge */}
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            fontSize: '0.6875rem',
-            color: 'var(--color-text-muted, #9ca3af)',
-            background: 'var(--color-surface-2, #f3f4f6)',
-            borderRadius: 4,
-            padding: '1px 6px',
-            fontFamily: 'monospace',
-          }}
-        >
-          {'{$.'}{nodeData.step.id}{'}'}
+        {/* Step ID badge + branch/child info */}
+        <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              fontSize: '0.6875rem',
+              color: 'var(--color-text-muted, #9ca3af)',
+              background: 'var(--color-surface-2, #f3f4f6)',
+              borderRadius: 4,
+              padding: '1px 6px',
+              fontFamily: 'monospace',
+            }}
+          >
+            {'{$.'}{nodeData.step.id}{'}'}
+          </div>
+          {(isContainer || isBranching) && branchCount > 0 && (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                fontSize: '0.625rem',
+                color: stripColor,
+                background: config?.bgColor ?? 'var(--color-surface-2)',
+                borderRadius: 4,
+                padding: '1px 5px',
+                fontWeight: 500,
+              }}
+            >
+              {branchCount} {branchCount === 1 ? 'branch' : 'branches'}
+            </div>
+          )}
         </div>
       </div>
 
