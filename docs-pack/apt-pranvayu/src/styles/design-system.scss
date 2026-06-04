@@ -1,0 +1,1633 @@
+// ============================================================================
+// PRANVAYU DESIGN SYSTEM — IDE + AI-NATIVE WORKFLOW PLATFORM
+// Professional developer IDE density · VS Code / JetBrains / Cursor parity
+// ============================================================================
+
+@import './design-tokens';
+
+// ─── CSS CUSTOM PROPERTIES (Design Tokens) ──────────────────────────────────
+
+:root {
+  // ── Brand Colors (Orange) ──────────────────────────────────────────────────
+  --color-primary: #f97316;
+  --color-primary-hover: #ea580c;
+  --color-primary-active: #c2410c;
+  --color-primary-light: #fff7ed;
+  --color-primary-50: #fff7ed;
+  --color-primary-100: #ffedd5;
+  --color-primary-200: #fed7aa;
+  --color-primary-300: #fdba74;
+  --color-primary-400: #fb923c;
+  --color-primary-500: #f97316;
+  --color-primary-600: #ea580c;
+  --color-primary-700: #c2410c;
+  --color-primary-800: #9a3412;
+  --color-primary-900: #7c2d12;
+
+  // ── Accent Colors (for AI features, highlights) ───────────────────────────
+  --color-accent: #6366f1;           // indigo — AI/copilot features
+  --color-accent-hover: #4f46e5;
+  --color-accent-light: #eef2ff;
+  --color-accent-50: #eef2ff;
+  --color-accent-100: #e0e7ff;
+  --color-accent-500: #6366f1;
+  --color-accent-600: #4f46e5;
+  --color-accent-700: #4338ca;
+
+  // ── Neutral Colors ────────────────────────────────────────────────────────
+  --color-gray-25: #fcfcfd;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-150: #ebedf0;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  // ── Semantic Colors ───────────────────────────────────────────────────────
+  --color-success: #10b981;
+  --color-success-light: #ecfdf5;
+  --color-success-50: #ecfdf5;
+  --color-success-dark: #059669;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fffbeb;
+  --color-warning-50: #fffbeb;
+  --color-warning-dark: #d97706;
+  --color-error: #ef4444;
+  --color-error-light: #fef2f2;
+  --color-error-50: #fef2f2;
+  --color-error-200: #fecaca;
+  --color-error-dark: #dc2626;
+  --color-error-border: rgba(239, 68, 68, 0.3);
+  --color-info: #3b82f6;
+  --color-info-light: #eff6ff;
+  --color-info-50: #eff6ff;
+  --color-info-dark: #2563eb;
+
+  // ── Background Colors ─────────────────────────────────────────────────────
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-elevated: #ffffff;
+  --bg-sunken: #f3f4f6;              // inset / recessed panels
+  --bg-canvas: #fafbfc;              // page canvas / workspace background
+  --bg-overlay: rgba(0, 0, 0, 0.45);
+  --bg-overlay-light: rgba(0, 0, 0, 0.08);
+  --bg-overlay-dark: rgba(0, 0, 0, 0.5);
+  --bg-overlay-subtle: rgba(0, 0, 0, 0.04);
+  --bg-sidebar: #1b1b2f;
+  --bg-sidebar-hover: #252541;
+  --bg-sidebar-active: #2f2f54;
+  --bg-activity-bar: #16162a;        // VS Code-style activity bar
+  --bg-statusbar: #1b1b2f;          // IDE status bar (dark)
+  --bg-breadcrumb: transparent;
+
+  // ── IDE Input Tokens (light defaults) ─────────────────────────────────────
+  --ide-input-bg: #ffffff;
+  --ide-input-border: #d1d5db;
+
+  // ── Specialized Color Tokens ──────────────────────────────────────────────
+  --color-list-focus-bg: #0060c0;    // VS Code list.focusBackground
+  --color-scrollbar: rgba(121, 121, 121, 0.4);
+  --color-code-string: #a31515;      // VS Code string literal color (light)
+
+  // ── Text Colors ───────────────────────────────────────────────────────────
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --text-muted: #d1d5db;             // very faint text (watermarks)
+  --text-inverse: #ffffff;
+  --text-link: #f97316;
+  --text-code: #e11d48;              // inline code accent (rose)
+  --text-sidebar: #94a3b8;
+  --text-sidebar-active: #ffffff;
+  --text-statusbar: #94a3b8;
+
+  // ── Border Colors ─────────────────────────────────────────────────────────
+  --border-primary: #e5e7eb;
+  --border-secondary: #f3f4f6;
+  --border-strong: #d1d5db;           // stronger separator for major divisions
+  --border-focus: #f97316;
+  --border-error: #ef4444;
+  --border-success: #10b981;
+  --border-accent: #6366f1;
+
+  // ── Spacing Scale (8px grid) ────────────────────────────────────────────
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  // ── Typography ────────────────────────────────────────────────────────────
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, Consolas,
+    'Courier New', monospace;
+
+  --text-2xs: 0.625rem;  // 10px — micro labels, status bar
+  --text-xs: 0.75rem;    // 12px
+  --text-sm: 0.8125rem;  // 13px
+  --text-base: 0.875rem; // 14px
+  --text-md: 0.9375rem;  // 15px
+  --text-lg: 1rem;       // 16px
+  --text-xl: 1.125rem;   // 18px
+  --text-2xl: 1.25rem;   // 20px
+  --text-3xl: 1.5rem;    // 24px
+  --text-4xl: 1.875rem;  // 30px
+
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  --tracking-tighter: -0.03em;
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.08em;
+
+  // ── Shadows (IDE-grade flat + subtle depth) ───────────────────────────────
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+  --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-focus: 0 0 0 2px rgba(249, 115, 22, 0.2);
+  --shadow-focus-accent: 0 0 0 2px rgba(99, 102, 241, 0.25);
+  --shadow-card: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+  --shadow-ring: 0 0 0 1px var(--border-primary);
+  --shadow-panel: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-dropdown: 0 4px 16px -2px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  --shadow-modal: 0 16px 48px -8px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.06);
+
+  // ── Border Radius (compact — developer density) ────────────────────────────
+  --radius-none: 0;
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 7px;
+  --radius-xl: 10px;
+  --radius-2xl: 12px;
+  --radius-full: 9999px;
+
+  // ── Transitions ───────────────────────────────────────────────────────────
+  --transition-instant: 80ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-bounce: 500ms cubic-bezier(0.68, -0.55, 0.27, 1.55);
+
+  // ── Z-Index Scale ─────────────────────────────────────────────────────────
+  --z-base: 0;
+  --z-above: 1;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-popover: 500;
+  --z-toast: 600;
+  --z-tooltip: 700;
+  --z-command-palette: 800;
+  --z-max: 9999;
+
+  // ── Layout (compact — developer density) ──────────────────────────────────
+  --activity-bar-width: 48px;      // VS Code activity bar (6 × 8)
+  --sidebar-width: 250px;          // slightly wider for readability
+  --sidebar-collapsed-width: 52px;  // matches drawer minSize for icon visibility
+  --header-height: 48px;           // 48 = 6 × 8  — room for toolbar items
+  --breadcrumb-height: 28px;       // breadcrumb rail below header
+  --page-max-width: 1440px;
+  --footer-height: 24px;           // IDE status-bar height
+  --tab-bar-height: 36px;          // document tab strip
+
+  // ── IDE Panel Layout Tokens ───────────────────────────────────────────────
+  --ide-panel-gutter: 16px;
+  --ide-panel-gutter-lg: 24px;
+  --ide-section-gap: 24px;
+  --ide-toolbar-height: 40px;
+  --ide-toolbar-height-sm: 32px;
+  --ide-toolbar-height-xs: 28px;
+  --ide-sidebar-item-py: 6px;
+  --ide-sidebar-item-px: 12px;
+  --ide-card-padding: 16px;
+  --ide-card-padding-sm: 12px;
+  --ide-card-padding-lg: 24px;
+  --ide-card-radius: 6px;
+  --ide-card-shadow: var(--shadow-card);
+  --ide-card-shadow-hover: var(--shadow-card-hover);
+  --ide-inspector-width: 320px;
+  --ide-grid-gap: 16px;
+  --ide-node-gap: 32px;
+  --ide-node-padding: 16px;
+  --ide-prop-label-width: 104px;
+  --ide-minimap-width: 120px;
+  --ide-panel-min-width: 200px;
+  --ide-resize-handle: 4px;        // drag handle width for panel resizers
+
+  // ── IDE Density Helpers ───────────────────────────────────────────────────
+  --ide-row-height: 32px;
+  --ide-row-height-sm: 28px;
+  --ide-row-height-xs: 24px;       // ultra-compact (status bar items, minimap labels)
+  --ide-row-height-lg: 40px;
+  --ide-input-height: 32px;
+  --ide-input-height-sm: 28px;
+  --ide-icon-size: 16px;           // standard icon in toolbars/sidebars
+  --ide-icon-size-sm: 14px;
+  --ide-icon-size-lg: 20px;
+
+  // ── Semantic Aliases ──────────────────────────────────────────────────────
+  @include semantic-aliases;
+}
+
+
+// ─── GLOBAL RESETS & BASE STYLES ────────────────────────────────────────────
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';  // Inter OpenType features
+  scroll-behavior: smooth;
+  hanging-punctuation: first last;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  background-color: var(--bg-canvas, #1e1e1e);
+  -webkit-tap-highlight-color: transparent;
+  overflow-wrap: break-word;
+  accent-color: var(--color-primary);
+}
+
+// Global anchor reset
+a {
+  color: var(--text-link);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--color-primary-hover);
+    text-decoration: none;
+  }
+
+  &:visited {
+    color: var(--text-link);
+  }
+}
+
+// Inline code
+code:not([class*="language-"]) {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 1px 5px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-xs);
+  color: var(--text-code);
+}
+
+// Strong/bold consistency
+strong, b { font-weight: var(--font-semibold); }
+
+// Truncation utility
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// ─── UTILITY CLASSES ────────────────────────────────────────────────────────
+
+// Layout
+.saas-flex { display: flex; }
+.saas-flex-col { display: flex; flex-direction: column; }
+.saas-flex-center { display: flex; align-items: center; justify-content: center; }
+.saas-flex-between { display: flex; align-items: center; justify-content: space-between; }
+.saas-flex-wrap { flex-wrap: wrap; }
+.saas-flex-1 { flex: 1; min-width: 0; }
+.saas-flex-shrink-0 { flex-shrink: 0; }
+.saas-gap-0 { gap: 0; }
+.saas-gap-1 { gap: var(--space-1); }
+.saas-gap-2 { gap: var(--space-2); }
+.saas-gap-3 { gap: var(--space-3); }
+.saas-gap-4 { gap: var(--space-4); }
+.saas-gap-6 { gap: var(--space-6); }
+.saas-gap-8 { gap: var(--space-8); }
+
+// Text utilities
+.text-2xs { font-size: var(--text-2xs); }
+.text-xs { font-size: var(--text-xs); }
+.text-sm { font-size: var(--text-sm); }
+.text-base { font-size: var(--text-base); }
+.text-lg { font-size: var(--text-lg); }
+.text-mono { font-family: var(--font-mono); }
+.text-uppercase {
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-semibold);
+}
+.text-muted { color: var(--text-tertiary); }
+.text-primary-color { color: var(--color-primary); }
+.text-accent { color: var(--color-accent); }
+
+// Cards & Panels
+.saas-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--ide-card-radius);
+  box-shadow: var(--shadow-panel);
+  transition: box-shadow var(--transition-base), border-color var(--transition-base);
+
+  &:hover {
+    box-shadow: var(--ide-card-shadow-hover);
+  }
+}
+
+.saas-card-interactive {
+  @extend .saas-card;
+  cursor: pointer;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--ide-card-shadow-hover);
+    border-color: var(--color-gray-300);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-panel);
+  }
+
+  // Keyboard focus ring
+  &:focus-visible {
+    box-shadow: var(--shadow-focus);
+    border-color: var(--color-primary);
+  }
+}
+
+// Flat panel — no hover effects
+.saas-panel {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--ide-card-radius);
+  padding: var(--ide-card-padding);
+  box-shadow: var(--shadow-panel);
+}
+
+// Inset panel — sunken background for nested content
+.saas-panel-inset {
+  background: var(--bg-sunken);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--ide-card-padding-sm);
+}
+
+// Floating panel — elevated (context menus, popups)
+.saas-panel-floating {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-1);
+  box-shadow: var(--shadow-dropdown);
+}
+
+// Page Layout
+.saas-page {
+  padding: var(--ide-card-padding-sm) var(--ide-panel-gutter);
+  max-width: var(--page-max-width);
+  width: 100%;
+  margin: 0 auto;
+  animation: saas-fade-in 150ms ease-out;
+}
+
+.saas-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--ide-section-gap);
+  gap: var(--space-3);
+  min-height: var(--ide-toolbar-height);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-secondary);
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    color: var(--text-primary);
+    line-height: var(--leading-tight);
+    margin-bottom: var(--space-0-5);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  &__description {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: var(--leading-relaxed);
+    max-width: 600px;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+  }
+}
+
+// Section Blocks
+.saas-section {
+  margin-bottom: var(--ide-section-gap);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--ide-card-padding-sm);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-secondary);
+    min-height: var(--ide-row-height);
+  }
+
+  &__title {
+    font-size: var(--text-base);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  &__subtitle {
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    margin-top: 1px;
+  }
+
+  &__badge {
+    font-size: var(--text-2xs);
+    font-weight: var(--font-semibold);
+    color: var(--text-tertiary);
+    background: var(--bg-tertiary);
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+    margin-left: var(--space-2);
+  }
+}
+
+// Buttons
+.saas-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1-5);
+  padding: 0 var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  line-height: 1;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  height: var(--ide-input-height);
+  min-height: var(--ide-input-height);
+  text-decoration: none;
+  user-select: none;
+  position: relative;
+  isolation: isolate;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  // Icon inside button
+  svg, .icon {
+    width: var(--ide-icon-size);
+    height: var(--ide-icon-size);
+    flex-shrink: 0;
+  }
+
+  &--primary {
+    background: var(--color-primary);
+    color: var(--text-inverse);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+
+    &:hover:not(:disabled) {
+      background: var(--color-primary-hover);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+    }
+
+    &:active:not(:disabled) {
+      background: var(--color-primary-active);
+      box-shadow: none;
+    }
+  }
+
+  &--secondary {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-primary);
+    box-shadow: var(--shadow-xs);
+
+    &:hover:not(:disabled) {
+      background: var(--bg-tertiary);
+      border-color: var(--border-strong);
+    }
+
+    &:active:not(:disabled) {
+      background: var(--color-gray-150);
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: var(--text-secondary);
+
+    &:hover:not(:disabled) {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+  }
+
+  &--danger {
+    background: var(--color-error);
+    color: var(--text-inverse);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+
+    &:hover:not(:disabled) {
+      background: var(--color-error-dark);
+    }
+  }
+
+  &--accent {
+    background: var(--color-accent);
+    color: var(--text-inverse);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+
+    &:hover:not(:disabled) {
+      background: var(--color-accent-hover);
+    }
+  }
+
+  &--sm {
+    height: var(--ide-input-height-sm);
+    min-height: var(--ide-input-height-sm);
+    padding: 0 var(--space-2);
+    font-size: var(--text-xs);
+    gap: var(--space-1);
+
+    svg, .icon {
+      width: var(--ide-icon-size-sm);
+      height: var(--ide-icon-size-sm);
+    }
+  }
+
+  &--lg {
+    height: var(--ide-row-height-lg);
+    min-height: var(--ide-row-height-lg);
+    padding: 0 var(--space-4);
+    font-size: var(--text-base);
+  }
+
+  &--icon {
+    width: var(--ide-input-height);
+    height: var(--ide-input-height);
+    min-height: var(--ide-input-height);
+    padding: 0;
+  }
+
+  &--icon-sm {
+    width: var(--ide-input-height-sm);
+    height: var(--ide-input-height-sm);
+    min-height: var(--ide-input-height-sm);
+    padding: 0;
+
+    svg, .icon {
+      width: var(--ide-icon-size-sm);
+      height: var(--ide-icon-size-sm);
+    }
+  }
+}
+
+// Badges & Tags
+.saas-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 8px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-full);
+  line-height: 1.5;
+
+  &--default {
+    background: var(--color-gray-100);
+    color: var(--color-gray-700);
+  }
+
+  &--primary {
+    background: var(--color-primary-100);
+    color: var(--color-primary-700);
+  }
+
+  &--success {
+    background: var(--color-success-light);
+    color: var(--color-success-dark);
+  }
+
+  &--warning {
+    background: var(--color-warning-light);
+    color: var(--color-warning-dark);
+  }
+
+  &--error {
+    background: var(--color-error-light);
+    color: var(--color-error-dark);
+  }
+
+  &--info {
+    background: var(--color-info-light);
+    color: var(--color-info-dark);
+  }
+
+  // Dot indicator
+  &__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+// Form Elements
+.saas-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);                      // 4px label-to-input
+  margin-bottom: var(--space-4);            // 16px between field groups
+}
+
+.saas-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+
+  &--required::after {
+    content: ' *';
+    color: var(--color-error);
+  }
+}
+
+.saas-help-text {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  margin-top: var(--space-1);
+}
+
+.saas-input {
+  height: var(--ide-input-height);
+  padding: 0 var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  width: 100%;
+
+  &::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  &:hover:not(:focus) {
+    border-color: var(--color-gray-300);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-focus);
+    background: var(--bg-primary);
+  }
+
+  &--sm {
+    height: var(--ide-input-height-sm);
+    padding: 0 var(--space-2);
+    font-size: var(--text-xs);
+  }
+
+  &--error {
+    border-color: var(--color-error);
+
+    &:focus {
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+    }
+  }
+
+  &--mono {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: -0.01em;
+  }
+}
+
+.saas-textarea {
+  @extend .saas-input;
+  height: auto;
+  min-height: 80px;
+  resize: vertical;
+}
+
+// Toggle Switch
+.saas-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  &__track {
+    width: 40px;
+    height: 22px;
+    background: var(--color-gray-300);
+    border-radius: var(--radius-full);
+    position: relative;
+    transition: background var(--transition-fast);
+  }
+
+  &__thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: var(--text-inverse, #ffffff);
+    border-radius: 50%;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-fast);
+  }
+
+  input:checked ~ .saas-toggle__track {
+    background: var(--color-primary);
+  }
+
+  input:checked ~ .saas-toggle__track .saas-toggle__thumb {
+    transform: translateX(18px);
+  }
+
+  input:focus-visible ~ .saas-toggle__track {
+    box-shadow: var(--shadow-focus);
+  }
+}
+
+// Empty States
+.saas-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+
+  &__icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-xl);
+    margin-bottom: var(--space-4);
+    color: var(--text-tertiary);
+    font-size: 24px;
+  }
+
+  &__title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+  }
+
+  &__description {
+    font-size: var(--text-base);
+    color: var(--text-secondary);
+    max-width: 400px;
+    margin-bottom: var(--space-6);
+    line-height: var(--leading-relaxed);
+  }
+}
+
+// Loading Skeleton
+.saas-skeleton {
+  background: linear-gradient(90deg,
+    var(--color-gray-100) 25%,
+    var(--color-gray-200) 50%,
+    var(--color-gray-100) 75%
+  );
+  background-size: 200% 100%;
+  animation: saas-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+
+  &--text {
+    height: 14px;
+    width: 60%;
+    margin-bottom: var(--space-2);
+  }
+
+  &--title {
+    height: 20px;
+    width: 40%;
+    margin-bottom: var(--space-3);
+  }
+
+  &--avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+  }
+
+  &--card {
+    height: 90px;
+    width: 100%;
+  }
+
+  &--row {
+    height: 36px;
+    width: 100%;
+    margin-bottom: var(--space-2);
+  }
+}
+
+// Divider
+.saas-divider {
+  height: 1px;
+  background: var(--border-primary);
+  border: none;
+  margin: var(--space-4) 0;                  // 16px vertical spacing
+
+  &--light {
+    background: var(--border-secondary);
+  }
+
+  &--section {
+    margin: var(--space-6) 0;                // 24px for major section breaks
+  }
+}
+
+// Tooltip
+.saas-tooltip {
+  position: relative;
+
+  &__content {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--space-1) var(--space-2);
+    background: var(--color-gray-900);
+    color: var(--text-inverse);
+    font-size: var(--text-xs);
+    font-weight: var(--font-medium);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    z-index: var(--z-tooltip);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 4px solid transparent;
+      border-top-color: var(--color-gray-900);
+    }
+  }
+
+  &:hover .saas-tooltip__content {
+    opacity: 1;
+  }
+}
+
+// ─── ANIMATIONS ─────────────────────────────────────────────────────────────
+
+@keyframes saas-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes saas-slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes saas-slide-down {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes saas-slide-right {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes saas-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes saas-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes saas-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes saas-toast-in {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes saas-toast-out {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100%); }
+}
+
+// ─── RESPONSIVE BREAKPOINTS ─────────────────────────────────────────────────
+
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == sm { @media (max-width: #{$breakpoint-sm}) { @content; } }
+  @if $breakpoint == md { @media (max-width: #{$breakpoint-md}) { @content; } }
+  @if $breakpoint == lg { @media (max-width: #{$breakpoint-lg}) { @content; } }
+  @if $breakpoint == xl { @media (max-width: #{$breakpoint-xl}) { @content; } }
+}
+
+// ─── SCROLLBAR STYLING (VS Code-style) ──────────────────────────────────────
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(121, 121, 121, 0.4) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(121, 121, 121, 0.4);
+  border-radius: 0;              // VS Code uses square scrollbar thumbs
+  border: 2px solid transparent;
+  background-clip: content-box;
+
+  &:hover {
+    background: rgba(121, 121, 121, 0.7);
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+// Thin scrollbar variant for tight panels
+.scrollbar-thin {
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+// ─── SELECTION (VS Code-style) ──────────────────────────────────────────────
+
+::selection {
+  background: var(--color-selection-bg, #264f78);  // VS Code selection background
+  color: var(--color-selection-fg, #ffffff);
+}
+
+// ─── FOCUS VISIBLE (VS Code blue focus ring) ────────────────────────────────
+
+*:focus-visible {
+  outline: 1px solid var(--border-focus, #007acc);
+  outline-offset: -1px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+// ─── IDE PANEL RESIZE HANDLE ────────────────────────────────────────────────
+
+.ide-resize-handle {
+  position: relative;
+  flex-shrink: 0;
+  background: transparent;
+  transition: background var(--transition-fast);
+  z-index: var(--z-above);
+
+  &::after {
+    content: '';
+    position: absolute;
+    background: var(--color-primary);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  &:hover, &:active {
+    &::after { opacity: 1; }
+  }
+
+  &--vertical {
+    width: var(--ide-resize-handle);
+    cursor: col-resize;
+
+    &::after {
+      top: 0; bottom: 0;
+      left: 50%; width: 2px;
+      transform: translateX(-50%);
+    }
+  }
+
+  &--horizontal {
+    height: var(--ide-resize-handle);
+    cursor: row-resize;
+
+    &::after {
+      left: 0; right: 0;
+      top: 50%; height: 2px;
+      transform: translateY(-50%);
+    }
+  }
+}
+
+// ─── BREADCRUMB BAR (VS Code Dark) ──────────────────────────────────────────
+
+.ide-breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  height: var(--breadcrumb-height);
+  padding: 0 var(--ide-panel-gutter);
+  background: var(--bg-breadcrumb, var(--bg-canvas));
+  border-bottom: 1px solid var(--border-secondary);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  gap: var(--space-1);
+  overflow-x: auto;
+  white-space: nowrap;
+
+  &::-webkit-scrollbar { display: none; }
+
+  a, span {
+    padding: 2px 4px;
+    border-radius: var(--radius-xs);
+    transition: all var(--transition-fast);
+  }
+
+  a:hover {
+    background: var(--bg-overlay-light);
+    color: var(--text-primary);
+  }
+
+  .separator {
+    color: var(--text-muted);
+    font-size: 10px;
+    user-select: none;
+  }
+
+  .current {
+    color: var(--text-primary);
+    font-weight: var(--font-medium);
+  }
+}
+
+// ─── ACTIVITY BAR (VS Code-style — dark) ───────────────────────────────────
+
+.ide-activity-bar {
+  width: var(--activity-bar-width);
+  background: var(--bg-activity-bar);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-right: 1px solid var(--border-primary);
+  flex-shrink: 0;
+
+  &__item {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0;                   // VS Code uses no border-radius
+    color: var(--text-tertiary);        // activityBar.inactiveForeground
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    margin-bottom: 0;
+
+    &:hover {
+      color: var(--text-inverse);
+    }
+
+    &--active {
+      color: var(--text-inverse);      // activityBar.foreground
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 25%;
+        bottom: 25%;
+        width: 2px;
+        background: var(--text-inverse); // VS Code uses white indicator bar
+        border-radius: 0 2px 2px 0;
+      }
+    }
+
+    svg, .icon {
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  &__spacer {
+    flex: 1;
+  }
+
+  // Bottom items (settings, user)
+  &__bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+}
+
+// ─── DOCUMENT TAB BAR (VS Code Dark) ────────────────────────────────────────
+
+.ide-tab-bar {
+  display: flex;
+  align-items: stretch;
+  height: var(--tab-bar-height);
+  background: var(--bg-secondary);       // editorGroupHeader.tabsBackground
+  border-bottom: 1px solid var(--border-primary);
+  overflow-x: auto;
+  padding-left: 0;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.ide-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);          // tab.inactiveForeground
+  border-right: 1px solid var(--border-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  position: relative;
+  min-width: 0;
+  max-width: 200px;
+  background: transparent;
+
+  &:hover {
+    color: var(--text-secondary);
+  }
+
+  &--active {
+    background: var(--bg-canvas);        // tab.activeBackground (matches editor)
+    color: var(--text-primary);          // tab.activeForeground
+    font-weight: var(--font-normal);     // VS Code doesn't bold active tabs
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;                            // VS Code puts indicator on TOP
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--color-primary);  // Brand accent on active tab
+    }
+  }
+
+  &--modified {
+    .ide-tab__close::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-primary);
+    }
+  }
+
+  &__icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+
+  &__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__close {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-xs);
+    margin-left: auto;
+    opacity: 0;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      background: var(--bg-overlay-light);
+    }
+  }
+
+  &:hover .ide-tab__close,
+  &--active .ide-tab__close {
+    opacity: 1;
+  }
+}
+
+// ─── STATUS BAR (VS Code Blue) ──────────────────────────────────────────────
+
+.ide-statusbar {
+  display: flex;
+  align-items: center;
+  height: var(--footer-height);
+  background: var(--bg-statusbar);       // VS Code statusBar.background
+  color: var(--text-statusbar);
+  font-size: var(--text-2xs);
+  padding: 0 var(--space-2);
+  border-top: none;                      // VS Code has no top border on statusbar
+  gap: 0;
+  flex-shrink: 0;
+  z-index: var(--z-sticky);
+
+  &__left, &__right {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  &__right {
+    margin-left: auto;
+  }
+
+  &__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 0 var(--space-2);
+    height: 100%;
+    cursor: pointer;
+    transition: background var(--transition-instant);
+    white-space: nowrap;
+    color: var(--text-statusbar);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    svg, .icon {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  &__item--primary {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-statusbar);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+  }
+
+  &__item--accent {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-statusbar);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+  }
+
+  &__separator {
+    width: 1px;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.25);
+    margin: 0 2px;
+  }
+}
+
+// ─── AI / COPILOT INDICATOR ─────────────────────────────────────────────────
+
+.ai-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-accent);
+  padding: 2px 8px;
+  background: var(--color-accent-50);
+  border: 1px solid var(--color-accent-100);
+  border-radius: var(--radius-full);
+  animation: saas-fade-in 200ms ease-out;
+
+  &__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+.ai-sparkle {
+  background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// ─── KEYBOARD SHORTCUT ─────────────────────────────────────────────────────
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-xs);
+  line-height: 1;
+}
+
+// ─── IMPORT IDE GRID SYSTEM ─────────────────────────────────────────────────
+@import './ide-grid';
+
+// ─── DARK MODE FOUNDATION (VS CODE DARK+ PARITY) ───────────────────────────
+// Dark-first: tokens applied by default via `data-theme="dark"` on <html>.
+// Colors match VS Code Dark+ / Dark Modern for a native IDE feel.
+// Product brand (orange) retained as accent for interactive elements.
+
+@mixin vscode-dark-tokens {
+  // ── Surfaces (VS Code Dark Modern) ──────────────────────────────────────
+  --bg-canvas:       #1e1e1e;           // editor.background
+  --bg-primary:      #252526;           // sideBar.background / panel
+  --bg-secondary:    #2d2d2d;           // editorGroupHeader.tabsBackground
+  --bg-tertiary:     #333333;           // hover / subtle interactive
+  --bg-elevated:     #2d2d30;           // popup / dropdown background
+  --bg-sunken:       #181818;           // terminal / inset panels
+  --bg-overlay:      rgba(0, 0, 0, 0.50);
+  --bg-overlay-light: rgba(255, 255, 255, 0.04);
+  --bg-sidebar:      #252526;           // sideBar.background
+  --bg-sidebar-hover:  #2a2d2e;        // list.hoverBackground
+  --bg-sidebar-active: #37373d;         // list.activeSelectionBackground
+  --bg-activity-bar: #333333;           // activityBar.background
+  --bg-statusbar:    #007acc;           // statusBar.background (VS Code blue)
+  --bg-breadcrumb:   #1e1e1e;
+
+  // ── Borders (VS Code Dark Modern) ───────────────────────────────────────
+  --border-primary:   #3c3c3c;          // panel.border
+  --border-secondary: #2d2d2d;          // subtle separators
+  --border-strong:    #4d4d4d;          // major dividers
+  --border-focus:     #007acc;          // focusBorder
+  --border-accent:    rgba(99, 102, 241, 0.4);
+  --border-success:   rgba(52, 211, 153, 0.4);
+  --border-error:     #f14c4c;
+
+  // ── Text (VS Code Dark Modern) ──────────────────────────────────────────
+  --text-primary:    #cccccc;           // editor.foreground
+  --text-secondary:  #969696;           // description text
+  --text-tertiary:   #6a6a6a;          // placeholders / disabled
+  --text-muted:      #4d4d4d;          // watermarks
+  --text-inverse:    #ffffff;
+  --text-link:       #3794ff;           // textLink.foreground
+  --text-code:       #ce9178;           // string color in VS Code
+  --text-sidebar:    #cccccc;           // sidebar foreground
+  --text-sidebar-active: #ffffff;
+  --text-statusbar:  #ffffff;           // statusBar.foreground
+
+  // ── Brand Primary (orange - preserved) ──────────────────────────────────
+  --color-primary:        #f97316;
+  --color-primary-hover:  #fb923c;
+  --color-primary-active: #ea580c;
+  --color-primary-light:  rgba(249, 115, 22, 0.12);
+  --color-primary-50:     rgba(249, 115, 22, 0.08);
+  --color-primary-100:    rgba(249, 115, 22, 0.14);
+  --color-primary-200:    #fdba74;
+  --color-primary-300:    #fed7aa;
+
+  // ── Accent (VS Code blue for IDE features) ─────────────────────────────
+  --color-accent:     #007acc;          // VS Code signature blue
+  --color-accent-hover: #1a8ad4;
+  --color-accent-light: rgba(0, 122, 204, 0.12);
+  --color-accent-50:  rgba(0, 122, 204, 0.08);
+  --color-accent-100: rgba(0, 122, 204, 0.14);
+  --color-accent-200: #4daadb;
+  --color-accent-500: #007acc;
+  --color-accent-600: #006bb3;
+  --color-accent-700: #005a9e;
+
+  // ── Grays (VS Code-aligned) ─────────────────────────────────────────────
+  --color-gray-25:  #1a1a1a;
+  --color-gray-50:  #1e1e1e;
+  --color-gray-100: #252526;
+  --color-gray-150: #2d2d2d;
+  --color-gray-200: #333333;
+  --color-gray-300: #3c3c3c;
+  --color-gray-400: #4d4d4d;
+  --color-gray-500: #6a6a6a;
+  --color-gray-600: #969696;
+  --color-gray-700: #b3b3b3;
+  --color-gray-800: #cccccc;
+  --color-gray-900: #e5e5e5;
+  --color-gray-950: #f5f5f5;
+
+  // ── Semantic Status ─────────────────────────────────────────────────────
+  --color-success:       #4ec9b0;       // VS Code teal/green
+  --color-success-light: rgba(78, 201, 176, 0.12);
+  --color-success-50:    rgba(78, 201, 176, 0.08);
+  --color-success-dark:  #73d9c4;
+  --color-error:         #f14c4c;       // VS Code error red
+  --color-error-light:   rgba(241, 76, 76, 0.12);
+  --color-error-50:      rgba(241, 76, 76, 0.08);
+  --color-error-200:     rgba(241, 76, 76, 0.25);
+  --color-error-dark:    #f28b82;
+  --color-warning:       #cca700;       // VS Code warning yellow
+  --color-warning-light: rgba(204, 167, 0, 0.12);
+  --color-warning-50:    rgba(204, 167, 0, 0.08);
+  --color-warning-dark:  #e8c600;
+  --color-info:          #3794ff;       // VS Code info blue
+  --color-info-light:    rgba(55, 148, 255, 0.12);
+  --color-info-50:       rgba(55, 148, 255, 0.08);
+  --color-info-dark:     #6cb6ff;
+
+  // ── Selection colors (dark mode) ────────────────────────────────────────
+  --color-selection-bg: #264f78;
+  --color-selection-fg: #ffffff;
+
+  // ── Shadows (dark-on-dark depth) ────────────────────────────────────────
+  --shadow-xs:           0 1px 2px rgba(0, 0, 0, 0.36);
+  --shadow-sm:           0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md:           0 4px 8px rgba(0, 0, 0, 0.5);
+  --shadow-lg:           0 8px 16px rgba(0, 0, 0, 0.5);
+  --shadow-xl:           0 16px 32px rgba(0, 0, 0, 0.55);
+  --shadow-2xl:          0 24px 48px rgba(0, 0, 0, 0.6);
+  --shadow-inner:        inset 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-inset:        inset 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-ring:         0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-panel:        0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --shadow-card:         0 0 0 1px rgba(255, 255, 255, 0.05), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover:   0 0 0 1px rgba(255, 255, 255, 0.08), 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-dropdown:     0 4px 16px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-modal:        0 16px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-focus:        0 0 0 2px rgba(0, 122, 204, 0.5);
+  --shadow-focus-accent: 0 0 0 2px var(--bg-canvas), 0 0 0 4px var(--color-accent);
+
+  // ── Input / interactive ─────────────────────────────────────────────────
+  --ide-input-bg:     #3c3c3c;
+  --ide-input-border: #3c3c3c;
+
+  // ── IdP brand colors (dark-adjusted) ────────────────────────────────────
+  --color-idp-keycloak: #6b82c0;
+  --color-idp-azure:    #4daadb;
+
+  // ── Scrollbar for dark mode ─────────────────────────────────────────────
+  --color-scrollbar: rgba(121, 121, 121, 0.4);
+  --color-code-string: #ce9178;       // VS Code string color (dark)
+  --color-list-focus-bg: #04395e;     // VS Code list.focusBackground (dark)
+  --color-error-border: rgba(241, 76, 76, 0.3);
+  --bg-overlay-dark: rgba(0, 0, 0, 0.5);
+  --bg-overlay-subtle: rgba(255, 255, 255, 0.05);
+  scrollbar-color: rgba(121, 121, 121, 0.4) transparent;
+}
+
+// Dark theme is the default when data-theme="dark" is set
+[data-theme="dark"] {
+  @include vscode-dark-tokens;
+}
+
+// OS preference auto-detect (fallback when no explicit theme attribute)
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    @include vscode-dark-tokens;
+  }
+}
+
+// ─── LIGHT MODE (opt-in via data-theme="light") ────────────────────────────
+// Explicit light theme using the mixin from _design-tokens.scss.
+// The base :root tokens are already light, but this ensures proper switching
+// back from dark mode without stale values.
+
+[data-theme="light"] {
+  @include light-tokens;
+
+  // Light-mode selection colors
+  --color-selection-bg: rgba(249, 115, 22, 0.15);
+  --color-selection-fg: #111827;
+}

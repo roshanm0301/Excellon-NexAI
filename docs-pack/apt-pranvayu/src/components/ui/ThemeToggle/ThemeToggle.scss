@@ -1,0 +1,53 @@
+// ============================================================================
+// ThemeToggle styles — compact IDE toolbar button
+// ============================================================================
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-1-5);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: var(--text-xs);
+  font-family: var(--font-sans);
+  line-height: 1;
+  transition: background var(--transition-fast),
+              color var(--transition-fast);
+
+  &:hover {
+    background: var(--bg-overlay-light);
+    color: var(--text-primary);
+  }
+
+  &:active {
+    background: var(--bg-overlay-subtle);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 1px;
+  }
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &__label {
+    font-weight: var(--font-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+}

@@ -1,0 +1,38 @@
+// ============================================================================
+// APPROVAL PAGE STYLES
+// Modern token-based styling
+// ============================================================================
+
+.dx-button-text {
+  text-transform: capitalize;
+}
+
+.list-alignment {
+  margin-left: var(--space-4);                // 16px — tighter indent
+}
+
+.dx-list-item-content {
+  font-size: var(--text-sm);                  // 13px IDE density
+  padding: var(--space-2) var(--space-3);     // 8px 12px compact
+}
+
+.button-alignment {
+  display: flex;
+  gap: var(--space-2);                        // 8px btn gap
+  margin-left: var(--space-4);                // 16px indent
+}
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.action-div {
+  display: flex;
+  flex-direction: column;
+  align-self: flex-start;
+  gap: var(--space-2);
+}

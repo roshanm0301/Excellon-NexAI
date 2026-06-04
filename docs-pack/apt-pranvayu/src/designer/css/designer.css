@@ -1,0 +1,521 @@
+.sqd-designer {
+	position: relative;
+	display: flex;
+	width: 100%;
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.sqd-designer,
+.sqd-drag {
+	font-family: var(--font-sans, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
+	font-size: 11px;
+	line-height: 1.4;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.sqd-hidden {
+	display: none !important;
+}
+
+.sqd-disabled {
+	opacity: 0.25;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOOLBOX — Floating side-panel with draggable task nodes
+   ═══════════════════════════════════════════════════════════════ */
+
+.sqd-toolbox,
+.sqd-toolbox-filter {
+	font-size: var(--text-2xs, 10px);
+	line-height: 1.2em;
+}
+
+.sqd-toolbox {
+	position: absolute;
+	top: var(--space-3, 12px);
+	left: var(--space-3, 12px);
+	z-index: 20;
+	box-sizing: border-box;
+	border-radius: var(--radius-lg, 7px);
+	width: 176px;
+	-webkit-user-select: none;
+	user-select: none;
+	box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.08));
+	border: 1px solid var(--border-primary, #e5e7eb);
+	display: flex;
+	flex-direction: column;
+	max-height: calc(100% - var(--space-6, 24px) - 48px);
+	-webkit-backdrop-filter: blur(12px);
+	backdrop-filter: blur(12px);
+	transition: box-shadow 200ms ease, transform 200ms ease;
+}
+
+.sqd-toolbox:hover {
+	box-shadow: var(--shadow-xl, 0 20px 25px -5px rgba(0,0,0,0.1));
+}
+
+.sqd-toolbox-header {
+	position: relative;
+	padding: var(--space-2, 8px) var(--space-3, 12px);
+	cursor: pointer;
+	flex-shrink: 0;
+	border-bottom: 1px solid var(--border-secondary, #f3f4f6);
+}
+
+.sqd-toolbox-header-title {
+	display: block;
+	font-size: var(--text-2xs, 10px);
+	line-height: 1.2;
+	font-weight: var(--font-semibold, 600);
+	text-transform: uppercase;
+	letter-spacing: var(--tracking-widest, 0.08em);
+}
+
+.sqd-toolbox-toggle-icon {
+	position: absolute;
+	top: 50%;
+	right: var(--space-3, 12px);
+	width: 16px;
+	height: 16px;
+	margin: -8px 0 0;
+	transition: opacity 150ms ease, transform 200ms ease;
+}
+
+.sqd-toolbox-toggle-icon .sqd-icon-path {
+	fill: var(--text-secondary, #969696);
+	transition: fill 150ms ease;
+}
+
+.sqd-toolbox-header:hover .sqd-toolbox-toggle-icon {
+	opacity: .6;
+	transform: scale(1.1);
+}
+
+.sqd-scrollbox {
+	position: relative;
+	overflow: hidden;
+	flex: 1;
+	max-height: calc(100vh - var(--header-height, 48px) - 180px);
+}
+
+.sqd-scrollbox-body {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.sqd-toolbox-filter {
+	display: block;
+	box-sizing: border-box;
+	padding: var(--space-1, 4px) var(--space-2, 8px);
+	outline: none;
+	width: calc(100% - var(--space-4, 16px));
+	margin: var(--space-1-5, 6px) var(--space-2, 8px) var(--space-1-5, 6px);
+	border-radius: var(--radius-md, 5px);
+	font-family: var(--font-sans, 'Inter', sans-serif);
+	font-size: var(--text-xs, 12px);
+	height: var(--ide-input-height-sm, 28px);
+	flex-shrink: 0;
+	transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.sqd-toolbox-group-title {
+	text-align: left;
+	padding: var(--space-1, 4px) var(--space-3, 12px);
+	margin: var(--space-1, 4px) 0 var(--space-1, 4px);
+	font-size: var(--text-2xs, 10px);
+	font-weight: var(--font-bold, 700);
+	text-transform: uppercase;
+	letter-spacing: var(--tracking-widest, 0.08em);
+	flex-shrink: 0;
+	border-radius: 0;
+}
+
+.sqd-toolbox-item {
+	position: relative;
+	border-radius: var(--radius-md, 5px);
+	box-sizing: border-box;
+	margin: 0 var(--space-2, 8px) var(--space-0-5, 2px);
+	width: calc(100% - var(--space-4, 16px));
+	cursor: grab;
+	transition: all 120ms ease;
+	display: flex;
+	align-items: center;
+	min-height: 30px;
+}
+
+.sqd-toolbox-item:active {
+	cursor: grabbing;
+	transform: scale(0.97);
+}
+
+.sqd-toolbox-item-icon {
+	position: absolute;
+	top: 50%;
+	left: var(--space-2-5, 10px);
+	margin-top: -9px;
+	width: 18px;
+	height: 18px;
+	transition: transform 120ms ease;
+}
+
+.sqd-toolbox-item:hover .sqd-toolbox-item-icon {
+	transform: scale(1.12);
+}
+
+.sqd-toolbox-item-icon.sqd-no-icon {
+	border-radius: var(--radius-sm, 4px);
+}
+
+.sqd-toolbox-item-icon-image {
+	width: 100%;
+	height: 100%;
+}
+
+.sqd-toolbox-item-text {
+	position: relative;
+	display: block;
+	padding: var(--space-1-5, 6px) var(--space-2, 8px) var(--space-1-5, 6px) 34px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	font-size: var(--text-xs, 12px);
+	line-height: 1.3;
+	font-weight: var(--font-medium, 500);
+}
+
+.sqd-drag {
+	position: absolute;
+	z-index: 9999999;
+	pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONTROL BAR — Bottom action toolbar
+   ═══════════════════════════════════════════════════════════════ */
+
+.sqd-control-bar {
+	position: absolute;
+	bottom: var(--space-3, 12px);
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 20;
+	padding: var(--space-1, 4px) var(--space-1-5, 6px);
+	border-radius: var(--radius-xl, 10px);
+	white-space: nowrap;
+	box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.08));
+	border: 1px solid var(--border-primary, #e5e7eb);
+	display: flex;
+	align-items: center;
+	gap: var(--space-1, 4px);
+	-webkit-backdrop-filter: blur(12px);
+	backdrop-filter: blur(12px);
+	transition: box-shadow 200ms ease;
+}
+
+.sqd-control-bar:hover {
+	box-shadow: var(--shadow-xl, 0 20px 25px -5px rgba(0,0,0,0.1));
+}
+
+.sqd-control-bar-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: var(--radius-md, 5px);
+	cursor: pointer;
+	transition: all 120ms ease;
+	position: relative;
+	flex-shrink: 0;
+}
+
+.sqd-control-bar-button:active {
+	transform: scale(0.92);
+}
+
+.sqd-control-bar-button-icon {
+	width: 16px;
+	height: 16px;
+	transition: transform 120ms ease;
+}
+
+.sqd-control-bar-button-icon .sqd-icon-path {
+	fill: var(--text-secondary, #969696);
+	transition: fill 150ms ease;
+}
+
+.sqd-control-bar-button:hover .sqd-control-bar-button-icon {
+	transform: scale(1.1);
+}
+
+.sqd-control-bar-button.sqd-disabled {
+	opacity: 0.3;
+	cursor: not-allowed;
+}
+
+.sqd-control-bar-button.sqd-disabled .sqd-control-bar-button-icon {
+	opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WORKSPACE — Canvas area for the workflow graph
+   ═══════════════════════════════════════════════════════════════ */
+
+.sqd-workspace {
+	flex: 1;
+	position: relative;
+	display: block;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+.sqd-workspace-canvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+	cursor: grab;
+	transition: cursor 0ms;
+}
+
+.sqd-workspace-canvas:active {
+	cursor: grabbing;
+}
+
+.sqd-grid-path {
+	stroke-width: 1;
+}
+
+.sqd-join {
+	stroke-width: 2;
+	stroke-linecap: round;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SMART EDITOR — Right-side configuration panel
+   ═══════════════════════════════════════════════════════════════ */
+
+.sqd-smart-editor-toggle {
+	position: absolute;
+	top: var(--space-3, 12px);
+	right: var(--space-3, 12px);
+	z-index: 31;
+	width: 28px;
+	height: 28px;
+	border-radius: var(--radius-md, 5px);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 150ms ease;
+}
+
+.sqd-smart-editor-toggle:active {
+	transform: scale(0.9);
+}
+
+.sqd-smart-editor-toggle-icon {
+	width: 14px;
+	height: 14px;
+	transition: opacity 150ms ease;
+}
+
+.sqd-smart-editor-toggle-icon .sqd-icon-path {
+	fill: var(--text-secondary, #969696);
+	transition: fill 150ms ease;
+}
+
+.sqd-smart-editor-toggle:hover .sqd-smart-editor-toggle-icon {
+	opacity: .6;
+}
+
+.sqd-smart-editor {
+	z-index: 30;
+}
+
+.sqd-designer-react {
+	height: calc(100vh - var(--header-height, 48px) - 20px);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.treeView .sqd-designer-react {
+	height: calc(100vh - var(--header-height, 48px) - 100px);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.sqd-layout-desktop .sqd-smart-editor {
+	position: relative;
+	height: 100%;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding: var(--space-4, 16px);
+	white-space: normal;
+	scroll-behavior: smooth;
+	border-left: 1px solid var(--border-primary, #e5e7eb);
+	right: 0;
+	min-width: var(--ide-inspector-width, 320px);
+	max-width: 80vw;
+	scrollbar-width: thin;
+	background: var(--bg-primary, #ffffff);
+	resize: horizontal;
+}
+
+.treeView .sqd-layout-desktop .sqd-smart-editor {
+	position: relative;
+	height: 100%;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding: var(--space-3, 12px);
+	white-space: normal;
+	scroll-behavior: smooth;
+	border-left: 1px solid var(--border-primary, #e5e7eb);
+	right: 0;
+	min-width: 200px;
+	max-width: 80vw;
+	scrollbar-width: thin;
+	resize: horizontal;
+}
+
+/* ─── Smart editor form overrides ─────────────────────────────── */
+
+/* Ensure group captions wrap and are fully visible */
+.sqd-smart-editor .dx-form-group-caption {
+	white-space: normal;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	overflow: visible;
+	text-overflow: clip;
+	font-size: var(--text-xs, 12px);
+	font-weight: var(--font-semibold, 600);
+	padding-bottom: var(--space-1, 4px);
+	letter-spacing: -0.01em;
+}
+
+/* Smart editor form fields — consistent full width */
+.sqd-smart-editor .dx-form {
+	width: 100%;
+}
+
+.sqd-smart-editor .dx-form .dx-layout-manager {
+	width: 100%;
+}
+
+.sqd-smart-editor .dx-field-item-content {
+	width: 100%;
+}
+
+.sqd-smart-editor .dx-texteditor,
+.sqd-smart-editor .dx-selectbox,
+.sqd-smart-editor .dx-tagbox,
+.sqd-smart-editor .dx-textarea {
+	width: 100% !important;
+}
+
+/* responsive-paddings inside smart editor — tighter */
+.sqd-smart-editor .responsive-paddings {
+	padding: var(--space-1, 4px) var(--space-2, 8px);
+}
+
+/* Smart editor react wrapper — fill available space */
+.sqd-editor-react {
+	width: 100%;
+}
+
+.sqd-layout-desktop .sqd-smart-editor-toggle.sqd-collapsed {
+	right: 0;
+}
+
+.sqd-layout-mobile .sqd-smart-editor {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 41px;
+}
+
+.sqd-layout-mobile .sqd-smart-editor-toggle {
+	left: 5px;
+}
+
+.sqd-layout-mobile .sqd-smart-editor-toggle.sqd-collapsed {
+	left: auto;
+	right: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STEP TASK — Workflow node cards on the canvas
+   ═══════════════════════════════════════════════════════════════ */
+
+.sqd-step-task-rect {
+	stroke-width: 1;
+	transition: filter 200ms ease;
+}
+
+.sqd-step-task-rect.sqd-selected {
+	stroke-width: 2;
+}
+
+.sqd-step-task-text {
+	text-anchor: left;
+	dominant-baseline: central;
+	font-family: var(--font-sans, 'Inter', sans-serif);
+	font-size: var(--text-xs, 12px);
+	font-weight: var(--font-medium, 500);
+}
+
+/* .sqd-input + .sqd-output */
+
+.sqd-input {
+	stroke-width: 2;
+	transition: fill 200ms ease;
+}
+
+/* .sqd-region */
+
+.sqd-region {
+	stroke-width: 2;
+	stroke-dasharray: 3;
+}
+
+.sqd-region.sqd-selected {
+	stroke-width: 2;
+	stroke-dasharray: 0;
+}
+
+.sqd-label-text {
+	text-anchor: middle;
+	dominant-baseline: central;
+	font-weight: var(--font-medium, 500);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PLACEHOLDER — Drop zone indicator
+   ═══════════════════════════════════════════════════════════════ */
+
+.sqd-placeholder .sqd-placeholder-rect {
+	stroke-width: 1;
+	stroke-dasharray: 3;
+	transition: fill 150ms ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   START / STOP CIRCLES — Animated indicators
+   ═══════════════════════════════════════════════════════════════ */
+
+.sqd-step-start-stop-circle {
+	transition: filter 200ms ease;
+	animation: sqd-pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes sqd-pulse-glow {
+	0%, 100% { filter: drop-shadow(0 0 3px rgba(249, 115, 22, 0.3)); }
+	50% { filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.5)); }
+}

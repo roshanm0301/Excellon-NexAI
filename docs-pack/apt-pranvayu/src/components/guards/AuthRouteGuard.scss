@@ -1,0 +1,92 @@
+// AuthRouteGuard - Session Expired Modal
+.auth-guard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-overlay, rgba(0, 0, 0, 0.5));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.auth-guard-modal {
+  background-color: var(--bg-elevated, #ffffff);
+  padding: 16px 20px;                          // 16px 20px — compact IDE modal
+  border-radius: var(--ide-card-radius, 8px);
+  box-shadow: var(--shadow-xl, 0 4px 6px rgba(0, 0, 0, 0.1));
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+}
+
+.auth-guard-title {
+  margin: 0 0 var(--space-3, 12px) 0;
+  color: var(--color-error, #d32f2f);
+  font-size: var(--text-lg, 16px);            // tighter title
+  font-weight: var(--font-semibold, 600);
+}
+
+.auth-guard-message {
+  margin: 0 0 var(--space-4, 16px) 0;
+  color: var(--text-secondary, #666);
+  font-size: var(--text-sm, 13px);            // IDE-density body text
+  line-height: 1.5;
+}
+
+.auth-guard-actions {
+  display: flex;
+  gap: var(--space-3, 12px);
+  justify-content: center;
+}
+
+.auth-guard-refreshing {
+  margin: var(--space-3, 12px) 0 0 0;
+  color: var(--text-secondary, #666);
+  font-size: var(--text-base, 14px);
+}
+
+// Error page
+.error-page-content {
+  text-align: center;
+  padding: var(--space-12, 48px) var(--space-6, 24px);
+
+  img {
+    margin-bottom: var(--space-4, 16px);
+  }
+
+  p {
+    color: var(--text-secondary, #666);
+    margin-bottom: var(--space-4, 16px);
+    font-size: var(--text-md, 15px);
+  }
+}
+
+.error-page-link {
+  color: var(--color-primary, #f97316);
+  font-weight: 500;
+  text-decoration: none;
+  text-transform: capitalize;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Error log page
+.error-log-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.error-search {
+  margin-top: var(--space-6, 24px);
+  margin-bottom: var(--space-12, 48px);
+}
+
+.error-log-result {
+  margin: var(--space-6, 24px);
+}

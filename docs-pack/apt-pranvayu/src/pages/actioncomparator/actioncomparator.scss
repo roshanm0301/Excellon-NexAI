@@ -1,0 +1,26 @@
+// ============================================================================
+// ACTION COMPARATOR — Split View Layout
+// ============================================================================
+
+.splitScreen {
+  height: calc(100vh - var(--header-height, 48px));
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
+  gap: 1px;
+  background: var(--border-primary);
+}
+
+.topPane {
+  grid-column: 1;
+  grid-row: 1;
+  background: var(--bg-primary);
+  overflow: auto;
+}
+
+.bottomPane {
+  grid-column: 2;
+  grid-row: 1;
+  background: var(--bg-primary);
+  overflow: auto;
+}

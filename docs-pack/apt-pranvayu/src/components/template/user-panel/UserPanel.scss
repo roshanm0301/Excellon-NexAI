@@ -1,0 +1,72 @@
+// ============================================================================
+// USER PANEL — Global user dropdown & avatar styling
+// ============================================================================
+
+@import "../../../themes/generated/variables.base.scss";
+
+.user-info {
+  display: flex;
+  align-items: center;
+
+  .dx-toolbar-menu-section & {
+    padding: var(--space-3) var(--space-2);
+    border-bottom: 1px solid var(--border-secondary);
+  }
+
+  .image-container {
+    overflow: hidden;
+    border-radius: var(--radius-full);
+    height: 32px;                             // 32px — on 8px grid
+    width: 32px;
+    margin: 0 var(--space-1);
+    border: 2px solid var(--color-primary);
+    flex-shrink: 0;
+
+    .user-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .user-name {
+    font-size: var(--text-sm);                // 13px — IDE density
+    font-weight: var(--font-medium);
+    color: var(--text-primary);
+    margin: 0 var(--space-1);
+  }
+}
+
+.user-panel {
+  .dx-list-item .dx-icon {
+    vertical-align: middle;
+    color: var(--text-primary);
+    margin-right: var(--space-4);
+  }
+
+  .dx-rtl .dx-list-item .dx-icon {
+    margin-right: 0;
+    margin-left: var(--space-4);
+  }
+}
+
+.dx-context-menu.user-menu.dx-menu-base {
+  &.dx-rtl {
+    .dx-submenu .dx-menu-items-container .dx-icon {
+      margin-left: var(--space-4);
+    }
+  }
+
+  .dx-submenu .dx-menu-items-container .dx-icon {
+    margin-right: var(--space-4);
+  }
+
+  .dx-menu-item .dx-menu-item-content {
+    padding: var(--space-1) var(--space-4);
+  }
+}
+
+.dx-theme-generic .user-menu .dx-menu-item-content .dx-menu-item-text {
+  padding-left: var(--space-1);
+  padding-right: var(--space-1);
+}

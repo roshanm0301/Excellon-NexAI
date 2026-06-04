@@ -1,0 +1,52 @@
+// ============================================================================
+// QUERY BUILDER — React QueryBuilder Overrides
+// ============================================================================
+
+$code-color: var(--text-primary, #333333);
+$rqb-spacing: 0.5rem !default;
+$rqb-background-color: var(--bg-primary, white) !default;
+$rqb-border-color: var(--border-primary, #e5e7eb) !default;
+$rqb-border-style: solid !default;
+$rqb-border-radius: var(--radius-sm, 0.25rem) !default;
+$rqb-border-width: 1px !default;
+
+@import "react-querybuilder/dist/query-builder.scss";
+
+code {
+  font-family: var(--font-mono, source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace);
+  font-size: var(--text-sm);
+}
+
+.queryBuilder {
+  .form-control,
+  .form-select {
+    display: inline-block;
+    width: inherit;
+    font-size: var(--text-sm);
+    border-radius: var(--radius-md);
+  }
+
+  .dx-button-mode-outlined {
+    margin-right: var(--space-1);
+  }
+
+  .dx-button-has-text .dx-button-content {
+    padding: var(--space-1);
+  }
+
+  .ruleGroup .ruleGroup-header,
+  .ruleGroup .rule {
+    gap: var(--space-0-5, 2px);
+    min-height: var(--ide-row-height, 32px);
+  }
+
+  .rule-fields,
+  .rule-operators,
+  .rule-value,
+  .rule-remove,
+  .ruleGroup-addRule,
+  .ruleGroup-addGroup,
+  .ruleGroup-remove {
+    font-size: var(--text-xs);
+  }
+}

@@ -1,0 +1,291 @@
+// ============================================================================
+// ACTION WORKFLOW — Step Editor, Global Editor & Form Overrides
+// Modern IDE-grade styling for the workflow configuration panel
+// ============================================================================
+
+// ─── Smart editor field spacing ─────────────────────────────────────────────
+.sqd-smart-editor .dx-layout-manager .dx-field-item {
+  padding-bottom: 0;
+  margin-bottom: var(--space-1, 4px);
+}
+
+// ─── Smart editor form labels ───────────────────────────────────────────────
+.sqd-smart-editor .dx-field-item-label-text {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-secondary);
+  font-weight: var(--font-medium, 500);
+  letter-spacing: var(--tracking-wide, 0.025em);
+}
+
+// ─── Smart editor form inputs ───────────────────────────────────────────────
+.sqd-smart-editor .dx-texteditor-input {
+  font-size: var(--text-sm);
+  padding: var(--space-1) var(--space-2);
+  min-height: var(--ide-input-height-sm);
+}
+
+.sqd-smart-editor .dx-selectbox .dx-texteditor-input {
+  padding: var(--space-1) var(--space-2);
+}
+
+// ─── Form group captions ────────────────────────────────────────────────────
+.dx-form-group-caption {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Step Editor Header with AI Fill Button
+   ═══════════════════════════════════════════════════════════════ */
+.step-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-secondary, #f3f4f6);
+  margin-bottom: var(--space-3);
+}
+
+.step-editor-header__title {
+  margin: 0;
+  flex: 1;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight, -0.02em);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Global Editor — Rule Settings Section
+   ═══════════════════════════════════════════════════════════════ */
+.workflow-rule-section {
+  margin-top: var(--space-5, 20px);
+}
+
+.workflow-rule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3, 12px);
+  padding: var(--space-2-5, 10px) var(--space-3, 12px);
+  background: var(--bg-tertiary, #252526);
+  border-radius: var(--radius-md, 5px);
+  border: 1px solid var(--border-secondary, #3c3c3c);
+}
+
+.workflow-rule-header h4 {
+  margin: 0;
+  font-size: var(--text-base, 14px);
+  font-weight: var(--font-semibold, 600);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight, -0.02em);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Global Editor — Cache / DLQ inline settings
+   ═══════════════════════════════════════════════════════════════ */
+.workflow-inline-setting {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  padding: var(--space-1-5, 6px) 0;
+}
+
+.workflow-inline-setting__label {
+  font-size: var(--text-sm, 13px);
+  font-weight: var(--font-semibold, 600);
+  color: var(--text-primary);
+  white-space: nowrap;
+  min-width: 40px;
+}
+
+.workflow-inline-setting__group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.workflow-inline-setting__group label {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-secondary);
+  font-weight: var(--font-medium, 500);
+}
+
+.workflow-inline-setting__extended {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  margin-left: var(--space-4, 16px);
+}
+
+.workflow-inline-setting__extended label {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-secondary);
+  font-weight: var(--font-medium, 500);
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Dark theme overrides for workflow sections
+   ═══════════════════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  .step-editor-header {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .workflow-rule-header {
+    border-color: rgba(255, 255, 255, 0.06);
+    background: rgba(45, 45, 45, 0.5);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Smart Editor — Enhanced Input/Select/TextArea Styling
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Input border focus ring */
+.sqd-smart-editor .dx-texteditor.dx-state-focused .dx-texteditor-container {
+  border-color: var(--color-primary, #f97316);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.12);
+}
+
+/* DataGrid inside smart editor — tighter */
+.sqd-smart-editor .dx-datagrid-headers {
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--font-semibold, 600);
+  color: var(--text-secondary);
+}
+
+.sqd-smart-editor .dx-datagrid-rowsview .dx-row > td {
+  font-size: var(--text-xs, 12px);
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+}
+
+/* Tab panels in editor — Params/Query/Body/Response tabs */
+.sqd-smart-editor .dx-tabpanel > .dx-tabs {
+  font-size: var(--text-xs, 12px);
+}
+
+.sqd-smart-editor .dx-tab {
+  padding: var(--space-1-5, 6px) var(--space-3, 12px);
+  font-weight: var(--font-medium, 500);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.sqd-smart-editor .dx-tab.dx-tab-selected {
+  color: var(--color-primary, #f97316);
+  border-bottom-color: var(--color-primary, #f97316);
+}
+
+/* Checkbox labels inside smart editor */
+.sqd-smart-editor .dx-checkbox-text {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-secondary);
+  font-weight: var(--font-medium, 500);
+}
+
+/* Switch/Toggle styling in smart editor */
+.sqd-smart-editor .dx-switch-on-value .dx-switch-handle::before {
+  background: var(--color-primary, #f97316);
+}
+
+/* Smart editor scrollbar styling */
+.sqd-smart-editor::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sqd-smart-editor::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sqd-smart-editor::-webkit-scrollbar-thumb {
+  background: var(--border-primary, #3c3c3c);
+  border-radius: 3px;
+}
+
+.sqd-smart-editor::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary, #5a5a5a);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Form Group with Collapsible Sections
+   ═══════════════════════════════════════════════════════════════ */
+.sqd-smart-editor .dx-form-group-with-caption > .dx-form-group-content {
+  border-top: 1px solid var(--border-secondary, #3c3c3c);
+  padding-top: var(--space-2, 8px);
+  margin-top: var(--space-1, 4px);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Dark theme — enhanced DX widget overrides in smart editor
+   ═══════════════════════════════════════════════════════════════ */
+[data-theme="dark"] .sqd-smart-editor {
+  /* Input border */
+  .dx-texteditor-container {
+    border-color: var(--border-primary, #3c3c3c);
+  }
+
+  /* Tab text */
+  .dx-tab {
+    color: var(--text-secondary, #969696);
+  }
+  .dx-tab.dx-tab-selected {
+    color: var(--color-primary, #f97316);
+  }
+
+  /* DataGrid alt rows */
+  .dx-datagrid-rowsview .dx-row-alt > td {
+    background: rgba(255, 255, 255, 0.02);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Light theme — workflow section overrides
+   ═══════════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  .step-editor-header {
+    border-bottom-color: var(--border-secondary);
+  }
+
+  .workflow-rule-header {
+    background: var(--bg-secondary);
+    border-color: var(--border-primary);
+  }
+}
+
+[data-theme="light"] .sqd-smart-editor {
+  background: var(--bg-primary) !important;
+
+  /* Input border */
+  .dx-texteditor-container {
+    border-color: var(--border-primary);
+  }
+
+  /* Tab text */
+  .dx-tab {
+    color: var(--text-secondary);
+  }
+  .dx-tab.dx-tab-selected {
+    color: var(--color-primary);
+  }
+
+  /* DataGrid alt rows */
+  .dx-datagrid-rowsview .dx-row-alt > td {
+    background: var(--bg-secondary);
+  }
+
+  /* Form labels */
+  .dx-field-item-label-text {
+    color: var(--text-primary);
+  }
+
+  /* Smart editor scrollbar */
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.25);
+  }
+}

@@ -1,0 +1,136 @@
+// ============================================================================
+// REQUEST PAGE STYLES
+// Modern token-based styling
+// ============================================================================
+
+.checkBoxstyle {
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--space-12);
+}
+
+.buttonstyle {
+  width: 65%;
+  display: flex;
+  flex-direction: row;
+  margin-top: var(--space-6);
+  margin-left: var(--space-12);
+  justify-content: space-around;
+}
+
+.inputStyle {
+  width: 65%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  margin-top: var(--space-16);
+  margin-left: var(--space-12);
+  align-items: center;
+}
+
+// ── Shared card base (used by .cardstyle, .error-cardstyle, .history-cardstyle)
+%request-card-base {
+  box-shadow: var(--ide-card-shadow);
+  background-color: var(--bg-primary);
+  overflow: initial;
+  border-radius: var(--ide-card-radius);
+  min-width: 400px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  padding: var(--ide-card-padding-lg);
+}
+
+.cardstyle {
+  @extend %request-card-base;
+}
+
+.request-container {
+  overflow: initial;
+  min-width: 400px;
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  position: relative;
+}
+
+.error-cardstyle {
+  @extend %request-card-base;
+}
+
+.error-cardstyle .dx-form,
+.history-cardstyle .dx-form,
+.request-container .dx-form {
+  background-color: var(--bg-primary);
+  margin: var(--space-4);                     // 16px — tighter form margin
+}
+
+.history-cardstyle {
+  @extend %request-card-base;
+}
+
+.history-circle {
+  background: var(--color-gray-200);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-bold);
+  width: 40px;
+  height: 40px;
+  line-height: 1;
+  margin-right: var(--space-1);
+}
+
+.verticle-line {
+  margin-top: calc(-1 * var(--space-1-5));
+  border-left: 2px solid var(--color-gray-300);
+  height: var(--space-6);
+  margin-bottom: calc(-1 * var(--space-1));
+}
+
+.dot {
+  height: 12px;
+  width: 12px;
+  background-color: var(--color-gray-300);
+  border-radius: var(--radius-full);
+  display: inline-block;
+  margin-left: var(--space-4);
+}
+
+.history-content {
+  color: var(--color-primary);
+  margin-left: var(--space-3);
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.div-class {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.history-container {
+  background-color: var(--bg-primary);
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.view-request-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 var(--space-6);
+}
+
+.view-request-actions {
+  margin: var(--space-1) 0;
+}
+
+.view-request-approval-actions {
+  width: 98%;
+  text-align: right;
+  margin: var(--space-3) var(--space-3) var(--space-3) 0;
+}

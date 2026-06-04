@@ -1,0 +1,253 @@
+
+/********* dark — VS Code IDE tokens *********/
+
+.sqd-theme-dark.sqd-designer {
+	background: var(--bg-primary, #1e1e1e);
+	background-image:
+		radial-gradient(circle at 50% 50%, rgba(249, 115, 22, 0.015) 0%, transparent 70%);
+}
+
+/* dark > .sqd-toolbox */
+
+.sqd-theme-dark .sqd-toolbox {
+	background: rgba(37, 37, 38, 0.92);
+	border: 1px solid var(--border-primary, #3c3c3c);
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+	-webkit-backdrop-filter: blur(16px);
+	backdrop-filter: blur(16px);
+}
+.sqd-theme-dark .sqd-toolbox:hover {
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.sqd-theme-dark .sqd-toolbox-header {
+	border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.sqd-theme-dark .sqd-toolbox-header-title {
+	color: var(--text-primary, #cccccc);
+}
+.sqd-theme-dark .sqd-toolbox-filter {
+	border: 1px solid var(--border-primary, #3c3c3c);
+	background: rgba(30, 30, 30, 0.6);
+	color: var(--text-primary, #cccccc);
+	border-radius: var(--radius-md, 5px);
+}
+.sqd-theme-dark .sqd-toolbox-filter::placeholder {
+	color: var(--text-tertiary, #5a5a5a);
+}
+.sqd-theme-dark .sqd-toolbox-filter:focus {
+	border-color: var(--color-primary, #f97316);
+	box-shadow: 0 0 0 1px var(--color-primary, #f97316), 0 0 8px rgba(249, 115, 22, 0.15);
+	background: rgba(30, 30, 30, 0.9);
+}
+.sqd-theme-dark .sqd-toolbox-group-title {
+	background: transparent;
+	color: var(--text-secondary, #969696);
+	font-weight: var(--font-semibold, 600);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.sqd-theme-dark .sqd-toolbox-item {
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	background: rgba(45, 45, 45, 0.5);
+	transition: all 150ms ease;
+}
+.sqd-theme-dark .sqd-toolbox-item:hover {
+	border-color: var(--color-primary, #f97316);
+	background: rgba(249, 115, 22, 0.08);
+	box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.2);
+	transform: translateX(2px);
+}
+.sqd-theme-dark .sqd-toolbox-item-text {
+	color: var(--text-primary, #cccccc);
+	transition: color 150ms ease;
+}
+.sqd-theme-dark .sqd-toolbox-item:hover .sqd-toolbox-item-text {
+	color: var(--text-inverse, #ffffff);
+}
+.sqd-theme-dark .sqd-toolbox-item-icon.sqd-no-icon {
+	background: var(--color-primary, #f97316);
+	opacity: 0.7;
+}
+.sqd-theme-dark .sqd-toolbox-item:hover .sqd-toolbox-item-icon.sqd-no-icon {
+	opacity: 1;
+}
+.sqd-theme-dark .sqd-control-bar-button.sqd-delete .sqd-icon-path {
+	fill: var(--color-error, #f44747);
+}
+
+/* dark > .sqd-control-bar */
+
+.sqd-theme-dark .sqd-control-bar {
+	background: rgba(37, 37, 38, 0.92);
+	border: 1px solid var(--border-primary, #3c3c3c);
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+	-webkit-backdrop-filter: blur(16px);
+	backdrop-filter: blur(16px);
+}
+.sqd-theme-dark .sqd-control-bar:hover {
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.sqd-theme-dark .sqd-control-bar-button {
+	background: transparent;
+	border: 1px solid transparent;
+	transition: all 150ms ease;
+	border-radius: var(--radius-md, 5px);
+}
+.sqd-theme-dark .sqd-control-bar-button:hover {
+	background: rgba(249, 115, 22, 0.1);
+	border-color: rgba(249, 115, 22, 0.3);
+}
+.sqd-theme-dark .sqd-control-bar-button .sqd-icon-path {
+	fill: var(--text-secondary, #969696);
+	transition: fill 150ms ease;
+}
+.sqd-theme-dark .sqd-control-bar-button:hover .sqd-icon-path {
+	fill: var(--color-primary, #f97316);
+}
+
+/* dark > .sqd-workspace */
+
+.sqd-theme-dark .sqd-grid-path {
+	stroke: rgba(255, 255, 255, 0.04);
+}
+.sqd-theme-dark .sqd-join {
+	stroke: var(--color-primary, #f97316);
+	filter: drop-shadow(0 0 2px rgba(249, 115, 22, 0.25));
+}
+
+/* dark > .sqd-smart-editor */
+
+.sqd-theme-dark .sqd-smart-editor {
+	background: var(--bg-secondary, #252526);
+	border-left: 1px solid var(--border-primary, #3c3c3c);
+}
+.sqd-theme-dark .sqd-smart-editor-toggle {
+	background: rgba(45, 45, 45, 0.9);
+	border: 1px solid var(--border-primary, #3c3c3c);
+	-webkit-backdrop-filter: blur(8px);
+	backdrop-filter: blur(8px);
+}
+.sqd-theme-dark .sqd-smart-editor-toggle:hover {
+	background: rgba(249, 115, 22, 0.12);
+	border-color: rgba(249, 115, 22, 0.3);
+}
+.sqd-theme-dark .sqd-smart-editor-toggle-icon .sqd-icon-path {
+	fill: var(--text-secondary, #969696);
+}
+.sqd-theme-dark .sqd-smart-editor-toggle:hover .sqd-smart-editor-toggle-icon .sqd-icon-path {
+	fill: var(--color-primary, #f97316);
+}
+.sqd-theme-dark .sqd-toolbox-toggle-icon .sqd-icon-path {
+	fill: var(--text-secondary, #969696);
+}
+.sqd-theme-dark .sqd-toolbox-header:hover .sqd-toolbox-toggle-icon .sqd-icon-path {
+	fill: var(--text-primary, #cccccc);
+}
+
+/* dark > .sqd-step-task */
+
+.sqd-theme-dark .sqd-step-task-rect {
+	fill: var(--bg-secondary, #252526);
+	stroke: var(--border-primary, #3c3c3c);
+	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+.sqd-theme-dark .sqd-step-task-rect.sqd-selected {
+	stroke: var(--color-primary, #f97316);
+	stroke-width: 2;
+	filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.2));
+}
+.sqd-theme-dark .sqd-step-task-text {
+	fill: var(--text-primary, #cccccc);
+}
+.sqd-theme-dark .sqd-step-task-empty-icon {
+	fill: var(--color-primary, #f97316);
+	opacity: 0.6;
+}
+
+/* dark > task & toolbox icon image filters (SVGs are black/dark by default) */
+.sqd-theme-dark .sqd-step-task image {
+	filter: brightness(0) invert(1);
+}
+.sqd-theme-dark .sqd-toolbox-item-icon-image {
+	filter: brightness(0) invert(1);
+}
+
+/* dark > .sqd-input + .sqd-output */
+
+.sqd-theme-dark .sqd-input {
+	fill: var(--bg-secondary, #252526);
+	stroke: var(--text-secondary, #969696);
+}
+
+.sqd-theme-dark .sqd-output {
+	fill: var(--text-secondary, #969696);
+}
+
+/* dark > .sqd-region */
+
+.sqd-theme-dark .sqd-region {
+	stroke: var(--border-secondary, #4d4d4d);
+}
+.sqd-theme-dark .sqd-region.sqd-selected {
+	stroke: var(--color-primary, #f97316);
+}
+.sqd-theme-dark .sqd-label-rect {
+	fill: var(--color-primary, #f97316);
+}
+.sqd-theme-dark .sqd-label-rect.sqd-label-secondary {
+	fill: var(--bg-primary, #1e1e1e);
+}
+.sqd-theme-dark .sqd-label-text {
+	fill: var(--text-inverse, #FFF);
+}
+
+/* dark > .sqd-step-start-stop */
+
+.sqd-theme-dark .sqd-step-start-stop-circle {
+	fill: var(--color-primary, #f97316);
+	filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.35));
+}
+.sqd-theme-dark .sqd-step-start-stop-icon {
+	fill: var(--text-inverse, #FFF);
+}
+
+/* dark > .sqd-placeholder */
+
+.sqd-theme-dark .sqd-placeholder .sqd-placeholder-rect {
+	fill: var(--bg-primary, #1e1e1e);
+	stroke: var(--border-secondary, #4d4d4d);
+}
+.sqd-theme-dark .sqd-placeholder-icon-path {
+	fill: var(--text-primary, #cccccc);
+}
+.sqd-theme-dark .sqd-placeholder.sqd-hover .sqd-placeholder-rect {
+	fill: var(--color-primary, #f97316);
+	filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.3));
+}
+.sqd-theme-dark .sqd-placeholder.sqd-hover .sqd-placeholder-icon-path {
+	fill: var(--text-inverse, #FFF);
+}
+
+/* dark > .sqd-validation-error */
+
+.sqd-theme-dark .sqd-validation-error {
+	fill: var(--color-warning, #f59e0b);
+}
+.sqd-theme-dark .sqd-validation-error-icon-path {
+	fill: var(--text-primary, #cccccc);
+}
+
+/* dark > scrollbar styling */
+
+.sqd-theme-dark .sqd-smart-editor::-webkit-scrollbar {
+	width: 6px;
+}
+.sqd-theme-dark .sqd-smart-editor::-webkit-scrollbar-track {
+	background: transparent;
+}
+.sqd-theme-dark .sqd-smart-editor::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 3px;
+}
+.sqd-theme-dark .sqd-smart-editor::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 255, 255, 0.2);
+}

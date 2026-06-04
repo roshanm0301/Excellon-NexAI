@@ -1,0 +1,774 @@
+@import "./themes/generated/variables.base.scss";
+@import "./styles/design-system.scss";
+// NOTE: vscode-dark-overrides is imported in App.tsx AFTER theme.base.css
+// so that dark‑mode rules have higher cascade priority.
+
+html,
+body {
+  margin: 0px;
+  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.app {
+  background-color: var(--bg-primary);        // VS Code editor.background
+  display: flex;
+  height: 100%;
+  width: 100%;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    margin-bottom: 0;
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .container {
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    display: flex;
+  }
+
+  .content {
+    h1 {
+      font-size: var(--text-xl);
+      font-weight: var(--font-bold);
+      color: var(--text-primary);
+    }
+
+    h2 {
+      font-size: var(--text-lg);
+      font-weight: var(--font-semibold);
+      color: var(--text-primary);
+    }
+
+    h3 {
+      font-size: var(--text-base);
+      font-weight: var(--font-semibold);
+      color: var(--text-primary);
+    }
+
+    h4 {
+      font-size: var(--text-sm);
+      font-weight: var(--font-medium);
+      color: var(--text-primary);
+    }
+
+    h5,
+    h6 {
+      font-size: var(--text-xs);
+      font-weight: var(--font-medium);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-widest);
+    }
+
+    line-height: var(--leading-normal);
+  }
+
+  .layout-body {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .content-block {
+    margin: 0;
+  }
+
+  .responsive-paddings {
+    padding: 0 var(--space-1);
+
+    .screen-large & {
+      padding: 0 var(--space-2);
+    }
+  }
+}
+
+// ============================================================================
+// DEVEXTREME OVERRIDES — IDE DENSITY
+// ============================================================================
+
+// ── Buttons ─────────────────────────────────────────────────────────────────
+.dx-button,
+.dx-placeholder,
+.dx-texteditor-input {
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-sm) !important;
+}
+
+.dx-button {
+  border-radius: var(--radius-md) !important;
+  transition: all var(--transition-fast) !important;
+  font-weight: var(--font-medium) !important;
+}
+
+.dx-button-mode-outlined {
+  margin-right: 0 !important;
+}
+
+.dx-button-mode-contained.dx-button-default {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 1px 2px rgba(249, 115, 22, 0.15) !important;
+
+  &:hover, &.dx-state-hover {
+    background-color: var(--color-primary-hover) !important;
+    border-color: var(--color-primary-hover) !important;
+    box-shadow: 0 2px 4px rgba(249, 115, 22, 0.2) !important;
+  }
+
+  &:active, &.dx-state-active {
+    background-color: var(--color-primary-active) !important;
+    box-shadow: none !important;
+  }
+}
+
+.dx-button-mode-outlined.dx-button-default {
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+
+  &:hover, &.dx-state-hover {
+    background-color: var(--color-primary-50) !important;
+  }
+}
+
+// ── DATA GRID ───────────────────────────────────────────────────────────────
+
+.data-grid {
+  margin-top: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+.dx-datagrid {
+  border: 1px solid var(--border-primary) !important;
+  border-radius: var(--ide-card-radius) !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-panel);
+  background: var(--bg-primary);
+}
+
+// Header row
+.dx-datagrid .dx-datagrid-table .dx-header-row > td {
+  padding: 8px var(--space-3) !important;
+  font-weight: var(--font-semibold) !important;
+  font-size: var(--text-2xs, 10px) !important;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  color: var(--text-tertiary) !important;
+  background: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-strong) !important;
+  line-height: 1.4;
+}
+
+// DataGrid header panel (search bar area) — compact
+.dx-datagrid-header-panel {
+  padding: 4px var(--space-2) !important;
+
+  .dx-toolbar {
+    padding: 0 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+  }
+
+  .dx-toolbar-items-container {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  .dx-toolbar-before,
+  .dx-toolbar-center,
+  .dx-toolbar-label {
+    display: none !important;
+  }
+
+  .dx-toolbar-after {
+    position: static !important;
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 !important;
+    height: auto !important;
+  }
+}
+
+// Header sticky
+.dx-datagrid-headers {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: none !important;
+}
+
+// Data rows
+.dx-datagrid .dx-row > td {
+  padding: 3px 8px !important;
+  font-size: 13px !important;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-secondary) !important;
+  transition: background var(--transition-instant);
+  vertical-align: middle;
+  line-height: 1.2 !important;
+}
+
+// Row height
+.dx-datagrid-rowsview .dx-row > td {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.dx-datagrid .dx-row .dx-checkbox-container {
+  vertical-align: middle;
+}
+
+// Row hover
+.dx-datagrid .dx-data-row.dx-state-hover > td {
+  background: var(--bg-tertiary) !important;    // list.hoverBackground for dark
+}
+
+// Alternating rows
+.dx-datagrid .dx-row-alt > td {
+  background: var(--bg-sunken) !important;
+}
+
+// Row actions on hover
+.dx-datagrid .dx-command-edit {
+  .dx-link {
+    color: var(--text-tertiary) !important;
+    font-size: var(--text-sm);
+    opacity: 0.35;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      color: var(--color-primary) !important;
+      opacity: 1;
+    }
+  }
+}
+
+.dx-datagrid .dx-data-row:hover .dx-command-edit .dx-link,
+.dx-datagrid .dx-data-row.dx-state-hover .dx-command-edit .dx-link {
+  opacity: 1;
+}
+
+.dx-datagrid .dx-command-edit .dx-link:hover {
+  color: var(--color-primary) !important;
+}
+
+// Editable row
+.dx-datagrid .dx-data-row.dx-edit-row > td {
+  padding: 2px 6px !important;
+  font-size: var(--text-sm) !important;
+  background: var(--color-primary-50) !important;
+}
+
+// Inline editors
+.dx-datagrid .dx-row .dx-texteditor {
+  margin: 0 !important;
+}
+
+.dx-datagrid .dx-row .dx-texteditor-input,
+.dx-datagrid .dx-row .dx-texteditor .dx-texteditor-input {
+  font-size: var(--text-sm) !important;
+  padding: 2px 6px !important;
+  min-height: 26px !important;
+  height: 26px !important;
+}
+
+.dx-datagrid .dx-row .dx-lookup-field,
+.dx-datagrid .dx-row .dx-selectbox .dx-texteditor-input {
+  font-size: var(--text-sm) !important;
+  padding: 2px 6px !important;
+  min-height: 26px !important;
+  height: 26px !important;
+}
+
+.dx-datagrid .dx-edit-row .dx-texteditor-container {
+  padding: 0 !important;
+}
+
+.dx-datagrid .dx-edit-row .dx-texteditor-buttons-container {
+  min-height: 26px !important;
+}
+
+.dx-datagrid .dx-command-edit.dx-command-edit-with-icons .dx-link {
+  margin: 0 6px !important;
+}
+
+// Empty state
+.dx-datagrid-nodata {
+  color: var(--text-secondary);
+  font-size: var(--text-sm) !important;
+  padding: var(--space-8) !important;
+}
+
+// Selection checkbox
+.dx-datagrid .dx-header-row .dx-checkbox-icon,
+.dx-datagrid .dx-data-row .dx-checkbox-icon {
+  border-radius: var(--radius-sm);
+}
+
+// Pager
+.dx-datagrid .dx-datagrid-pager {
+  border-top: 1px solid var(--border-primary);
+  padding: var(--space-1) var(--space-3);     // 4px 12px — compact pager
+  background: var(--bg-secondary);
+  font-size: var(--text-xs);
+}
+
+// Search panel
+.dx-datagrid .dx-datagrid-search-panel {
+  margin: 0;
+
+  .dx-texteditor-input {
+    border-radius: var(--radius-md);
+  }
+}
+
+// Filter row
+.dx-datagrid .dx-datagrid-filter-row .dx-editor-cell {
+  background: var(--bg-secondary);
+}
+
+// Column resizing indicator
+.dx-datagrid-column-chooser .dx-popup-content {
+  border-radius: var(--ide-card-radius);
+}
+
+// ─── SIDEBAR DRAWER ─────────────────────────────────────────────────────────
+
+// Drawer height — consolidated; canonical rule is in side-nav-outer-toolbar.scss
+// .side-nav-outer-toolbar .dx-drawer — removed to avoid conflict
+
+.dx-swatch-additional .dx-treeview-item {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  min-height: var(--ide-row-height, 32px) !important;
+  line-height: 20px !important;
+}
+
+// ─── RESPONSIVE ─────────────────────────────────────────────────────────────
+
+// Mobile gutters handled by parent .content padding
+.screen-x-small .content-block {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.dx-card.wide-card {
+  border-radius: var(--ide-card-radius);
+  margin-left: 0;
+  margin-right: 0;
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-panel);
+}
+
+.with-footer > .dx-scrollable-wrapper > .dx-scrollable-container > .dx-scrollable-content {
+  & > .dx-scrollview-content {
+    // min-height removed — footer is disabled; this was causing
+    // content area gap to grow proportionally with screen height
+  }
+}
+
+.wmde-markdown-var.w-md-editor.w-md-editor-show-live {
+  margin-left: var(--space-1);
+  margin-right: 21px;
+}
+
+// Ensure MDEditor textarea area is scrollable (touchpad / keyboard)
+.w-md-editor {
+  .w-md-editor-area {
+    overflow: auto !important;
+  }
+  .w-md-editor-text-input {
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+// Allow scroll inside DXForm template items that contain MDEditor
+.dx-item-content:has(.w-md-editor),
+.dx-field-item-content:has(.w-md-editor) {
+  overflow: visible !important;
+}
+
+// MD Editor dark theme overrides
+[data-theme="dark"] .w-md-editor {
+  background-color: var(--bg-primary) !important;
+  border-color: var(--border-primary) !important;
+  color: var(--text-primary) !important;
+
+  .w-md-editor-toolbar {
+    background-color: var(--bg-secondary) !important;
+    border-bottom-color: var(--border-primary) !important;
+
+    li > button {
+      color: var(--text-primary) !important;
+
+      &:hover {
+        background: var(--bg-overlay-light) !important;
+        color: var(--text-inverse) !important;
+      }
+    }
+  }
+
+  .w-md-editor-content {
+    background: var(--bg-sunken) !important;
+  }
+
+  .w-md-editor-text-pre,
+  .w-md-editor-text-input,
+  .w-md-editor-text {
+    color: var(--text-primary) !important;
+  }
+
+  .wmde-markdown {
+    background: var(--bg-sunken) !important;
+    color: var(--text-primary) !important;
+  }
+}
+
+// MD Editor light theme overrides
+[data-theme="light"] .w-md-editor {
+  background-color: var(--bg-primary) !important;
+  border-color: var(--border-primary) !important;
+  color: var(--text-primary) !important;
+
+  .w-md-editor-toolbar {
+    background-color: var(--bg-secondary) !important;
+    border-bottom-color: var(--border-primary) !important;
+
+    li > button {
+      color: var(--text-secondary) !important;
+
+      &:hover {
+        background: var(--bg-overlay-light) !important;
+        color: var(--text-primary) !important;
+      }
+    }
+  }
+
+  .w-md-editor-content {
+    background: var(--bg-primary) !important;
+  }
+
+  .w-md-editor-text-pre,
+  .w-md-editor-text-input,
+  .w-md-editor-text {
+    color: var(--text-primary) !important;
+  }
+
+  .wmde-markdown {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+  }
+}
+
+.grid-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-1);
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  min-height: var(--ide-toolbar-height-sm, 32px);
+}
+
+.content-block.dx-widget.dx-visibility-change-handler {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.error-search {
+  display: flex;
+  justify-content: center;
+}
+
+.errorMessage {
+  display: flex;
+  color: var(--color-error);
+  font-size: var(--text-xs);
+  margin-top: var(--space-2);
+  align-items: center;
+  gap: var(--space-1);
+}
+
+// ─── DEVEXTREME FORM OVERRIDES ──────────────────────────────────────────────
+
+.dx-texteditor {
+  border-radius: var(--radius-md) !important;
+  transition: all var(--transition-fast) !important;
+
+  &.dx-state-focused {
+    border-color: var(--color-primary) !important;
+    box-shadow: var(--shadow-focus) !important;
+  }
+
+  // Fix TextBox action buttons (e.g. search icon) for dark theme
+  .dx-texteditor-buttons-container .dx-button {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+
+    .dx-button-content {
+      background: transparent !important;
+    }
+
+    .dx-icon {
+      color: var(--text-secondary) !important;
+    }
+
+    &:hover, &.dx-state-hover {
+      background: var(--bg-hover) !important;
+
+      .dx-icon {
+        color: var(--text-primary) !important;
+      }
+    }
+  }
+}
+
+.dx-selectbox, .dx-lookup {
+  .dx-texteditor-input {
+    border-radius: var(--radius-md);
+  }
+}
+
+.dx-field-item-label-text {
+  font-size: var(--text-xs) !important;
+  font-weight: var(--font-medium) !important;
+  color: var(--text-primary) !important;
+}
+
+// Popup modernization
+.dx-popup-wrapper .dx-popup-content {
+  border-radius: var(--ide-card-radius);
+}
+
+.dx-popup-wrapper .dx-overlay-content {
+  border-radius: var(--ide-card-radius) !important;
+  box-shadow: var(--shadow-xl) !important;
+  border: 1px solid var(--border-primary) !important;
+}
+
+// Tab panel
+.dx-tabpanel {
+  .dx-tab {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    font-weight: var(--font-medium);
+    transition: all var(--transition-fast);
+  }
+  
+  .dx-tab-selected {
+    border-bottom: 2px solid var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .dx-tabs {
+    border-bottom: 1px solid var(--border-primary);
+  }
+}
+
+// DX Tab indicator — thinner underline
+.dx-tabs .dx-tab-selected::after {
+  height: 2px !important;
+}
+
+// Override DX thick indicator bar
+.dx-tabs .dx-tabs-indicator {
+  height: 2px !important;
+}
+
+.dx-tab {
+  padding: 6px var(--space-3) !important;     // 6px 12px — compact IDE tabs
+}
+
+.dx-tabs {
+  border-bottom: 1px solid var(--border-primary) !important;
+}
+
+// Toolbar spacing
+.dx-toolbar {
+  font-family: var(--font-sans);
+}
+
+// Card overrides
+.dx-card {
+  border-radius: var(--ide-card-radius) !important;
+  box-shadow: var(--shadow-panel) !important;
+  border: 1px solid var(--border-primary) !important;
+  transition: box-shadow var(--transition-base), border-color var(--transition-base) !important;
+
+  &:hover {
+    box-shadow: var(--ide-card-shadow-hover) !important;
+    border-color: var(--color-gray-300) !important;
+  }
+}
+
+// ─── DX POPUP / DIALOG CONSISTENCY ──────────────────────────────────────────
+
+.dx-popup-title {
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-sm) !important;
+  font-weight: var(--font-semibold) !important;
+  padding: var(--space-2) var(--ide-card-padding) !important;
+  min-height: var(--ide-toolbar-height, 40px) !important;
+  border-bottom: 1px solid var(--border-primary) !important;
+  display: flex;
+  align-items: center;
+  letter-spacing: var(--tracking-tight) !important;
+}
+
+.dx-popup-bottom {
+  padding: var(--space-2) var(--ide-card-padding) !important;    // 8px 16px
+  border-top: 1px solid var(--border-primary) !important;
+}
+
+// DX LoadPanel / LoadIndicator — subtle
+.dx-loadpanel-content {
+  border-radius: var(--ide-card-radius) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+// DX Scrollview — thin scrollbar
+.dx-scrollable-scroll {
+  width: 6px !important;
+}
+
+.dx-scrollable-scroll-content {
+  border-radius: var(--radius-sm) !important;
+}
+
+// ─── DX CONTEXT MENU ───────────────────────────────────────────────────────
+
+.dx-context-menu .dx-submenu {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
+  border: 1px solid var(--border-primary) !important;
+  overflow: hidden;
+}
+
+.dx-context-menu .dx-menu-item {
+  font-size: var(--text-sm) !important;
+  padding: 4px var(--space-3) !important;      // 4px 12px — compact
+  min-height: var(--ide-input-height-sm, 28px);
+}
+
+// ─── DX TOOLTIP ─────────────────────────────────────────────────────────────
+
+.dx-tooltip-wrapper .dx-overlay-content {
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-md) !important;
+  font-size: var(--text-xs) !important;
+}
+
+// ─── BREADCRUMB ─────────────────────────────────────────────────────────────
+
+.breadcrumb-legacy {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.breadCrumb-content-block {
+  margin: 0;
+  padding: 0;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--color-primary);
+  }
+
+  &[aria-current="page"] {
+    color: var(--text-primary);
+    font-weight: var(--font-medium);
+  }
+}
+
+.breadcrumb-separator {
+  margin: 0 var(--space-2);                   // 8px on each side
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+}
+
+// ─── MARKDOWN EDITOR ────────────────────────────────────────────────────────
+
+.readme-editor {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+// ─── PAYLOAD TOOLBAR ────────────────────────────────────────────────────────
+
+.payload-toolbar-btn .dx-icon {
+  font-size: 24px !important;
+  color: var(--color-primary) !important;
+}
+
+// ─── IDE GLOBAL CONSISTENCY LAYER ───────────────────────────────────────────
+// Ensures all DX components render with consistent IDE-density spacing
+
+// All DX list items — uniform row height
+.dx-list-item {
+  min-height: var(--ide-row-height, 32px);
+  padding: 6px var(--space-3) !important;    // 6px 12px
+  font-size: var(--text-sm) !important;
+}
+
+// DX accordion — consistent section spacing
+.dx-accordion .dx-accordion-item-title {
+  font-size: var(--text-sm) !important;
+  font-weight: var(--font-semibold) !important;
+  padding: 6px var(--space-3) !important;
+  min-height: var(--ide-row-height, 32px) !important;
+}
+
+.dx-accordion .dx-accordion-item-body {
+  padding: var(--space-3) !important;
+}
+
+// DX field-item — consistent label alignment
+.dx-field-item-label-location-top .dx-field-item-label {
+  padding-bottom: 2px !important;
+}
+
+// All DX inputs — consistent height
+.dx-texteditor:not(.dx-textarea) .dx-texteditor-input-container {
+  min-height: var(--ide-input-height, 32px);
+}
+
+// DX dropdowns — consistent list density
+.dx-dropdownlist-popup-wrapper .dx-list-item-content {
+  padding: 4px var(--space-3) !important;
+  font-size: var(--text-sm) !important;
+}
+
+// DX validation — error state consistency
+.dx-invalid .dx-texteditor {
+  border-color: var(--color-error) !important;
+}
+
+.dx-invalid-message > .dx-overlay-content {
+  font-size: var(--text-xs) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+// DX switch — compact alignment
+.dx-switch {
+  height: var(--ide-input-height, 32px);
+}
