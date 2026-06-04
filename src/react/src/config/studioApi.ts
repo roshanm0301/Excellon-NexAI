@@ -397,4 +397,4 @@ export const registerPlugin = (body: RegisterPluginRequest) =>
   studioFetch<Plugin>(`${STUDIO_PREFIX}/plugins`, { method: 'POST', body: JSON.stringify(body) })
 
 export const removePlugin = (pluginID: string) =>
-  studioFetch<void>(`${STUDIO_PREFIX}/plugins/${pluginID}`, { method: 'DELETE' })
+  studioFetch<void>(`${STUDIO_PREFIX}/plugins/${pluginID}`, { method: 'DELETE' })
