@@ -45,7 +45,7 @@ function getSummary(type: string, settings: Record<string, unknown>): string | n
     case 'Approval':
       return settings.approverRole ? `Approver: ${String(settings.approverRole)}` : null
     case 'Timer':
-      return settings.hours ? `Wait ${String(settings.hours)}h` : null
+      return settings.amount && settings.unit ? `Wait ${String(settings.amount)} ${String(settings.unit)}` : null
     case 'Variable':
       return settings.varName ? `var: ${String(settings.varName)}` : null
     case 'Cache':

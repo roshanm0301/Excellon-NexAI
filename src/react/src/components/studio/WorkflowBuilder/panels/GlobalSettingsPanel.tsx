@@ -52,8 +52,10 @@ export function GlobalSettingsPanel({ definition, onChange }: GlobalSettingsPane
   const props = definition.properties ?? {}
   const stepCount = definition.sequence.length
 
-  // Auto-dismiss tips once the workflow has more than 2 steps
-  const [showTips, setShowTips] = useState(stepCount <= 2)
+  // Auto-dismiss tips once workflow has more than 2 steps.
+  // User can bring them back via the toggle link below.
+  const [tipsManuallyShown, setTipsManuallyShown] = useState(false)
+  const showTips = stepCount <= 2 || tipsManuallyShown
 
   const displayName = (props.displayName as string | undefined) ?? ''
   const method = (props.method as string | undefined) ?? 'POST'
@@ -201,7 +203,7 @@ export function GlobalSettingsPanel({ definition, onChange }: GlobalSettingsPane
 
         {!showTips && (
           <button
-            onClick={() => setShowTips(true)}
+            onClick={() => setTipsManuallyShown(true)}
             style={{
               background: 'none',
               border: 'none',

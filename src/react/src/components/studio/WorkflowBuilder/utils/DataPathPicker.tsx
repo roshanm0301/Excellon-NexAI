@@ -78,7 +78,7 @@ export function DataPathPicker({ onSelect, upstreamSteps }: DataPathPickerProps)
         }}
         title="Insert data from a previous step"
       >
-        Insert ▾
+        Insert
         <ChevronDown size={10} />
       </button>
 
