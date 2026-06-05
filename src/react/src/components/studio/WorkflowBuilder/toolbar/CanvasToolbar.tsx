@@ -1,4 +1,5 @@
-import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize2, LayoutGrid, Save, Send, Wrench, Map, History, LayoutTemplate, FolderOpen, Search, Sparkles } from 'lucide-react'
+import { useRef, useState, useEffect } from 'react'
+import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize2, LayoutGrid, Save, Send, Wrench, Map, History, LayoutTemplate, FolderOpen, Search, Sparkles, MoreHorizontal } from 'lucide-react'
 import { useReactFlow } from '@xyflow/react'
 import { useWorkflowBuilderStore } from '../../../../pages/studio/workflow-builder/useWorkflowBuilderStore'
 import { applyAutoLayout } from '../utils/layoutUtils'
@@ -52,8 +53,22 @@ export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, onOpenT
   const syncNodePositions = useWorkflowBuilderStore(s => s.syncNodePositions)
   const tab = useWorkflowBuilderStore(s => s.tabs.find(t => t.id === tabId))
 
+  const [overflowOpen, setOverflowOpen] = useState(false)
+  const overflowRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!overflowOpen) return
+    function handleOutside(e: MouseEvent) {
+      if (overflowRef.current && !overflowRef.current.contains(e.target as Node)) {
+        setOverflowOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [overflowOpen])
+
   const stepCount = tab ? countSteps(tab.definition.sequence) : 0
-  const branchCount = tab ? countSteps(tab.definition.sequence, true) : 0
+  const decisionCount = tab ? countSteps(tab.definition.sequence, true) : 0
 
   const handleAutoLayout = () => {
     if (!tab) return
@@ -65,11 +80,11 @@ export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, onOpenT
     }
     const laid = applyAutoLayout(tab.nodes, tab.edges)
     setNodes(tabId, laid)
-    // Persist new positions to definition.sequence so they are saved
     const posMap: Record<string, { x: number; y: number }> = {}
     for (const n of laid) posMap[n.id] = n.position
     syncNodePositions(tabId, posMap)
     requestAnimationFrame(() => fitView({ padding: 0.2, duration: 300 }))
+    setOverflowOpen(false)
   }
 
   const btnStyle = (disabled = false): React.CSSProperties => ({
@@ -97,6 +112,22 @@ export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, onOpenT
     color: active ? 'var(--brand-600)' : 'var(--color-text-primary)',
   })
 
+  const overflowItemStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    width: '100%',
+    padding: '7px 12px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '0.8125rem',
+    color: 'var(--color-text-primary)',
+    fontFamily: 'inherit',
+    textAlign: 'left',
+    whiteSpace: 'nowrap',
+  }
+
   return (
     <div
       style={{
@@ -107,14 +138,13 @@ export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, onOpenT
         borderBottom: '1px solid var(--color-border)',
         background: 'var(--color-surface)',
         flexShrink: 0,
-        flexWrap: 'wrap',
       }}
     >
-      {/* Toolbox toggle */}
+      {/* Tasks (toolbox toggle) */}
       <button
         style={iconBtn(toolboxOpen)}
         onClick={toggleToolbox}
-        title="Toggle task toolbox"
+        title="Toggle task library"
         aria-pressed={toolboxOpen}
       >
         <Wrench size={14} />
@@ -133,49 +163,15 @@ export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, onOpenT
 
       <div style={{ width: 1, height: 20, background: 'var(--color-border)', margin: '0 4px' }} />
 
-      {/* Zoom controls */}
-      <button style={btnStyle()} onClick={() => zoomIn()} title="Zoom in">
-        <ZoomIn size={13} />
-      </button>
-      <button style={btnStyle()} onClick={() => zoomOut()} title="Zoom out">
-        <ZoomOut size={13} />
-      </button>
-      <button style={btnStyle()} onClick={() => fitView({ padding: 0.2 })} title="Fit view">
-        <Maximize2 size={13} />
-      </button>
-
-      {/* Auto-layout */}
-      <button style={btnStyle()} title="Auto-arrange nodes (BFS layout)" onClick={handleAutoLayout}>
-        <LayoutGrid size={13} />
-        <span>Auto-arrange</span>
-      </button>
-
-      <div style={{ width: 1, height: 20, background: 'var(--color-border)', margin: '0 4px' }} />
-
-      {/* Minimap toggle */}
-      <button
-        style={iconBtn(showMinimap)}
-        onClick={toggleMinimap}
-        title="Toggle minimap"
-        aria-pressed={showMinimap}
-      >
-        <Map size={13} />
-        <span>Map</span>
-      </button>
-
-      {/* History button */}
-      {onOpenHistory && (
-        <button
-          style={btnStyle()}
-          onClick={onOpenHistory}
-          title="View version history"
-        >
-          <History size={13} />
-          <span>History</span>
+      {/* Templates */}
+      {onOpenTemplates && (
+        <button style={btnStyle()} onClick={onOpenTemplates} title="Browse workflow templates">
+          <LayoutTemplate size={13} />
+          <span>Templates</span>
         </button>
       )}
 
-      {/* AI Assistant button */}
+      {/* AI Assistant */}
       {onOpenAI && (
         <button
           style={iconBtn(aiPanelOpen)}
@@ -190,57 +186,79 @@ export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, onOpenT
 
       <div style={{ width: 1, height: 20, background: 'var(--color-border)', margin: '0 4px' }} />
 
-      {/* Templates button */}
-      {onOpenTemplates && (
-        <button
-          style={btnStyle()}
-          onClick={onOpenTemplates}
-          title="Browse workflow templates"
-        >
-          <LayoutTemplate size={13} />
-          <span>Templates</span>
-        </button>
-      )}
-
-      {/* Import / Export button */}
-      {onOpenImportExport && (
-        <button
-          style={btnStyle()}
-          onClick={onOpenImportExport}
-          title="Import or export workflow JSON"
-        >
-          <FolderOpen size={13} />
-          <span>Import/Export</span>
-        </button>
-      )}
-
-      {/* Global search button */}
-      {onOpenGlobalSearch && (
-        <button
-          style={btnStyle()}
-          onClick={onOpenGlobalSearch}
-          title="Search all workflows"
-        >
-          <Search size={13} />
-          <span>Search all</span>
-        </button>
-      )}
-
-      <div style={{ width: 1, height: 20, background: 'var(--color-border)', margin: '0 4px' }} />
-
       {/* Step counter */}
       <span
-        style={{
-          fontSize: '0.75rem',
-          color: 'var(--color-text-muted)',
-          whiteSpace: 'nowrap',
-          padding: '0 4px',
-        }}
-        title="Step and branch counts"
+        style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap', padding: '0 4px' }}
+        title="Step and decision point counts"
       >
         {stepCount} step{stepCount !== 1 ? 's' : ''}
-        {branchCount > 0 && ` · ${branchCount} branch${branchCount !== 1 ? 'es' : ''}`}
+        {decisionCount > 0 && ` · ${decisionCount} decision point${decisionCount !== 1 ? 's' : ''}`}
       </span>
+
+      {/* Overflow — secondary actions */}
+      <div ref={overflowRef} style={{ position: 'relative' }}>
+        <button
+          style={iconBtn(overflowOpen)}
+          onClick={() => setOverflowOpen(v => !v)}
+          title="More options"
+          aria-expanded={overflowOpen}
+        >
+          <MoreHorizontal size={14} />
+          <span>More</span>
+        </button>
+
+        {overflowOpen && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 4px)',
+              left: 0,
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 8,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+              zIndex: 50,
+              minWidth: 180,
+              overflow: 'hidden',
+            }}
+          >
+            <button style={overflowItemStyle} onClick={() => { zoomIn(); setOverflowOpen(false) }}>
+              <ZoomIn size={13} /> Zoom in
+            </button>
+            <button style={overflowItemStyle} onClick={() => { zoomOut(); setOverflowOpen(false) }}>
+              <ZoomOut size={13} /> Zoom out
+            </button>
+            <button style={overflowItemStyle} onClick={() => { fitView({ padding: 0.2 }); setOverflowOpen(false) }}>
+              <Maximize2 size={13} /> Fit view
+            </button>
+            <button style={overflowItemStyle} onClick={handleAutoLayout}>
+              <LayoutGrid size={13} /> Auto-arrange
+            </button>
+            <div style={{ height: 1, background: 'var(--color-border)', margin: '2px 0' }} />
+            <button
+              style={{ ...overflowItemStyle, color: showMinimap ? 'var(--brand-600)' : 'var(--color-text-primary)' }}
+              onClick={() => { toggleMinimap(); setOverflowOpen(false) }}
+            >
+              <Map size={13} /> {showMinimap ? 'Hide minimap' : 'Show minimap'}
+            </button>
+            {onOpenHistory && (
+              <button style={overflowItemStyle} onClick={() => { onOpenHistory(); setOverflowOpen(false) }}>
+                <History size={13} /> Version history
+              </button>
+            )}
+            {onOpenImportExport && (
+              <button style={overflowItemStyle} onClick={() => { onOpenImportExport(); setOverflowOpen(false) }}>
+                <FolderOpen size={13} /> Import / Export
+              </button>
+            )}
+            {onOpenGlobalSearch && (
+              <button style={overflowItemStyle} onClick={() => { onOpenGlobalSearch(); setOverflowOpen(false) }}>
+                <Search size={13} /> Search all workflows
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Spacer */}
       <div style={{ flex: 1 }} />

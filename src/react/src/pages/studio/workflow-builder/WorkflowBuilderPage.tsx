@@ -51,6 +51,11 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
   const tab = getActiveTab()
   const selectedStep = tab?.nodes.find(n => n.id === tab?.selectedNodeId)?.data.step as WorkflowStep | undefined
 
+  // Upstream steps available for DataPathPicker (all steps except the selected one)
+  const upstreamSteps: WorkflowStep[] = selectedStep && tab
+    ? tab.definition.sequence.filter(s => s.id !== selectedStep.id)
+    : []
+
   const { data: artifact, isLoading } = useWorkflowArtifact(id)
   const saveMut = useSaveWorkflowDraft()
   const publishMut = usePublishWorkflow()
@@ -328,6 +333,76 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
             />
           )}
 
+          {/* Scenario starter — shown on empty canvas (only Start + End) */}
+          {tab && tab.definition.sequence.length <= 2 && !tab.selectedNodeId && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 4,
+                pointerEvents: 'none',
+              }}
+            >
+              <div
+                style={{
+                  background: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 12,
+                  padding: '20px 24px',
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+                  maxWidth: 520,
+                  pointerEvents: 'auto',
+                }}
+              >
+                <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--color-text-primary)', marginBottom: 4, textAlign: 'center' }}>
+                  What do you want to build?
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textAlign: 'center', marginBottom: 16 }}>
+                  Choose a scenario or drag tasks from the library
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+                  {[
+                    { label: 'Fetch a record', icon: '📄' },
+                    { label: 'Create a record', icon: '✏️' },
+                    { label: 'Approval process', icon: '✅' },
+                    { label: 'Call external API', icon: '🌐' },
+                    { label: 'Send a notification', icon: '🔔' },
+                    { label: 'Generate with AI ✨', icon: '🤖', ai: true },
+                  ].map(scenario => (
+                    <button
+                      key={scenario.label}
+                      onClick={() => scenario.ai ? setShowAIPanel(true) : setShowTemplateGallery(true)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '7px 14px',
+                        background: scenario.ai ? 'var(--brand-600)' : 'var(--color-surface-2)',
+                        border: scenario.ai ? 'none' : '1px solid var(--color-border)',
+                        borderRadius: 8,
+                        cursor: 'pointer',
+                        fontSize: '0.8125rem',
+                        fontWeight: 500,
+                        color: scenario.ai ? 'white' : 'var(--color-text-primary)',
+                        fontFamily: 'inherit',
+                        transition: 'background 0.15s',
+                      }}
+                    >
+                      <span>{scenario.icon}</span>
+                      {scenario.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Floating toolbox */}
           {toolboxOpen && (
             <div
@@ -437,6 +512,7 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
             step={selectedStep}
             onChange={(patch) => updateStep(activeTabId, selectedStep.id, patch)}
             onClose={() => useWorkflowBuilderStore.getState().selectNode(activeTabId, null)}
+            upstreamSteps={upstreamSteps}
           />
         ) : tab ? (
           <GlobalSettingsPanel

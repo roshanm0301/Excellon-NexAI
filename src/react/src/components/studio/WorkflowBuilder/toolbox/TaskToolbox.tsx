@@ -9,7 +9,7 @@ interface TaskToolboxProps {
 
 export function TaskToolbox({ onClose }: TaskToolboxProps) {
   const [query, setQuery] = useState('')
-  const [openCategory, setOpenCategory] = useState<TaskCategory | null>('Control Flow')
+  const [openCategory, setOpenCategory] = useState<TaskCategory | null>('Flow Control')
 
   const lowerQuery = query.toLowerCase()
 
@@ -127,6 +127,9 @@ export function TaskToolbox({ onClose }: TaskToolboxProps) {
             if (items.length === 0) return null
             const isOpen = openCategory === category
 
+            const standard = items.filter(t => t.tier !== 'advanced')
+            const advanced = items.filter(t => t.tier === 'advanced')
+
             return (
               <div key={category} style={{ marginBottom: 2 }}>
                 <button
@@ -160,7 +163,50 @@ export function TaskToolbox({ onClose }: TaskToolboxProps) {
 
                 {isOpen && (
                   <div style={{ paddingLeft: 4 }}>
-                    {items.map(config => <TaskTypeCard key={config.type} config={config} />)}
+                    {standard.map(config => (
+                      <TaskTypeCard key={config.type} config={config} />
+                    ))}
+                    {advanced.length > 0 && (
+                      <>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            margin: '4px 8px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              flex: 1,
+                              height: 1,
+                              background: 'var(--color-border)',
+                            }}
+                          />
+                          <span
+                            style={{
+                              fontSize: '0.5625rem',
+                              fontWeight: 500,
+                              color: 'var(--color-text-muted)',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.05em',
+                            }}
+                          >
+                            Advanced
+                          </span>
+                          <div
+                            style={{
+                              flex: 1,
+                              height: 1,
+                              background: 'var(--color-border)',
+                            }}
+                          />
+                        </div>
+                        {advanced.map(config => (
+                          <TaskTypeCard key={config.type} config={config} />
+                        ))}
+                      </>
+                    )}
                   </div>
                 )}
               </div>

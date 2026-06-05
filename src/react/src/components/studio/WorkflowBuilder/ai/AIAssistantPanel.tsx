@@ -111,8 +111,62 @@ function GenerateTab({ definition, onApply }: GenerateTabProps) {
           <Banner
             variant="success"
             title="Workflow ready"
-            message={`Generated ${generated.sequence.filter(s => s.type !== 'start' && s.type !== 'end').length} step(s). Review and apply to the canvas.`}
+            message={`Generated ${generated.sequence.filter(s => s.type !== 'start' && s.type !== 'end').length} step(s). Review before applying.`}
           />
+
+          {/* Step list preview */}
+          <div style={{ border: '1px solid var(--color-border)', borderRadius: 8, overflow: 'hidden' }}>
+            <div style={{ padding: '6px 10px', background: 'var(--color-surface-2)', fontSize: '0.6875rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              {generated.sequence.length} step{generated.sequence.length !== 1 ? 's' : ''} to be added
+            </div>
+            <div style={{ maxHeight: 200, overflowY: 'auto' }}>
+              {generated.sequence.map((step, idx) => (
+                <div
+                  key={step.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '6px 10px',
+                    borderTop: idx > 0 ? '1px solid var(--color-border)' : 'none',
+                    fontSize: '0.8125rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      background: 'var(--brand-100)',
+                      color: 'var(--brand-700)',
+                      fontSize: '0.625rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {idx + 1}
+                  </span>
+                  <span style={{ flex: 1, color: 'var(--color-text-primary)', fontWeight: 500 }}>{step.name || step.id}</span>
+                  <span
+                    style={{
+                      fontSize: '0.625rem',
+                      padding: '1px 6px',
+                      borderRadius: 4,
+                      background: 'var(--color-surface-2)',
+                      color: 'var(--color-text-muted)',
+                      fontFamily: 'monospace',
+                    }}
+                  >
+                    {step.type}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <Button variant="secondary" onClick={handleApply}>
             Apply to Canvas
           </Button>

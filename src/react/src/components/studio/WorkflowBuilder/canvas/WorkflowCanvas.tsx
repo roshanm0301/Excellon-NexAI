@@ -9,7 +9,7 @@ import {
   useReactFlow,
   SelectionMode,
 } from '@xyflow/react'
-import type { Connection, NodeMouseHandler } from '@xyflow/react'
+import type { Connection, NodeMouseHandler, Edge } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { nodeTypes } from '../nodes/nodeTypes'
 import { edgeTypes } from '../edges/edgeTypes'
@@ -31,6 +31,41 @@ export function WorkflowCanvas({ tabId, onNodeContextMenu }: WorkflowCanvasProps
   const updateDefinition = useWorkflowBuilderStore(s => s.updateDefinition)
   const syncNodePositions = useWorkflowBuilderStore(s => s.syncNodePositions)
   const showMinimap = useWorkflowBuilderStore(s => s.showMinimap)
+
+  const isValidConnection = useCallback(
+    (connection: Connection | Edge) => {
+      if (!tab) return false
+      const { source, target } = connection
+      if (!source || !target) return false
+      if (source === target) return false
+
+      const sourceNode = tab.nodes.find(n => n.id === source)
+      const targetNode = tab.nodes.find(n => n.id === target)
+      if (!sourceNode || !targetNode) return false
+
+      // Don't allow connecting FROM an end node or TO a start node
+      if (String(sourceNode.data.taskType) === 'end') return false
+      if (String(targetNode.data.taskType) === 'start') return false
+
+      // Prevent cycles: check if target is already reachable from source via BFS
+      const reachable = new Set<string>()
+      const queue = [target]
+      while (queue.length > 0) {
+        const current = queue.shift()!
+        if (current === source) return false
+        if (reachable.has(current)) continue
+        reachable.add(current)
+        for (const edge of tab.edges) {
+          if (edge.source === current && !reachable.has(edge.target)) {
+            queue.push(edge.target)
+          }
+        }
+      }
+
+      return true
+    },
+    [tab],
+  )
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -102,6 +137,7 @@ export function WorkflowCanvas({ tabId, onNodeContextMenu }: WorkflowCanvasProps
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onConnect={onConnect}
+        isValidConnection={isValidConnection}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
         onDragOver={onDragOver}

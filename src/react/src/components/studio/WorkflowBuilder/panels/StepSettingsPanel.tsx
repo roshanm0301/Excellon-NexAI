@@ -1,4 +1,5 @@
-import { X } from 'lucide-react'
+import { useState } from 'react'
+import { X, ChevronDown, ChevronUp } from 'lucide-react'
 import type { WorkflowStep } from '../../../../types/workflowBuilder'
 import { getTaskConfig } from '../toolbox/taskTypeRegistry'
 import { TaskIcon } from '../nodes/TaskIcon'
@@ -65,10 +66,12 @@ interface StepSettingsPanelProps {
   step: WorkflowStep
   onChange: (patch: Partial<WorkflowStep>) => void
   onClose: () => void
+  upstreamSteps?: WorkflowStep[]
 }
 
-export function StepSettingsPanel({ step, onChange, onClose }: StepSettingsPanelProps) {
+export function StepSettingsPanel({ step, onChange, onClose, upstreamSteps = [] }: StepSettingsPanelProps) {
   const config = getTaskConfig(step.type)
+  const [advancedOpen, setAdvancedOpen] = useState(false)
 
   function renderSettings() {
     switch (step.type) {
@@ -95,7 +98,7 @@ export function StepSettingsPanel({ step, onChange, onClose }: StepSettingsPanel
 
       // Control Flow
       case 'Condition':
-        return <ConditionSettings step={step} onChange={onChange} />
+        return <ConditionSettings step={step} onChange={onChange} upstreamSteps={upstreamSteps} />
       case 'Switch':
         return <SwitchSettings step={step} onChange={onChange} />
       case 'Loop':
@@ -155,7 +158,7 @@ export function StepSettingsPanel({ step, onChange, onClose }: StepSettingsPanel
 
       // Integration
       case 'HTTP':
-        return <HttpSettings step={step} onChange={onChange} />
+        return <HttpSettings step={step} onChange={onChange} upstreamSteps={upstreamSteps} />
       case 'SMTP':
         return <EmailSettings step={step} onChange={onChange} />
       case 'SMS':
@@ -201,7 +204,7 @@ export function StepSettingsPanel({ step, onChange, onClose }: StepSettingsPanel
       case 'Request':
         return <RequestSettings step={step} onChange={onChange} />
       case 'Response':
-        return <ResponseSettings step={step} onChange={onChange} />
+        return <ResponseSettings step={step} onChange={onChange} upstreamSteps={upstreamSteps} />
       case 'Variable':
         return <VariableSettings step={step} onChange={onChange} />
       case 'State':
@@ -221,10 +224,12 @@ export function StepSettingsPanel({ step, onChange, onClose }: StepSettingsPanel
     marginBottom: 4,
   }
 
+  const isStartOrEnd = step.type === 'start' || step.type === 'end'
+
   return (
     <div
       style={{
-        width: 300,
+        width: 360,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -288,44 +293,22 @@ export function StepSettingsPanel({ step, onChange, onClose }: StepSettingsPanel
         </button>
       </div>
 
-      {/* Identity fields — hidden for start/end which have no meaningful output variable */}
-      {step.type !== 'start' && step.type !== 'end' && (
+      {/* Step name — only for non-start/end steps */}
+      {!isStartOrEnd && (
         <div
           style={{
             padding: '10px 12px',
             borderBottom: '1px solid var(--color-border)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
             flexShrink: 0,
             background: 'var(--color-surface-2)',
           }}
         >
-          <div>
-            <label style={labelStyle}>Step name</label>
-            <Input
-              value={step.name}
-              onChange={e => onChange({ name: e.target.value })}
-              placeholder="Human-readable label"
-            />
-          </div>
-          <div>
-            <label style={labelStyle}>
-              Output variable{' '}
-              <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>
-                (used as {'{$.'}{step.id}{'.data}'})
-              </span>
-            </label>
-            <Input
-              value={step.id}
-              onChange={e => onChange({ id: e.target.value })}
-              placeholder="camelCaseId"
-              style={{ fontFamily: 'monospace', fontSize: '0.8125rem' }}
-            />
-            <div style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
-              Lowercase, no spaces. Other steps reference this result as {'{$.'}{step.id}{'.data}'}
-            </div>
-          </div>
+          <label style={labelStyle}>Step name</label>
+          <Input
+            value={step.name}
+            onChange={e => onChange({ name: e.target.value })}
+            placeholder="Human-readable label"
+          />
         </div>
       )}
 
@@ -333,25 +316,15 @@ export function StepSettingsPanel({ step, onChange, onClose }: StepSettingsPanel
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>{renderSettings()}</div>
 
-        {/* Note / annotation — available on all non-start/end steps */}
-        {step.type !== 'start' && step.type !== 'end' && (
+        {/* Note / annotation */}
+        {!isStartOrEnd && (
           <div
             style={{
               borderTop: '1px solid var(--color-border)',
               paddingTop: 12,
             }}
           >
-            <label
-              style={{
-                display: 'block',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                color: 'var(--color-text-primary)',
-                marginBottom: 4,
-              }}
-            >
-              Note / annotation
-            </label>
+            <label style={labelStyle}>Note / annotation</label>
             <Textarea
               value={step.note ?? ''}
               onChange={e => onChange({ note: e.target.value || undefined })}
@@ -361,6 +334,50 @@ export function StepSettingsPanel({ step, onChange, onClose }: StepSettingsPanel
             <div style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
               Shown as a tooltip indicator on the canvas node.
             </div>
+          </div>
+        )}
+
+        {/* Advanced section — step ID editing (developer tool) */}
+        {!isStartOrEnd && (
+          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 8 }}>
+            <button
+              onClick={() => setAdvancedOpen(v => !v)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '2px 0',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'var(--color-text-muted)',
+                fontFamily: 'inherit',
+              }}
+              aria-expanded={advancedOpen}
+            >
+              {advancedOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+              Advanced
+            </button>
+
+            {advancedOpen && (
+              <div style={{ marginTop: 8 }}>
+                <label style={labelStyle}>
+                  Step ID (execution key)
+                </label>
+                <Input
+                  value={step.id}
+                  onChange={e => onChange({ id: e.target.value })}
+                  placeholder="camelCaseId"
+                  style={{ fontFamily: 'monospace', fontSize: '0.8125rem' }}
+                />
+                <div style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
+                  Technical identifier. Other steps reference this output as{' '}
+                  <code style={{ fontFamily: 'monospace' }}>{'{$.'}{step.id}{'.data}'}</code>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

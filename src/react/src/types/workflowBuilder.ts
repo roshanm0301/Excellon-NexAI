@@ -363,6 +363,12 @@ export interface WorkflowDefinition {
     inputSchema?: string
     /** Tags for discoverability */
     tags?: string[]
+    /** Human-readable workflow name shown in the UI */
+    displayName?: string
+    /** HTTP method this workflow is exposed on */
+    method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+    /** Action category for routing/classification */
+    actionType?: 'process' | 'create' | 'read' | 'update' | 'delete' | 'list' | 'validate' | 'report'
     [key: string]: unknown
   }
 }

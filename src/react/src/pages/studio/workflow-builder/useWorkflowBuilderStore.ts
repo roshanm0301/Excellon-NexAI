@@ -108,6 +108,30 @@ function patchStep(steps: WorkflowStep[], stepId: string, patch: Partial<Workflo
   })
 }
 
+function flattenSteps(steps: WorkflowStep[]): WorkflowStep[] {
+  const result: WorkflowStep[] = []
+  for (const s of steps) {
+    result.push(s)
+    if (s.branches) {
+      for (const branch of Object.values(s.branches)) {
+        result.push(...flattenSteps(branch))
+      }
+    }
+  }
+  return result
+}
+
+function findStepsReferencingId(steps: WorkflowStep[], targetId: string): string[] {
+  const pattern = `{\$.${targetId}.`
+  return flattenSteps(steps)
+    .filter(s => s.id !== targetId)
+    .filter(s => {
+      const settings = s.properties?.taskSettings ?? {}
+      return Object.values(settings).some(v => typeof v === 'string' && v.includes(pattern))
+    })
+    .map(s => s.name || s.id)
+}
+
 function removeStep(steps: WorkflowStep[], stepId: string): WorkflowStep[] {
   return steps
     .filter(s => s.id !== stepId)
@@ -337,6 +361,17 @@ export const useWorkflowBuilderStore = create<WorkflowBuilderState>((set, get) =
   deleteStep(tabId, stepId) {
     const tab = get().tabs.find(t => t.id === tabId)
     if (!tab) return
+
+    // Warn if other steps reference this step's output
+    const referencingSteps = findStepsReferencingId(tab.definition.sequence, stepId)
+    if (referencingSteps.length > 0) {
+      const names = referencingSteps.join(', ')
+      const confirmed = window.confirm(
+        `Deleting this step will break ${referencingSteps.length} other step${referencingSteps.length > 1 ? 's' : ''} that reference its output:\n\n${names}\n\nContinue?`
+      )
+      if (!confirmed) return
+    }
+
     const newSequence = removeStep(tab.definition.sequence, stepId)
     get().updateDefinition(tabId, { ...tab.definition, sequence: newSequence })
     // Deselect if deleted node was selected

@@ -10,15 +10,30 @@ interface EntityOperation {
   preset: { entityType: string; operation: string }
 }
 
+function operationLabel(op: string, entityName: string): string {
+  switch (op) {
+    case 'FindOne': return `Get one ${entityName}`
+    case 'FindMany': return `Get list of ${entityName}`
+    case 'FindPaging': return `Get page of ${entityName}`
+    case 'Create': return `Create ${entityName}`
+    case 'Update': return `Update ${entityName}`
+    case 'Delete': return `Delete ${entityName}`
+    case 'Count': return `Count ${entityName}`
+    case 'Approve': return `Approve ${entityName}`
+    case 'Reject': return `Reject ${entityName}`
+    default: return op
+  }
+}
+
 function getEntityOperations(artifact: Artifact): EntityOperation[] {
   const name = artifact.artifact_name
   const ops: EntityOperation[] = [
-    { label: 'Get by ID', taskType: 'Document', preset: { entityType: name, operation: 'FindOne' } },
-    { label: 'Create', taskType: 'Document', preset: { entityType: name, operation: 'Create' } },
-    { label: 'Update', taskType: 'Document', preset: { entityType: name, operation: 'Update' } },
-    { label: 'Delete', taskType: 'Document', preset: { entityType: name, operation: 'Delete' } },
-    { label: 'List (Paging)', taskType: 'Query', preset: { entityType: name, operation: 'FindPaging' } },
-    { label: 'Count', taskType: 'Query', preset: { entityType: name, operation: 'Count' } },
+    { label: operationLabel('FindOne', name), taskType: 'Document', preset: { entityType: name, operation: 'FindOne' } },
+    { label: operationLabel('Create', name), taskType: 'Document', preset: { entityType: name, operation: 'Create' } },
+    { label: operationLabel('Update', name), taskType: 'Document', preset: { entityType: name, operation: 'Update' } },
+    { label: operationLabel('Delete', name), taskType: 'Document', preset: { entityType: name, operation: 'Delete' } },
+    { label: operationLabel('FindPaging', name), taskType: 'Query', preset: { entityType: name, operation: 'FindPaging' } },
+    { label: operationLabel('Count', name), taskType: 'Query', preset: { entityType: name, operation: 'Count' } },
   ]
 
   // Add transitions from compiled payload if available
@@ -31,10 +46,11 @@ function getEntityOperations(artifact: Artifact): EntityOperation[] {
         for (const transition of status.transitions ?? []) {
           const label = transition.label ?? transition.command ?? transition.to
           if (label) {
+            const opKey = transition.command ?? String(label)
             ops.push({
-              label: `→ ${label}`,
+              label: operationLabel(opKey, name),
               taskType: 'Document',
-              preset: { entityType: name, operation: transition.command ?? String(label) },
+              preset: { entityType: name, operation: opKey },
             })
           }
         }

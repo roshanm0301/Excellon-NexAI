@@ -1,9 +1,11 @@
 import { Input, Textarea, Toggle } from '../../../../../design-system'
 import type { WorkflowStep } from '../../../../../types/workflowBuilder'
+import { DataPathPicker } from '../../utils/DataPathPicker'
 
 interface ResponseSettingsProps {
   step: WorkflowStep
   onChange: (patch: Partial<WorkflowStep>) => void
+  upstreamSteps?: WorkflowStep[]
 }
 
 const labelStyle: React.CSSProperties = {
@@ -21,7 +23,7 @@ const helpStyle: React.CSSProperties = {
   marginBottom: 10,
 }
 
-export function ResponseSettings({ step, onChange }: ResponseSettingsProps) {
+export function ResponseSettings({ step, onChange, upstreamSteps = [] }: ResponseSettingsProps) {
   const settings = (step.properties.taskSettings ?? {}) as Record<string, unknown>
 
   function update(patch: Record<string, unknown>) {
@@ -68,7 +70,13 @@ export function ResponseSettings({ step, onChange }: ResponseSettingsProps) {
 
       {/* Response data */}
       <div>
-        <label style={labelStyle}>Response data</label>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>Response data</label>
+          <DataPathPicker
+            upstreamSteps={upstreamSteps}
+            onSelect={path => update({ data: String(settings.data ?? '') + path })}
+          />
+        </div>
         <Textarea
           value={String(settings.data ?? '')}
           onChange={e => update({ data: e.target.value })}

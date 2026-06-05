@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { Settings } from 'lucide-react'
-import { Input, Select, Textarea, Toggle } from '../../../../design-system'
+import { Input, Select, Textarea } from '../../../../design-system'
 import type { WorkflowDefinition } from '../../../../types/workflowBuilder'
 
 interface GlobalSettingsPanelProps {
@@ -7,53 +8,67 @@ interface GlobalSettingsPanelProps {
   onChange: (def: WorkflowDefinition) => void
 }
 
-const ACTION_TYPES = [
+const ACTION_TYPE_OPTIONS = [
+  { value: 'process', label: 'Process' },
   { value: 'create', label: 'Create' },
   { value: 'read', label: 'Read' },
   { value: 'update', label: 'Update' },
   { value: 'delete', label: 'Delete' },
   { value: 'list', label: 'List' },
-  { value: 'process', label: 'Process' },
   { value: 'validate', label: 'Validate' },
   { value: 'report', label: 'Report' },
 ]
 
-const HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+const HTTP_METHOD_OPTIONS = [
+  { value: 'POST', label: 'POST' },
+  { value: 'GET', label: 'GET' },
+  { value: 'PUT', label: 'PUT' },
+  { value: 'PATCH', label: 'PATCH' },
+  { value: 'DELETE', label: 'DELETE' },
+]
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '0.75rem',
+  fontWeight: 600,
+  color: 'var(--color-text-primary)',
+  marginBottom: 4,
+}
+
+const helpStyle: React.CSSProperties = {
+  fontSize: '0.6875rem',
+  color: 'var(--color-text-muted)',
+  marginTop: 2,
+  marginBottom: 8,
+}
+
+const sectionStyle: React.CSSProperties = {
+  borderBottom: '1px solid var(--color-border)',
+  paddingBottom: 14,
+  marginBottom: 14,
+}
 
 export function GlobalSettingsPanel({ definition, onChange }: GlobalSettingsPanelProps) {
   const props = definition.properties ?? {}
+  const stepCount = definition.sequence.length
+
+  // Auto-dismiss tips once the workflow has more than 2 steps
+  const [showTips, setShowTips] = useState(stepCount <= 2)
+
+  const displayName = (props.displayName as string | undefined) ?? ''
+  const method = (props.method as string | undefined) ?? 'POST'
+  const actionType = (props.actionType as string | undefined) ?? 'process'
   const desc = (props.description as string | undefined) ?? ''
   const tags = (props.tags as string[] | undefined) ?? []
 
-  function update(patch: Partial<typeof props>) {
+  function update(patch: Record<string, unknown>) {
     onChange({ ...definition, properties: { ...props, ...patch } })
-  }
-
-  const labelStyle: React.CSSProperties = {
-    display: 'block',
-    fontSize: '0.75rem',
-    fontWeight: 600,
-    color: 'var(--color-text-primary)',
-    marginBottom: 4,
-  }
-
-  const helpStyle: React.CSSProperties = {
-    fontSize: '0.6875rem',
-    color: 'var(--color-text-muted)',
-    marginTop: 2,
-    marginBottom: 8,
-  }
-
-  const sectionStyle: React.CSSProperties = {
-    borderBottom: '1px solid var(--color-border)',
-    paddingBottom: 14,
-    marginBottom: 14,
   }
 
   return (
     <div
       style={{
-        width: 300,
+        width: 360,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -85,10 +100,48 @@ export function GlobalSettingsPanel({ definition, onChange }: GlobalSettingsPane
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
-        {/* Basic Info */}
+
+        {/* Identity — the three fields that define what this workflow IS */}
         <div style={sectionStyle}>
           <div style={{ fontWeight: 700, fontSize: '0.6875rem', color: 'var(--color-text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>
-            General
+            Identity
+          </div>
+
+          <div style={{ marginBottom: 8 }}>
+            <label style={labelStyle}>Workflow name *</label>
+            <Input
+              value={displayName}
+              onChange={e => update({ displayName: e.target.value })}
+              placeholder="e.g. Create Customer Order"
+            />
+            <div style={helpStyle}>The human-readable name shown in dashboards and logs.</div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>HTTP method</label>
+              <Select
+                value={method}
+                onChange={e => update({ method: e.target.value })}
+                options={HTTP_METHOD_OPTIONS}
+              />
+            </div>
+            <div style={{ flex: 2 }}>
+              <label style={labelStyle}>Action type</label>
+              <Select
+                value={actionType}
+                onChange={e => update({ actionType: e.target.value })}
+                options={ACTION_TYPE_OPTIONS}
+              />
+            </div>
+          </div>
+          <div style={helpStyle}>HTTP method and action type determine the API endpoint signature.</div>
+        </div>
+
+        {/* Additional info */}
+        <div style={sectionStyle}>
+          <div style={{ fontWeight: 700, fontSize: '0.6875rem', color: 'var(--color-text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>
+            Details
           </div>
 
           <div style={{ marginBottom: 8 }}>
@@ -118,30 +171,50 @@ export function GlobalSettingsPanel({ definition, onChange }: GlobalSettingsPane
             Summary
           </div>
           <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)' }}>
-            {definition.sequence.length} steps in this workflow
+            {stepCount} {stepCount === 1 ? 'step' : 'steps'} in this workflow
           </div>
         </div>
 
-        {/* Tips */}
-        <div
-          style={{
-            background: 'var(--brand-50, #eff6ff)',
-            border: '1px solid var(--brand-200, #bfdbfe)',
-            borderRadius: 8,
-            padding: '10px 12px',
-          }}
-        >
-          <div style={{ fontWeight: 600, fontSize: '0.75rem', color: 'var(--brand-700, #1d4ed8)', marginBottom: 4 }}>
-            Getting started
+        {/* Getting started tips — auto-hidden after 2 steps */}
+        {showTips && (
+          <div
+            style={{
+              background: 'var(--brand-50, #eff6ff)',
+              border: '1px solid var(--brand-200, #bfdbfe)',
+              borderRadius: 8,
+              padding: '10px 12px',
+              marginBottom: 8,
+            }}
+          >
+            <div style={{ fontWeight: 600, fontSize: '0.75rem', color: 'var(--brand-700, #1d4ed8)', marginBottom: 4 }}>
+              Getting started
+            </div>
+            <ul style={{ fontSize: '0.6875rem', color: 'var(--brand-600, #2563eb)', paddingLeft: 14, margin: 0, lineHeight: 1.6 }}>
+              <li>Drag tasks from the <strong>Task Library</strong> onto the canvas</li>
+              <li>Or drag entity operations from the left sidebar</li>
+              <li>Click a node to configure its settings here</li>
+              <li>Connect nodes by dragging from the bottom ● handle to the top ● of the next node</li>
+              <li>Use <code style={{ background: 'var(--brand-100)', padding: '0 3px', borderRadius: 3 }}>{'{$.stepId.data}'}</code> to reference previous step outputs</li>
+            </ul>
           </div>
-          <ul style={{ fontSize: '0.6875rem', color: 'var(--brand-600, #2563eb)', paddingLeft: 14, margin: 0, lineHeight: 1.6 }}>
-            <li>Drag tasks from the <strong>Task Library</strong> panel onto the canvas</li>
-            <li>Or drag entity operations from the left sidebar</li>
-            <li>Click a node to configure its settings here</li>
-            <li>Connect nodes by dragging from the bottom ● handle to the top ● of the next node</li>
-            <li>Use <code style={{ background: 'var(--brand-100)', padding: '0 3px', borderRadius: 3 }}>{'{$.stepId.data}'}</code> to reference previous step outputs</li>
-          </ul>
-        </div>
+        )}
+
+        {!showTips && (
+          <button
+            onClick={() => setShowTips(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '0.6875rem',
+              color: 'var(--brand-500)',
+              padding: 0,
+              fontFamily: 'inherit',
+            }}
+          >
+            Show tips ▾
+          </button>
+        )}
       </div>
     </div>
   )

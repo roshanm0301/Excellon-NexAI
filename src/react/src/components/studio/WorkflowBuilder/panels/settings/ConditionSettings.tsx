@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Plus, Trash2, GitBranch } from 'lucide-react'
 import { Input, Select } from '../../../../../design-system'
 import type { WorkflowStep } from '../../../../../types/workflowBuilder'
+import { DataPathPicker } from '../../utils/DataPathPicker'
 
 interface Condition {
   id: string
@@ -13,6 +14,7 @@ interface Condition {
 interface ConditionSettingsProps {
   step: WorkflowStep
   onChange: (patch: Partial<WorkflowStep>) => void
+  upstreamSteps?: WorkflowStep[]
 }
 
 const MODE_OPTIONS = [
@@ -54,7 +56,7 @@ function makeId() {
   return `cond-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
 }
 
-export function ConditionSettings({ step, onChange }: ConditionSettingsProps) {
+export function ConditionSettings({ step, onChange, upstreamSteps = [] }: ConditionSettingsProps) {
   const settings = (step.properties.taskSettings ?? {}) as Record<string, unknown>
   const conditions = (settings.conditions as Condition[] | undefined) ?? []
   const mode = String(settings.mode ?? 'AND')
@@ -175,12 +177,18 @@ export function ConditionSettings({ step, onChange }: ConditionSettingsProps) {
               </div>
 
               {/* Left value */}
-              <Input
-                value={cond.left}
-                onChange={e => updateCondition(cond.id, { left: e.target.value })}
-                placeholder="{$.step.data.status}"
-                style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Input
+                  value={cond.left}
+                  onChange={e => updateCondition(cond.id, { left: e.target.value })}
+                  placeholder="{$.step.data.status}"
+                  style={{ fontFamily: 'monospace', fontSize: '0.75rem', flex: 1 }}
+                />
+                <DataPathPicker
+                  upstreamSteps={upstreamSteps}
+                  onSelect={path => updateCondition(cond.id, { left: cond.left + path })}
+                />
+              </div>
 
               {/* Operator */}
               <Select
@@ -224,13 +232,19 @@ export function ConditionSettings({ step, onChange }: ConditionSettingsProps) {
           New condition
         </div>
 
-        <Input
-          value={newLeft}
-          onChange={e => setNewLeft(e.target.value)}
-          placeholder="{$.step.data.status}"
-          style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}
-          onKeyDown={e => e.key === 'Enter' && addCondition()}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Input
+            value={newLeft}
+            onChange={e => setNewLeft(e.target.value)}
+            placeholder="{$.step.data.status}"
+            style={{ fontFamily: 'monospace', fontSize: '0.75rem', flex: 1 }}
+            onKeyDown={e => e.key === 'Enter' && addCondition()}
+          />
+          <DataPathPicker
+            upstreamSteps={upstreamSteps}
+            onSelect={path => setNewLeft(v => v + path)}
+          />
+        </div>
 
         <Select
           value={newOperator}
@@ -287,7 +301,7 @@ export function ConditionSettings({ step, onChange }: ConditionSettingsProps) {
             textAlign: 'center',
           }}
         >
-          YES → onSuccess path
+          YES path
         </div>
         <div
           style={{
@@ -301,7 +315,7 @@ export function ConditionSettings({ step, onChange }: ConditionSettingsProps) {
             textAlign: 'center',
           }}
         >
-          NO → onFailure path
+          NO path
         </div>
       </div>
     </div>

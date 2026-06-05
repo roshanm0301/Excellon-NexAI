@@ -95,19 +95,6 @@ export function DocumentSettings({ step, onChange }: DocumentSettingsProps) {
         </div>
       </div>
 
-      <div>
-        <label style={labelStyle}>Output variable name</label>
-        <Input
-          value={String(settings.outputVar ?? step.id)}
-          onChange={e => update({ outputVar: e.target.value })}
-          placeholder={step.id}
-          style={{ fontFamily: 'monospace', fontSize: '0.8125rem' }}
-        />
-        <div style={helpStyle}>
-          Reference the result in other steps as {'{$.'}{String(settings.outputVar || step.id)}{'.data}'}
-        </div>
-      </div>
-
       {/* Field mappings */}
       <div>
         <label style={labelStyle}>Field mappings</label>

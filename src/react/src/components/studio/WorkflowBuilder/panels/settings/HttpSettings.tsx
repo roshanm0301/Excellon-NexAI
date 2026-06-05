@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { Input, Select, Textarea } from '../../../../../design-system'
 import type { WorkflowStep } from '../../../../../types/workflowBuilder'
+import { DataPathPicker } from '../../utils/DataPathPicker'
 
 interface HeaderRow {
   id: string
@@ -12,6 +13,7 @@ interface HeaderRow {
 interface HttpSettingsProps {
   step: WorkflowStep
   onChange: (patch: Partial<WorkflowStep>) => void
+  upstreamSteps?: WorkflowStep[]
 }
 
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD'].map(m => ({ value: m, label: m }))
@@ -52,7 +54,7 @@ function authHelp(authType: string): string {
   return ''
 }
 
-export function HttpSettings({ step, onChange }: HttpSettingsProps) {
+export function HttpSettings({ step, onChange, upstreamSteps = [] }: HttpSettingsProps) {
   const settings = (step.properties.taskSettings ?? {}) as Record<string, unknown>
   const headers = (settings.headers as HeaderRow[] | undefined) ?? []
   const authType = String(settings.authType ?? 'none')
@@ -102,7 +104,13 @@ export function HttpSettings({ step, onChange }: HttpSettingsProps) {
       </div>
 
       <div>
-        <label style={labelStyle}>URL</label>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>URL</label>
+          <DataPathPicker
+            upstreamSteps={upstreamSteps}
+            onSelect={path => update({ url: String(settings.url ?? '') + path })}
+          />
+        </div>
         <Input
           value={String(settings.url ?? '')}
           onChange={e => update({ url: e.target.value })}
@@ -113,7 +121,13 @@ export function HttpSettings({ step, onChange }: HttpSettingsProps) {
       </div>
 
       <div>
-        <label style={labelStyle}>Request body</label>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>Request body</label>
+          <DataPathPicker
+            upstreamSteps={upstreamSteps}
+            onSelect={path => update({ body: String(settings.body ?? '') + path })}
+          />
+        </div>
         <Textarea
           value={String(settings.body ?? '')}
           onChange={e => update({ body: e.target.value })}

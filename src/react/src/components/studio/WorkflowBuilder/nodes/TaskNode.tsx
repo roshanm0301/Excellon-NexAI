@@ -14,6 +14,51 @@ interface TaskNodeData {
 
 const CONTAINER_TYPES = new Set(['Loop', 'Iterator', 'Transaction', 'Sequence', 'Parallel', 'Promise'])
 
+function getSummary(type: string, settings: Record<string, unknown>): string | null {
+  switch (type) {
+    case 'Document':
+    case 'Entity':
+    case 'Query':
+      if (settings.entityType && settings.operation) {
+        return `${String(settings.entityType)} · ${String(settings.operation)}`
+      }
+      return null
+    case 'HTTP':
+      if (settings.url) {
+        try {
+          const hostname = new URL(String(settings.url)).hostname
+          return `${String(settings.method ?? 'GET')} ${hostname}`
+        } catch {
+          return `${String(settings.method ?? 'GET')} ${String(settings.url).slice(0, 30)}`
+        }
+      }
+      return null
+    case 'SMTP':
+      return settings.to ? `To: ${String(settings.to)}` : null
+    case 'Response':
+      return settings.statusCode ? `Status ${String(settings.statusCode)}` : null
+    case 'Condition': {
+      const cols = settings.conditions as Array<{ left: string }> | undefined
+      if (cols && cols.length > 0) return cols[0].left.slice(0, 30)
+      return null
+    }
+    case 'Approval':
+      return settings.approverRole ? `Approver: ${String(settings.approverRole)}` : null
+    case 'Timer':
+      return settings.hours ? `Wait ${String(settings.hours)}h` : null
+    case 'Variable':
+      return settings.varName ? `var: ${String(settings.varName)}` : null
+    case 'Cache':
+      return settings.operation && settings.cacheKey
+        ? `${String(settings.operation)} · ${String(settings.cacheKey).slice(0, 20)}`
+        : null
+    case 'AI':
+      return settings.provider ? `via ${String(settings.provider)}` : null
+    default:
+      return null
+  }
+}
+
 export function TaskNode({ data, selected }: NodeProps) {
   const nodeData = data as unknown as TaskNodeData
   const config = getTaskConfig(nodeData.taskType)
@@ -36,6 +81,8 @@ export function TaskNode({ data, selected }: NodeProps) {
     : 0
 
   const hasNote = Boolean(nodeData.step.note)
+  const settings = (nodeData.step.properties?.taskSettings ?? {}) as Record<string, unknown>
+  const summary = getSummary(nodeData.taskType, settings)
 
   return (
     <div
@@ -150,6 +197,23 @@ export function TaskNode({ data, selected }: NodeProps) {
             </div>
           )}
         </div>
+
+        {/* 1-line configuration summary */}
+        {summary && (
+          <div
+            style={{
+              fontSize: '0.625rem',
+              color: 'var(--color-text-muted)',
+              marginTop: 3,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+            title={summary}
+          >
+            {summary}
+          </div>
+        )}
       </div>
 
       <Handle
