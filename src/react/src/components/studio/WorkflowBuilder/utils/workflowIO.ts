@@ -83,6 +83,9 @@ export function validateImportJson(json: unknown): string | null {
     if (typeof s['type'] !== 'string' || s['type'].trim() === '') {
       return `Invalid step at index ${i}: "type" must be a non-empty string.`
     }
+    if (typeof s['componentType'] !== 'string' || s['componentType'].trim() === '') {
+      return `Invalid step at index ${i}: "componentType" must be a non-empty string.`
+    }
     if (s['properties'] === null || typeof s['properties'] !== 'object') {
       return `Invalid step at index ${i}: "properties" must be an object.`
     }

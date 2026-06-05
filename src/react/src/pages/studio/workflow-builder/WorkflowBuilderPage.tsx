@@ -196,11 +196,15 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
         return
       }
 
-      // Escape — close search → deselect
+      // Escape — close search → close AI panel → deselect
       if (e.key === 'Escape') {
         if (searchOpen) {
           setSearchOpen(false)
           setSearchQuery('')
+          return
+        }
+        if (showAIPanel) {
+          setShowAIPanel(false)
           return
         }
         setContextMenu(null)
@@ -265,7 +269,7 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
 
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [handleSave, searchOpen, matchingNodeIds.length])
+  }, [handleSave, searchOpen, showAIPanel, matchingNodeIds.length])
 
   // Context menu handler
   const handleNodeContextMenu = useCallback(
@@ -304,7 +308,8 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
         onOpenTemplates={() => setShowTemplateGallery(true)}
         onOpenImportExport={() => setShowImportExport(true)}
         onOpenGlobalSearch={() => setShowGlobalSearch(true)}
-        onOpenAI={() => setShowAIPanel(true)}
+        onOpenAI={() => setShowAIPanel(v => !v)}
+        aiPanelOpen={showAIPanel}
         isSaving={saveMut.isPending}
         isPublishing={publishMut.isPending}
       />
@@ -420,8 +425,14 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
           )}
         </div>
 
-        {/* Right: settings panel */}
-        {tab && selectedStep ? (
+        {/* Right: AI panel takes priority; falls back to step/global settings */}
+        {showAIPanel && tab ? (
+          <AIAssistantPanel
+            definition={tab.definition}
+            onApply={def => updateDefinition(activeTabId, def)}
+            onClose={() => setShowAIPanel(false)}
+          />
+        ) : tab && selectedStep ? (
           <StepSettingsPanel
             step={selectedStep}
             onChange={(patch) => updateStep(activeTabId, selectedStep.id, patch)}
@@ -490,15 +501,6 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
         />
       )}
 
-      {/* AI Assistant Panel */}
-      {showAIPanel && tab && (
-        <AIAssistantPanel
-          tabId={activeTabId}
-          definition={tab.definition}
-          onApply={def => updateDefinition(activeTabId, def)}
-          onClose={() => setShowAIPanel(false)}
-        />
-      )}
     </div>
   )
 }

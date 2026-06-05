@@ -32,11 +32,12 @@ interface CanvasToolbarProps {
   onOpenImportExport?: () => void
   onOpenGlobalSearch?: () => void
   onOpenAI?: () => void
+  aiPanelOpen?: boolean
   isSaving?: boolean
   isPublishing?: boolean
 }
 
-export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, onOpenTemplates, onOpenImportExport, onOpenGlobalSearch, onOpenAI, isSaving, isPublishing }: CanvasToolbarProps) {
+export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, onOpenTemplates, onOpenImportExport, onOpenGlobalSearch, onOpenAI, aiPanelOpen, isSaving, isPublishing }: CanvasToolbarProps) {
   const { zoomIn, zoomOut, fitView } = useReactFlow()
   const undo = useWorkflowBuilderStore(s => s.undo)
   const redo = useWorkflowBuilderStore(s => s.redo)
@@ -177,9 +178,10 @@ export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, onOpenT
       {/* AI Assistant button */}
       {onOpenAI && (
         <button
-          style={iconBtn()}
+          style={iconBtn(aiPanelOpen)}
           onClick={onOpenAI}
           title="AI Assistant"
+          aria-pressed={aiPanelOpen}
         >
           <Sparkles size={13} />
           <span>AI</span>

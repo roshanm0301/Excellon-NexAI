@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { X, Sparkles } from 'lucide-react'
-import { Button, Textarea, Banner, Spinner } from '../../../../design-system'
+import { Button, Textarea, Banner } from '../../../../design-system'
 import {
   nlpGenerateWorkflow,
   nlpExplainWorkflow,
@@ -15,7 +15,6 @@ import type { WorkflowDefinition } from '../../../../types/workflowBuilder'
 type ActiveTab = 'generate' | 'explain' | 'improve'
 
 export interface AIAssistantPanelProps {
-  tabId: string
   definition: WorkflowDefinition
   onApply: (def: WorkflowDefinition) => void
   onClose: () => void
@@ -163,12 +162,6 @@ function ExplainTab({ definition }: ExplainTabProps) {
         {loading ? 'Explaining…' : 'Explain this workflow'}
       </Button>
 
-      {loading && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
-          <Spinner size={20} />
-        </div>
-      )}
-
       {errorMsg && (
         <Banner variant="error" title="Explanation failed" message={errorMsg} onClose={() => setErrorMsg(null)} />
       )}
@@ -231,12 +224,6 @@ function ImproveTab({ definition }: ImproveTabProps) {
         {loading ? 'Analysing…' : 'Suggest improvements'}
       </Button>
 
-      {loading && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
-          <Spinner size={20} />
-        </div>
-      )}
-
       {errorMsg && (
         <Banner variant="error" title="Analysis failed" message={errorMsg} onClose={() => setErrorMsg(null)} />
       )}
@@ -285,17 +272,14 @@ export function AIAssistantPanel({ definition, onApply, onClose }: AIAssistantPa
   return (
     <div
       style={{
-        position: 'fixed',
-        top: 0,
-        right: 0,
-        bottom: 0,
         width: 360,
+        flexShrink: 0,
+        height: '100%',
         background: 'var(--color-surface)',
         borderLeft: '1px solid var(--color-border)',
         boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.10)',
         display: 'flex',
         flexDirection: 'column',
-        zIndex: 30,
         overflow: 'hidden',
       }}
     >
