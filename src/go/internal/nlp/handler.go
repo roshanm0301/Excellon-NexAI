@@ -40,6 +40,9 @@ func NewHandler(apiKey, model string) *Handler {
 func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Post("/import-fields", h.importFields)
 	r.Post("/expression", h.generateExpression)
+	r.Post("/workflow-generate", h.generateWorkflow)
+	r.Post("/workflow-explain", h.explainWorkflow)
+	r.Post("/workflow-improve", h.improveWorkflow)
 }
 
 type claudeRequest struct {
@@ -180,6 +183,231 @@ func (h *Handler) generateExpression(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(result) //nolint
+}
+
+const systemPromptWorkflowGenerate = `You are an API that converts plain-English workflow descriptions into structured workflow definitions for the Excellon DMS platform.
+Return ONLY valid JSON with this exact structure, no explanation:
+{"properties":{"globalSettings":{"systemName":"<camelCaseName>","displayName":"<Human Name>","description":"<description>","actionType":"process","method":"POST","state":[],"cache":{"enabled":false,"ttlSeconds":300},"dlq":{"enabled":false,"topic":""}}},"sequence":[{"id":"<camelCaseId>","name":"<Step Name>","type":"<TaskType>","componentType":"task","properties":{"taskSettings":{}}}]}
+Rules:
+- Always include a "start" step first (type:"start", componentType:"task") and an "end" step last (type:"end", componentType:"task")
+- Step "id" must be camelCase with no spaces
+- Valid task types: start, end, Document, Query, Response, Request, Resolver, Condition, Switch, Rule, Validator, Variable, Cache, HTTP, Loop, Iterator, Transaction, Sequence, Parallel, Timer, Approval, Notification, Webhook, JSON, String, Math, Array, Object, UUID, SMTP, Filter, Action, Template
+- Use "componentType":"switch" for Switch/Condition steps, "componentType":"container" for Loop/Iterator/Sequence/Transaction/Parallel, "componentType":"task" for all others
+- Keep taskSettings as an empty object {} unless you have specific values
+- Do not hallucinate entity names or step IDs — keep them generic and descriptive`
+
+const systemPromptWorkflowExplain = `You are a helpful assistant that explains technical workflow definitions to non-technical business users.
+Given a JSON workflow definition, write a clear, plain-English explanation of what the workflow does, step by step.
+Focus on business purpose, not technical implementation details.
+Be concise — 2 to 5 sentences maximum.`
+
+const systemPromptWorkflowImprove = `You are a workflow quality reviewer for the Excellon DMS platform.
+Given a JSON workflow definition, return ONLY a JSON array of improvement suggestions, no explanation:
+[{"severity":"<error|warning|info>","title":"<short title>","description":"<detailed description>"}]
+Rules:
+- Use "error" for missing critical steps (no Response step, duplicate IDs)
+- Use "warning" for potential issues (no error handling, missing validation)
+- Use "info" for best practice recommendations (caching, naming conventions)
+- Return an empty array [] if the workflow looks correct
+- Maximum 5 suggestions`
+
+func (h *Handler) generateWorkflow(w http.ResponseWriter, r *http.Request) {
+	if h.apiKey == "" {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "NLP service not configured"})
+		return
+	}
+
+	var req struct {
+		Prompt  string `json:"prompt"`
+		Context struct {
+			EntityTypes     []string `json:"entityTypes"`
+			ExistingStepIDs []string `json:"existingStepIds"`
+		} `json:"context"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Prompt == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "prompt is required"})
+		return
+	}
+
+	userContent := req.Prompt
+	if len(req.Context.EntityTypes) > 0 {
+		userContent += fmt.Sprintf("\nAvailable entity types: %s", strings.Join(req.Context.EntityTypes, ", "))
+	}
+	if len(req.Context.ExistingStepIDs) > 0 {
+		userContent += fmt.Sprintf("\nExisting step IDs to avoid: %s", strings.Join(req.Context.ExistingStepIDs, ", "))
+	}
+
+	claudeReq := claudeRequest{
+		Model:     h.model,
+		MaxTokens: 2000,
+		System:    systemPromptWorkflowGenerate,
+		Messages:  []claudeMessage{{Role: "user", Content: userContent}},
+	}
+	reqBody, err := json.Marshal(claudeReq)
+	if err != nil {
+		slog.Error("nlp: workflow-generate marshal", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+
+	httpReq, err := http.NewRequest(http.MethodPost, claudeAPIURL, bytes.NewReader(reqBody))
+	if err != nil {
+		slog.Error("nlp: workflow-generate create request", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("Authorization", "Bearer "+h.apiKey)
+	httpReq.Header.Set("x-api-version", "2023-06-01")
+
+	resp, err := h.client.Do(httpReq)
+	if err != nil {
+		slog.Error("nlp: workflow-generate call", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+	defer resp.Body.Close()
+
+	respBytes, err := io.ReadAll(io.LimitReader(resp.Body, 1<<16))
+	if err != nil {
+		slog.Error("nlp: workflow-generate read response", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+
+	var cr claudeResponse
+	if err := json.Unmarshal(respBytes, &cr); err != nil {
+		slog.Error("nlp: workflow-generate decode response", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+	if cr.Error != nil {
+		slog.Error("nlp: workflow-generate claude error", "message", cr.Error.Message)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+	if len(cr.Content) == 0 {
+		slog.Error("nlp: workflow-generate empty response")
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+
+	text := strings.TrimSpace(cr.Content[0].Text)
+	var result json.RawMessage
+	if err := json.Unmarshal([]byte(text), &result); err != nil {
+		slog.Error("nlp: workflow-generate invalid JSON from claude", "text", text, "error", err)
+		writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": "AI returned invalid JSON"})
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(result) //nolint
+}
+
+func (h *Handler) explainWorkflow(w http.ResponseWriter, r *http.Request) {
+	if h.apiKey == "" {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "NLP service not configured"})
+		return
+	}
+
+	var req struct {
+		Definition json.RawMessage `json:"definition"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || len(req.Definition) == 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "definition is required"})
+		return
+	}
+
+	text, err := h.callClaude(systemPromptWorkflowExplain, string(req.Definition))
+	if err != nil {
+		slog.Error("nlp: workflow-explain", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"explanation": text})
+}
+
+func (h *Handler) improveWorkflow(w http.ResponseWriter, r *http.Request) {
+	if h.apiKey == "" {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "NLP service not configured"})
+		return
+	}
+
+	var req struct {
+		Definition json.RawMessage `json:"definition"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || len(req.Definition) == 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "definition is required"})
+		return
+	}
+
+	claudeReq := claudeRequest{
+		Model:     h.model,
+		MaxTokens: 1000,
+		System:    systemPromptWorkflowImprove,
+		Messages:  []claudeMessage{{Role: "user", Content: string(req.Definition)}},
+	}
+	reqBody, err := json.Marshal(claudeReq)
+	if err != nil {
+		slog.Error("nlp: workflow-improve marshal", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+
+	httpReq, err := http.NewRequest(http.MethodPost, claudeAPIURL, bytes.NewReader(reqBody))
+	if err != nil {
+		slog.Error("nlp: workflow-improve create request", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("Authorization", "Bearer "+h.apiKey)
+	httpReq.Header.Set("x-api-version", "2023-06-01")
+
+	resp, err := h.client.Do(httpReq)
+	if err != nil {
+		slog.Error("nlp: workflow-improve call", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+	defer resp.Body.Close()
+
+	respBytes, err := io.ReadAll(io.LimitReader(resp.Body, 1<<16))
+	if err != nil {
+		slog.Error("nlp: workflow-improve read response", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+
+	var cr claudeResponse
+	if err := json.Unmarshal(respBytes, &cr); err != nil {
+		slog.Error("nlp: workflow-improve decode response", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+	if cr.Error != nil {
+		slog.Error("nlp: workflow-improve claude error", "message", cr.Error.Message)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+	if len(cr.Content) == 0 {
+		slog.Error("nlp: workflow-improve empty response")
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "NLP call failed"})
+		return
+	}
+
+	text := strings.TrimSpace(cr.Content[0].Text)
+	var suggestions json.RawMessage
+	if err := json.Unmarshal([]byte(text), &suggestions); err != nil {
+		slog.Error("nlp: workflow-improve invalid JSON from claude", "text", text, "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "invalid response from NLP service"})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]json.RawMessage{"suggestions": suggestions}) //nolint
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

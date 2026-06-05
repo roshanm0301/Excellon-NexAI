@@ -15,6 +15,7 @@ import { ValidationPanel } from '../../../components/studio/WorkflowBuilder/vali
 import { NodeContextMenu } from '../../../components/studio/WorkflowBuilder/nodes/NodeContextMenu'
 import { TemplateGallery } from '../../../components/studio/WorkflowBuilder/templates/TemplateGallery'
 import { GlobalWorkflowSearch } from '../../../components/studio/WorkflowBuilder/search/GlobalWorkflowSearch'
+import { AIAssistantPanel } from '../../../components/studio/WorkflowBuilder/ai/AIAssistantPanel'
 import { useWorkflowArtifact, useSaveWorkflowDraft, usePublishWorkflow } from '../../../hooks/useWorkflowBuilder'
 import { useToast, Spinner } from '../../../design-system'
 import type { WorkflowStep, WorkflowDefinition } from '../../../types/workflowBuilder'
@@ -65,6 +66,9 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
 
   // Global search state
   const [showGlobalSearch, setShowGlobalSearch] = useState(false)
+
+  // AI Assistant panel state
+  const [showAIPanel, setShowAIPanel] = useState(false)
 
   // Context menu state (local — not in global store per spec)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null)
@@ -300,6 +304,7 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
         onOpenTemplates={() => setShowTemplateGallery(true)}
         onOpenImportExport={() => setShowImportExport(true)}
         onOpenGlobalSearch={() => setShowGlobalSearch(true)}
+        onOpenAI={() => setShowAIPanel(true)}
         isSaving={saveMut.isPending}
         isPublishing={publishMut.isPending}
       />
@@ -482,6 +487,16 @@ function WorkflowBuilderInner({ activeTabId, id }: WorkflowBuilderInnerProps) {
       {showGlobalSearch && (
         <GlobalWorkflowSearch
           onClose={() => setShowGlobalSearch(false)}
+        />
+      )}
+
+      {/* AI Assistant Panel */}
+      {showAIPanel && tab && (
+        <AIAssistantPanel
+          tabId={activeTabId}
+          definition={tab.definition}
+          onApply={def => updateDefinition(activeTabId, def)}
+          onClose={() => setShowAIPanel(false)}
         />
       )}
     </div>

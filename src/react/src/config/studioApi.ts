@@ -309,6 +309,37 @@ export const nlpImport = (text: string) =>
     body: JSON.stringify({ text }),
   })
 
+// ── Workflow AI API ───────────────────────────────────────────────────────────
+
+export interface AIWorkflowGenerateRequest {
+  prompt: string
+  context: { entityTypes: string[]; existingStepIds: string[] }
+}
+
+export const nlpGenerateWorkflow = (req: AIWorkflowGenerateRequest) =>
+  studioFetch<import('../types/workflowBuilder').WorkflowDefinition>('/nlp/workflow-generate', {
+    method: 'POST',
+    body: JSON.stringify(req),
+  })
+
+export const nlpExplainWorkflow = (definition: import('../types/workflowBuilder').WorkflowDefinition) =>
+  studioFetch<{ explanation: string }>('/nlp/workflow-explain', {
+    method: 'POST',
+    body: JSON.stringify({ definition }),
+  })
+
+export interface AIImprovementSuggestion {
+  severity: 'error' | 'warning' | 'info'
+  title: string
+  description: string
+}
+
+export const nlpImproveWorkflow = (definition: import('../types/workflowBuilder').WorkflowDefinition) =>
+  studioFetch<{ suggestions: AIImprovementSuggestion[] }>('/nlp/workflow-improve', {
+    method: 'POST',
+    body: JSON.stringify({ definition }),
+  })
+
 // ── View Studio API ───────────────────────────────────────────────────────────
 
 import type {

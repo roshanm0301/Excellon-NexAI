@@ -1,4 +1,4 @@
-import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize2, LayoutGrid, Save, Send, Wrench, Map, History, LayoutTemplate, FolderOpen, Search } from 'lucide-react'
+import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize2, LayoutGrid, Save, Send, Wrench, Map, History, LayoutTemplate, FolderOpen, Search, Sparkles } from 'lucide-react'
 import { useReactFlow } from '@xyflow/react'
 import { useWorkflowBuilderStore } from '../../../../pages/studio/workflow-builder/useWorkflowBuilderStore'
 import { applyAutoLayout } from '../utils/layoutUtils'
@@ -31,11 +31,12 @@ interface CanvasToolbarProps {
   onOpenTemplates?: () => void
   onOpenImportExport?: () => void
   onOpenGlobalSearch?: () => void
+  onOpenAI?: () => void
   isSaving?: boolean
   isPublishing?: boolean
 }
 
-export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, onOpenTemplates, onOpenImportExport, onOpenGlobalSearch, isSaving, isPublishing }: CanvasToolbarProps) {
+export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, onOpenTemplates, onOpenImportExport, onOpenGlobalSearch, onOpenAI, isSaving, isPublishing }: CanvasToolbarProps) {
   const { zoomIn, zoomOut, fitView } = useReactFlow()
   const undo = useWorkflowBuilderStore(s => s.undo)
   const redo = useWorkflowBuilderStore(s => s.redo)
@@ -170,6 +171,18 @@ export function CanvasToolbar({ tabId, onSave, onPublish, onOpenHistory, onOpenT
         >
           <History size={13} />
           <span>History</span>
+        </button>
+      )}
+
+      {/* AI Assistant button */}
+      {onOpenAI && (
+        <button
+          style={iconBtn()}
+          onClick={onOpenAI}
+          title="AI Assistant"
+        >
+          <Sparkles size={13} />
+          <span>AI</span>
         </button>
       )}
 
