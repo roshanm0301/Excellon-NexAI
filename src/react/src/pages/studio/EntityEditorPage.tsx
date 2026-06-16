@@ -20,6 +20,7 @@ import {
   publishArtifact,
   type NLPImportedField,
 } from '../../config/studioApi'
+import { featureFlags } from '../../config/featureFlags'
 import { useArtifact } from '../../hooks/useArtifact'
 
 import { FieldBuilder, type FieldDef } from '../../components/studio/EntityDesigner/FieldBuilder'
@@ -242,7 +243,7 @@ export function EntityEditorPage() {
       saving={saveMut.isPending || createMut.isPending}
       onPublish={() => setConfirmPublish(true)}
       publishing={publishing}
-      extraActions={
+      extraActions={featureFlags.aiAssistant ? (
         <IconButton
           onClick={() => setNlpOpen(true)}
           aria-label="Open AI Assistant"
@@ -250,7 +251,7 @@ export function EntityEditorPage() {
         >
           <Sparkles size={16} />
         </IconButton>
-      }
+      ) : undefined}
     >
       {/* Context bar */}
       <div style={{
@@ -408,25 +409,27 @@ export function EntityEditorPage() {
         confirmLabel="Publish"
         loading={publishing}
       />
-      <NLPAssistantPanel
-        open={nlpOpen}
-        onClose={() => setNlpOpen(false)}
-        schemaContext={{ fields, relationships }}
-        onImportFields={(imported: NLPImportedField[]) => {
-          const newFields: FieldDef[] = imported.map(f => ({
-            name: f.name,
-            label: f.name,
-            type: f.type,
-            required: f.required ?? false,
-            unique: false,
-            indexed: false,
-            storageType: 'physical' as const,
-          }))
-          setFields(prev => [...prev, ...newFields])
-          setIsDirty(true)
-          setNlpOpen(false)
-        }}
-      />
+      {featureFlags.aiAssistant && (
+        <NLPAssistantPanel
+          open={nlpOpen}
+          onClose={() => setNlpOpen(false)}
+          schemaContext={{ fields, relationships }}
+          onImportFields={(imported: NLPImportedField[]) => {
+            const newFields: FieldDef[] = imported.map(f => ({
+              name: f.name,
+              label: f.name,
+              type: f.type,
+              required: f.required ?? false,
+              unique: false,
+              indexed: false,
+              storageType: 'physical' as const,
+            }))
+            setFields(prev => [...prev, ...newFields])
+            setIsDirty(true)
+            setNlpOpen(false)
+          }}
+        />
+      )}
     </EditorLayout>
   )
 }

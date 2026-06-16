@@ -21,6 +21,7 @@ import (
 	"github.com/excellon/nexai/internal/indexmgmt"
 	"github.com/excellon/nexai/internal/middleware"
 	"github.com/excellon/nexai/internal/nlp"
+	"github.com/excellon/nexai/internal/nodestudio"
 	"github.com/excellon/nexai/internal/overlay"
 	"github.com/excellon/nexai/internal/pii"
 	"github.com/excellon/nexai/internal/purge"
@@ -79,7 +80,13 @@ func main() {
 
 	// View Studio
 	viewStudioRepo := viewstudio.NewRepo(pool)
-	viewStudioHandler := viewstudio.NewHandler(viewStudioRepo)
+	viewStudioHandler := viewstudio.NewHandler(viewStudioRepo, viewstudio.HandlerOptions{
+		PluginsEnabled: envBool("NEXAI_STUDIO_PLUGINS_ENABLED", false),
+	})
+
+	// Organisation node studio
+	nodeRepo := nodestudio.NewRepo(pool)
+	nodeHandler := nodestudio.NewHandler(nodeRepo)
 
 	// Index management
 	indexService := indexmgmt.NewService(pool)
@@ -100,11 +107,11 @@ func main() {
 	r.Use(chimw.RealIP)
 	r.Use(chimw.Logger)
 	r.Use(chimw.Recoverer)
-	r.Use(middleware.DevContext)
 
 	r.Get("/health", healthHandler(pool))
 
 	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(middleware.AuthContext(middleware.AuthConfigFromEnv()))
 		r.Route("/artifacts", func(r chi.Router) {
 			artifactHandler.RegisterRoutes(r)
 		})
@@ -118,6 +125,9 @@ func main() {
 			r.Route("/indexes", func(r chi.Router) {
 				indexHandler.RegisterRoutes(r)
 			})
+			r.Route("/nodes", func(r chi.Router) {
+				nodeHandler.RegisterRoutes(r)
+			})
 			r.Route("/recycle-bin", func(r chi.Router) {
 				recycleHandler.RegisterRoutes(r)
 			})
@@ -129,9 +139,16 @@ func main() {
 			viewStudioHandler.RegisterRoutes(r)
 		})
 	})
-	r.Route("/api/nlp", func(r chi.Router) {
-		nlpHandler.RegisterRoutes(r)
-	})
+	if envBool("NEXAI_AI_FEATURES_ENABLED", false) {
+		r.Route("/api/nlp", func(r chi.Router) {
+			r.Use(middleware.AuthContext(middleware.AuthConfigFromEnv()))
+			nlpHandler.RegisterRoutes(r)
+		})
+		r.Route("/api/v1/nlp", func(r chi.Router) {
+			r.Use(middleware.AuthContext(middleware.AuthConfigFromEnv()))
+			nlpHandler.RegisterRoutes(r)
+		})
+	}
 
 	port := envOr("PORT", "8080")
 	srv := &http.Server{
@@ -203,6 +220,17 @@ func envOr(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+func envBool(key string, fallback bool) bool {
+	switch os.Getenv(key) {
+	case "1", "true", "TRUE", "yes", "YES", "on", "ON":
+		return true
+	case "0", "false", "FALSE", "no", "NO", "off", "OFF":
+		return false
+	default:
+		return fallback
+	}
 }
 
 func logLevel() slog.Level {

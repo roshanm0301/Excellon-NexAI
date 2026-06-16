@@ -55,7 +55,7 @@ export function VirtualGrid<T>({
   if (loading) {
     return (
       <div className="ex-table-wrap">
-        <table className="ex-table">
+        <table className="ex-table" style={{ width: '100%', tableLayout: 'fixed' }}>
           <thead>
             <tr>
               {selectable && <th style={{ width: 40 }} />}
@@ -122,7 +122,7 @@ export function VirtualGrid<T>({
         onScroll={handleScroll}
         style={{ height: containerHeight, overflowY: 'auto', overflowX: 'auto' }}
       >
-        <table className="ex-table" style={{ tableLayout: 'fixed' }}>
+        <table className="ex-table" style={{ tableLayout: 'fixed', width: '100%' }}>
           <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
             <tr>
               {selectable && getRowId && (

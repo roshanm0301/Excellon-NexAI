@@ -78,6 +78,7 @@ func (r *Repo) CreateView(ctx context.Context, tenantID, userID string, req Crea
 		CreatedAt:       now,
 		UpdatedAt:       now,
 		CreatedBy:       userID,
+		Revision:        1,
 		LatestVersionID: versionID,
 		LatestVersionNo: 1,
 		IsDraft:         true,
@@ -122,7 +123,7 @@ func (r *Repo) ListViews(ctx context.Context, tenantID, surface, entity, status 
 		SELECT h.artifact_id, h.artifact_name, h.artifact_type, h.tenant_id, COALESCE(h.node_id,''),
 		       COALESCE(h.surface_type,''), COALESCE(h.primary_entity,''), COALESCE(h.view_code,''),
 		       COALESCE(h.view_label,''), COALESCE(h.view_category,''),
-		       h.created_at, h.updated_at, h.created_by,
+		       h.created_at, h.updated_at, h.created_by, COALESCE(h.revision, 1),
 		       COALESCE(v.version_id::text, ''), COALESCE(v.version_no, 0), COALESCE(v.is_draft, true), COALESCE(v.is_active, false)
 		FROM artifact_header h
 		LEFT JOIN LATERAL (
@@ -148,7 +149,7 @@ func (r *Repo) ListViews(ctx context.Context, tenantID, surface, entity, status 
 			&v.ArtifactID, &v.ArtifactName, &v.ArtifactType, &v.TenantID, &v.NodeID,
 			&v.SurfaceType, &v.PrimaryEntity, &v.ViewCode,
 			&v.ViewLabel, &v.ViewCategory,
-			&v.CreatedAt, &v.UpdatedAt, &v.CreatedBy,
+			&v.CreatedAt, &v.UpdatedAt, &v.CreatedBy, &v.Revision,
 			&v.LatestVersionID, &v.LatestVersionNo, &v.IsDraft, &v.IsActive,
 		); err != nil {
 			return nil, 0, fmt.Errorf("viewstudio: scan view: %w", err)
@@ -167,7 +168,7 @@ func (r *Repo) GetView(ctx context.Context, tenantID, artifactID string) (*View,
 		SELECT h.artifact_id, h.artifact_name, h.artifact_type, h.tenant_id, COALESCE(h.node_id,''),
 		       COALESCE(h.surface_type,''), COALESCE(h.primary_entity,''), COALESCE(h.view_code,''),
 		       COALESCE(h.view_label,''), COALESCE(h.view_category,''),
-		       h.created_at, h.updated_at, h.created_by
+		       h.created_at, h.updated_at, h.created_by, COALESCE(h.revision, 1)
 		FROM artifact_header h
 		WHERE h.artifact_id = $1 AND h.tenant_id = $2 AND h.artifact_type = 'ui_view'`,
 		artifactID, tenantID,
@@ -175,7 +176,7 @@ func (r *Repo) GetView(ctx context.Context, tenantID, artifactID string) (*View,
 		&v.ArtifactID, &v.ArtifactName, &v.ArtifactType, &v.TenantID, &v.NodeID,
 		&v.SurfaceType, &v.PrimaryEntity, &v.ViewCode,
 		&v.ViewLabel, &v.ViewCategory,
-		&v.CreatedAt, &v.UpdatedAt, &v.CreatedBy,
+		&v.CreatedAt, &v.UpdatedAt, &v.CreatedBy, &v.Revision,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("viewstudio: get view: %w", err)
@@ -192,7 +193,7 @@ func (r *Repo) GetViewWithPayload(ctx context.Context, tenantID, artifactID stri
 	// Get latest version
 	var ver ViewVersion
 	err = r.pool.QueryRow(ctx, `
-		SELECT version_id, artifact_id, version_no, payload, is_active, is_draft, created_at, created_by,
+		SELECT version_id, artifact_id, version_no, payload, is_active, is_draft, created_at, created_by, COALESCE(revision, 1),
 		       published_at, COALESCE(published_by, '')
 		FROM artifact_version
 		WHERE artifact_id = $1
@@ -200,6 +201,7 @@ func (r *Repo) GetViewWithPayload(ctx context.Context, tenantID, artifactID stri
 		LIMIT 1`, artifactID).Scan(
 		&ver.VersionID, &ver.ArtifactID, &ver.VersionNo, &ver.Payload,
 		&ver.IsActive, &ver.IsDraft, &ver.CreatedAt, &ver.CreatedBy,
+		&ver.Revision,
 		&ver.PublishedAt, &ver.PublishedBy,
 	)
 	if err != nil {
@@ -236,25 +238,29 @@ func (r *Repo) SaveDraft(ctx context.Context, tenantID, artifactID, userID strin
 
 	if err == nil && existingDraftID != "" {
 		// Update existing draft
-		_, err = r.pool.Exec(ctx, `
-			UPDATE artifact_version SET payload = $1, created_at = $2, created_by = $3
-			WHERE version_id = $4`,
-			payload, now, userID, existingDraftID)
+		var revision int64
+		err = r.pool.QueryRow(ctx, `
+			UPDATE artifact_version
+			SET payload = $1, created_at = $2, created_by = $3, revision = COALESCE(revision, 1) + 1
+			WHERE version_id = $4
+			RETURNING revision`,
+			payload, now, userID, existingDraftID).Scan(&revision)
 		if err != nil {
 			return nil, fmt.Errorf("viewstudio: update draft: %w", err)
 		}
 		// Update header timestamp
-		_, _ = r.pool.Exec(ctx, `UPDATE artifact_header SET updated_at = $1 WHERE artifact_id = $2`, now, artifactID)
+		_, _ = r.pool.Exec(ctx, `UPDATE artifact_header SET updated_at = $1, revision = COALESCE(revision, 1) + 1 WHERE artifact_id = $2`, now, artifactID)
 
 		return &ViewVersion{
-			VersionID: existingDraftID,
+			VersionID:  existingDraftID,
 			ArtifactID: artifactID,
-			VersionNo: latestNo,
-			Payload:   payload,
-			IsActive:  false,
-			IsDraft:   true,
-			CreatedAt: now,
-			CreatedBy: userID,
+			VersionNo:  latestNo,
+			Payload:    payload,
+			IsActive:   false,
+			IsDraft:    true,
+			CreatedAt:  now,
+			CreatedBy:  userID,
+			Revision:   revision,
 		}, nil
 	}
 
@@ -262,13 +268,13 @@ func (r *Repo) SaveDraft(ctx context.Context, tenantID, artifactID, userID strin
 	newVersionNo := latestNo + 1
 	versionID := idgen.NewV7()
 	_, err = r.pool.Exec(ctx, `
-		INSERT INTO artifact_version (version_id, artifact_id, version_no, payload, is_active, is_draft, created_at, created_by)
-		VALUES ($1, $2, $3, $4, false, true, $5, $6)`,
+		INSERT INTO artifact_version (version_id, artifact_id, version_no, payload, is_active, is_draft, created_at, created_by, revision)
+		VALUES ($1, $2, $3, $4, false, true, $5, $6, 1)`,
 		versionID, artifactID, newVersionNo, payload, now, userID)
 	if err != nil {
 		return nil, fmt.Errorf("viewstudio: create draft: %w", err)
 	}
-	_, _ = r.pool.Exec(ctx, `UPDATE artifact_header SET updated_at = $1 WHERE artifact_id = $2`, now, artifactID)
+	_, _ = r.pool.Exec(ctx, `UPDATE artifact_header SET updated_at = $1, revision = COALESCE(revision, 1) + 1 WHERE artifact_id = $2`, now, artifactID)
 
 	return &ViewVersion{
 		VersionID:  versionID,
@@ -279,6 +285,7 @@ func (r *Repo) SaveDraft(ctx context.Context, tenantID, artifactID, userID strin
 		IsDraft:    true,
 		CreatedAt:  now,
 		CreatedBy:  userID,
+		Revision:   1,
 	}, nil
 }
 
@@ -304,11 +311,11 @@ func (r *Repo) Publish(ctx context.Context, tenantID, artifactID, userID, change
 	// Get latest draft
 	var ver ViewVersion
 	err = tx.QueryRow(ctx, `
-		SELECT version_id, artifact_id, version_no, payload, is_draft
+		SELECT version_id, artifact_id, version_no, payload, is_draft, COALESCE(revision, 1)
 		FROM artifact_version
 		WHERE artifact_id = $1
 		ORDER BY version_no DESC
-		LIMIT 1`, artifactID).Scan(&ver.VersionID, &ver.ArtifactID, &ver.VersionNo, &ver.Payload, &ver.IsDraft)
+		LIMIT 1`, artifactID).Scan(&ver.VersionID, &ver.ArtifactID, &ver.VersionNo, &ver.Payload, &ver.IsDraft, &ver.Revision)
 	if err != nil {
 		return nil, fmt.Errorf("viewstudio: no version found: %w", err)
 	}
@@ -347,7 +354,7 @@ func (r *Repo) Publish(ctx context.Context, tenantID, artifactID, userID, change
 	}
 
 	// Update header timestamp
-	_, _ = tx.Exec(ctx, `UPDATE artifact_header SET updated_at = $1 WHERE artifact_id = $2`, now, artifactID)
+	_, _ = tx.Exec(ctx, `UPDATE artifact_header SET updated_at = $1, revision = COALESCE(revision, 1) + 1 WHERE artifact_id = $2`, now, artifactID)
 
 	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("viewstudio: commit publish: %w", err)
@@ -381,10 +388,10 @@ func (r *Repo) Rollback(ctx context.Context, tenantID, artifactID, targetVersion
 
 	var ver ViewVersion
 	err = tx.QueryRow(ctx, `
-		SELECT version_id, artifact_id, version_no, payload
+		SELECT version_id, artifact_id, version_no, payload, COALESCE(revision, 1)
 		FROM artifact_version
 		WHERE version_id = $1 AND artifact_id = $2`, targetVersionID, artifactID).Scan(
-		&ver.VersionID, &ver.ArtifactID, &ver.VersionNo, &ver.Payload)
+		&ver.VersionID, &ver.ArtifactID, &ver.VersionNo, &ver.Payload, &ver.Revision)
 	if err != nil {
 		return nil, fmt.Errorf("viewstudio: target version not found: %w", err)
 	}
@@ -419,7 +426,7 @@ func (r *Repo) Rollback(ctx context.Context, tenantID, artifactID, targetVersion
 		return nil, fmt.Errorf("viewstudio: write rollback log: %w", err)
 	}
 
-	_, _ = tx.Exec(ctx, `UPDATE artifact_header SET updated_at = $1 WHERE artifact_id = $2`, now, artifactID)
+	_, _ = tx.Exec(ctx, `UPDATE artifact_header SET updated_at = $1, revision = COALESCE(revision, 1) + 1 WHERE artifact_id = $2`, now, artifactID)
 
 	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("viewstudio: commit rollback: %w", err)
@@ -438,13 +445,14 @@ func (r *Repo) GetPublishedView(ctx context.Context, tenantID, artifactID string
 	var ver ViewVersion
 	err := r.pool.QueryRow(ctx, `
 		SELECT v.version_id, v.artifact_id, v.version_no, v.payload, v.is_active, v.is_draft,
-		       v.created_at, v.created_by, v.published_at, COALESCE(v.published_by, '')
+		       v.created_at, v.created_by, COALESCE(v.revision, 1), v.published_at, COALESCE(v.published_by, '')
 		FROM artifact_version v
 		JOIN artifact_header h ON h.artifact_id = v.artifact_id
 		WHERE v.artifact_id = $1 AND h.tenant_id = $2 AND v.is_active = true AND h.artifact_type = 'ui_view'`,
 		artifactID, tenantID).Scan(
 		&ver.VersionID, &ver.ArtifactID, &ver.VersionNo, &ver.Payload,
 		&ver.IsActive, &ver.IsDraft, &ver.CreatedAt, &ver.CreatedBy,
+		&ver.Revision,
 		&ver.PublishedAt, &ver.PublishedBy,
 	)
 	if err != nil {
@@ -453,17 +461,19 @@ func (r *Repo) GetPublishedView(ctx context.Context, tenantID, artifactID string
 	return &ver, nil
 }
 
-func (r *Repo) GetPublishedViewByCode(ctx context.Context, tenantID, viewCode string) (*ViewVersion, error) {
+func (r *Repo) GetPublishedViewByCode(ctx context.Context, tenantID, viewCode, primaryEntity, surface string) (*ViewVersion, error) {
 	var ver ViewVersion
 	err := r.pool.QueryRow(ctx, `
 		SELECT v.version_id, v.artifact_id, v.version_no, v.payload, v.is_active, v.is_draft,
-		       v.created_at, v.created_by, v.published_at, COALESCE(v.published_by, '')
+		       v.created_at, v.created_by, COALESCE(v.revision, 1), v.published_at, COALESCE(v.published_by, '')
 		FROM artifact_version v
 		JOIN artifact_header h ON h.artifact_id = v.artifact_id
-		WHERE h.view_code = $1 AND h.tenant_id = $2 AND v.is_active = true AND h.artifact_type = 'ui_view'`,
-		viewCode, tenantID).Scan(
+		WHERE h.view_code = $1 AND h.tenant_id = $2 AND h.primary_entity = $3 AND h.surface_type = $4
+		  AND v.is_active = true AND h.artifact_type = 'ui_view'`,
+		viewCode, tenantID, primaryEntity, surface).Scan(
 		&ver.VersionID, &ver.ArtifactID, &ver.VersionNo, &ver.Payload,
 		&ver.IsActive, &ver.IsDraft, &ver.CreatedAt, &ver.CreatedBy,
+		&ver.Revision,
 		&ver.PublishedAt, &ver.PublishedBy,
 	)
 	if err != nil {
@@ -477,7 +487,7 @@ func (r *Repo) GetPublishedViewByCode(ctx context.Context, tenantID, viewCode st
 func (r *Repo) ListVersions(ctx context.Context, tenantID, artifactID string) ([]ViewVersion, error) {
 	rows, err := r.pool.Query(ctx, `
 		SELECT v.version_id, v.artifact_id, v.version_no, v.payload, v.is_active, v.is_draft,
-		       v.created_at, v.created_by, v.published_at, COALESCE(v.published_by, '')
+		       v.created_at, v.created_by, COALESCE(v.revision, 1), v.published_at, COALESCE(v.published_by, '')
 		FROM artifact_version v
 		JOIN artifact_header h ON h.artifact_id = v.artifact_id
 		WHERE v.artifact_id = $1 AND h.tenant_id = $2 AND h.artifact_type = 'ui_view'
@@ -493,6 +503,7 @@ func (r *Repo) ListVersions(ctx context.Context, tenantID, artifactID string) ([
 		if err := rows.Scan(
 			&ver.VersionID, &ver.ArtifactID, &ver.VersionNo, &ver.Payload,
 			&ver.IsActive, &ver.IsDraft, &ver.CreatedAt, &ver.CreatedBy,
+			&ver.Revision,
 			&ver.PublishedAt, &ver.PublishedBy,
 		); err != nil {
 			return nil, fmt.Errorf("viewstudio: scan version: %w", err)
@@ -667,7 +678,7 @@ func (r *Repo) ArchiveView(ctx context.Context, tenantID, artifactID, userID str
 	_, _ = tx.Exec(ctx, `UPDATE artifact_version SET is_active = false WHERE artifact_id = $1`, artifactID)
 
 	// Update header category to archived
-	_, _ = tx.Exec(ctx, `UPDATE artifact_header SET view_category = 'archived', updated_at = $1 WHERE artifact_id = $2`, now, artifactID)
+	_, _ = tx.Exec(ctx, `UPDATE artifact_header SET view_category = 'archived', updated_at = $1, revision = COALESCE(revision, 1) + 1 WHERE artifact_id = $2`, now, artifactID)
 
 	// Log
 	logID := idgen.NewV4()

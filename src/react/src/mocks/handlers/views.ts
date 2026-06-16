@@ -18,6 +18,7 @@ interface ViewRecord {
   created_at: string
   updated_at: string
   created_by: string
+  revision: number
   latest_version_id?: string
   latest_version_no?: number
   is_draft: boolean
@@ -33,6 +34,7 @@ interface ViewRecord {
     is_draft: boolean
     created_at: string
     created_by: string
+    revision: number
     published_at?: string
     published_by?: string
   }>
@@ -140,6 +142,7 @@ export const viewHandlers = [
       created_at: now(),
       updated_at: now(),
       created_by: '00000000-0000-0000-0000-000000000001',
+      revision: 1,
       _draft_payload: (body.payload as Record<string, unknown>) ?? {},
       _versions: [],
     }
@@ -175,6 +178,7 @@ export const viewHandlers = [
       payload: body.payload,
       created_at: now(),
       created_by: '00000000-0000-0000-0000-000000000001',
+      revision: (store[idx].revision ?? 1) + 1,
     }
     store[idx] = {
       ...store[idx],
@@ -182,6 +186,7 @@ export const viewHandlers = [
       latest_version_id: versionId,
       latest_version_no: versionNo,
       is_draft: true,
+      revision: (store[idx].revision ?? 1) + 1,
       updated_at: now(),
     }
     viewStore.length = 0; store.forEach(v => viewStore.push(v))
@@ -205,6 +210,7 @@ export const viewHandlers = [
       payload: store[idx]._draft_payload ?? {},
       created_at: now(),
       created_by: '00000000-0000-0000-0000-000000000001',
+      revision: store[idx].revision ?? 1,
       published_at: now(),
       published_by: '00000000-0000-0000-0000-000000000001',
     }

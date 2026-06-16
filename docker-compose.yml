@@ -53,6 +53,9 @@ services:
       REDIS_URL: redis://redis:6379
       PORT: "8080"
       LOG_LEVEL: info
+      NEXAI_AUTH_MODE: local
+      NEXAI_STUDIO_PLUGINS_ENABLED: "false"
+      NEXAI_AI_FEATURES_ENABLED: "false"
     ports:
       - "9080:8080"
 

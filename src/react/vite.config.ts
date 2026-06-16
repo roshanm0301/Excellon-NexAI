@@ -13,6 +13,7 @@ export default defineConfig({
       include: ['src/**/*.{ts,tsx}'],
       exclude: ['src/mocks/**', 'src/test/**', '**/*.d.ts'],
     },
+    exclude: ['e2e/**', 'test-results/**', 'playwright-report/**', 'node_modules/**', 'dist/**'],
   },
   base: process.env.VITE_BASE_PATH ?? '/Excellon-NexAI/',
   build: { target: 'esnext' },

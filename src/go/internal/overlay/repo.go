@@ -36,18 +36,28 @@ func (r *Repo) Create(ctx context.Context, def *OverlayDefinition) error {
 }
 
 func (r *Repo) List(ctx context.Context, tenantID, artifactType, artifactKey string) ([]OverlayDefinition, error) {
-	rows, err := r.pool.Query(ctx, `
+	args := []any{tenantID}
+	where := "tenant_id = $1"
+	if artifactType != "" {
+		args = append(args, artifactType)
+		where += fmt.Sprintf(" AND artifact_type = $%d", len(args))
+	}
+	if artifactKey != "" {
+		args = append(args, artifactKey)
+		where += fmt.Sprintf(" AND artifact_key = $%d", len(args))
+	}
+
+	rows, err := r.pool.Query(ctx, fmt.Sprintf(`
 		SELECT id, tenant_id, artifact_type, artifact_key, layer, scope_ref, delta_json, created_at, updated_at, COALESCE(created_by,'')
 		FROM artifact_overlay_delta
-		WHERE tenant_id = $1 AND artifact_type = $2 AND artifact_key = $3
+		WHERE %s
 		ORDER BY CASE layer
 			WHEN 'platform' THEN 1
 			WHEN 'vertical' THEN 2
 			WHEN 'tenant'   THEN 3
 			WHEN 'node'     THEN 4
 			WHEN 'role'     THEN 5
-		END`,
-		tenantID, artifactType, artifactKey)
+		END`, where), args...)
 	if err != nil {
 		return nil, fmt.Errorf("overlay list: %w", err)
 	}
