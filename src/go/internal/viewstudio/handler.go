@@ -43,6 +43,9 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 		r.Post("/views/{viewKey}/rollback/{versionID}", h.rollbackView)
 		r.Delete("/views/{viewKey}", h.archiveView)
 	})
+	// ─── Entity Schema APIs (M3.2) ────────────────────────────────────────────────────
+	r.Get("/entities", h.listEntityTypes)
+	r.Get("/entities/{entityType}/fields", h.getEntityFields)
 
 	// ─── Runtime APIs ────────────────────────────────────────────────────────
 	r.Get("/runtime/views/{viewKey}", h.runtimeGetView)
@@ -452,6 +455,48 @@ func (h *Handler) removePlugin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+
+// ─── Entity Schema: list entity types ──────────────────────────────────────
+
+func (h *Handler) listEntityTypes(w http.ResponseWriter, r *http.Request) {
+	tenantID := middleware.TenantID(r.Context())
+	if tenantID == "" {
+		writeError(w, r, http.StatusBadRequest, "missing x-tenant-id header")
+		return
+	}
+
+	items, err := h.repo.ListEntityTypes(r.Context(), tenantID)
+	if err != nil {
+		slog.Error("viewstudio: list entity types", "error", err)
+		writeError(w, r, http.StatusInternalServerError, "failed to list entity types")
+		return
+	}
+	writeJSON(w, http.StatusOK, EntityTypeListResponse{Items: items})
+}
+
+// ─── Entity Schema: get fields for one entity type ───────────────────────────
+
+func (h *Handler) getEntityFields(w http.ResponseWriter, r *http.Request) {
+	tenantID := middleware.TenantID(r.Context())
+	entityType := chi.URLParam(r, "entityType")
+	if tenantID == "" {
+		writeError(w, r, http.StatusBadRequest, "missing x-tenant-id header")
+		return
+	}
+	if entityType == "" {
+		writeError(w, r, http.StatusBadRequest, "missing entityType path parameter")
+		return
+	}
+
+	items, err := h.repo.GetEntityFields(r.Context(), tenantID, entityType)
+	if err != nil {
+		slog.Warn("viewstudio: get entity fields", "entity_type", entityType, "error", err)
+		writeError(w, r, http.StatusNotFound, "entity type not found")
+		return
+	}
+	writeJSON(w, http.StatusOK, EntityFieldListResponse{Items: items})
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

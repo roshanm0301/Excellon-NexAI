@@ -251,6 +251,41 @@ func TestValidateViewRouteAcceptsValidPayload(t *testing.T) {
 	}
 }
 
+
+// ─── Entity Schema Handler Tests (M3.2) ─────────────────────────────────────
+
+func TestEntityTypesHandlerRequiresTenantID(t *testing.T) {
+	h := NewHandler(nil)
+	r := chi.NewRouter()
+	r.Use(chimw.RequestID)
+	// No DevContext middleware — so x-tenant-id is empty
+	r.Route("/studio", h.RegisterRoutes)
+
+	req := httptest.NewRequest(http.MethodGet, "/studio/entities", nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 without x-tenant-id, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestEntityFieldsHandlerRequiresTenantID(t *testing.T) {
+	h := NewHandler(nil)
+	r := chi.NewRouter()
+	r.Use(chimw.RequestID)
+	// No DevContext middleware — so x-tenant-id is empty
+	r.Route("/studio", h.RegisterRoutes)
+
+	req := httptest.NewRequest(http.MethodGet, "/studio/entities/customer/fields", nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 without x-tenant-id, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 func hasErrorCode(result ValidationResult, code string) bool {

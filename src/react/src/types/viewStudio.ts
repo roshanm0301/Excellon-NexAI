@@ -358,3 +358,27 @@ export interface ComponentListParams {
   surface?: SurfaceType;
   category?: ComponentCategory;
 }
+
+// ─── Entity Schema (M3.2) ────────────────────────────────────────────────────
+
+export interface EntityTypeSummary {
+  entity_type: string;
+  display_name: string;
+}
+
+export interface EntityFieldDef {
+  field_key: string;
+  label: string;
+  field_type: string;
+  required: boolean;
+  read_only: boolean;
+  is_relation: boolean;
+  related_entity?: string;
+}
+
+// ─── Runtime Context (M3.1) ──────────────────────────────────────────────────
+
+export interface RuntimeContext {
+  role?: string;
+  fieldValues?: Record<string, unknown>;
+}

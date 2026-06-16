@@ -246,3 +246,30 @@ type BrokenBinding struct {
 	FieldKey     string `json:"field_key"`
 	Reason       string `json:"reason"`
 }
+
+// ─── Entity Schema (M3.2) ────────────────────────────────────────────────────
+
+// EntityTypeSummary is returned by GET /studio/entities
+type EntityTypeSummary struct {
+	EntityType  string `json:"entity_type"`
+	DisplayName string `json:"display_name"`
+}
+
+// EntityFieldDef is returned by GET /studio/entities/:entityType/fields
+type EntityFieldDef struct {
+	FieldKey      string `json:"field_key"`
+	Label         string `json:"label"`
+	FieldType     string `json:"field_type"`
+	Required      bool   `json:"required"`
+	ReadOnly      bool   `json:"read_only"`
+	IsRelation    bool   `json:"is_relation"`
+	RelatedEntity string `json:"related_entity,omitempty"`
+}
+
+type EntityTypeListResponse struct {
+	Items []EntityTypeSummary `json:"items"`
+}
+
+type EntityFieldListResponse struct {
+	Items []EntityFieldDef `json:"items"`
+}

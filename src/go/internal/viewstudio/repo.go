@@ -695,6 +695,111 @@ func (r *Repo) ArchiveView(ctx context.Context, tenantID, artifactID, userID str
 	return tx.Commit(ctx)
 }
 
+// ─── Entity Schema (M3.2) ────────────────────────────────────────────────────
+
+// ListEntityTypes returns distinct entity types from compiled_artifact for the tenant.
+func (r *Repo) ListEntityTypes(ctx context.Context, tenantID string) ([]EntityTypeSummary, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT DISTINCT artifact_key,
+		       COALESCE(
+		           (payload -> 'settings' ->> 'display_name'),
+		           artifact_key
+		       ) AS display_name
+		FROM compiled_artifact
+		WHERE tenant_id = $1
+		  AND artifact_type = 'entity_schema'
+		  AND status = 'active'
+		ORDER BY artifact_key`, tenantID)
+	if err != nil {
+		return nil, fmt.Errorf("viewstudio: list entity types: %w", err)
+	}
+	defer rows.Close()
+
+	var items []EntityTypeSummary
+	for rows.Next() {
+		var e EntityTypeSummary
+		if err := rows.Scan(&e.EntityType, &e.DisplayName); err != nil {
+			return nil, fmt.Errorf("viewstudio: scan entity type: %w", err)
+		}
+		items = append(items, e)
+	}
+	if items == nil {
+		items = []EntityTypeSummary{}
+	}
+	return items, nil
+}
+
+// GetEntityFields reads field definitions from the compiled_artifact payload for the given entity type.
+func (r *Repo) GetEntityFields(ctx context.Context, tenantID, entityType string) ([]EntityFieldDef, error) {
+	var payloadJSON []byte
+	err := r.pool.QueryRow(ctx, `
+		SELECT payload
+		FROM compiled_artifact
+		WHERE tenant_id = $1
+		  AND artifact_key = $2
+		  AND artifact_type = 'entity_schema'
+		  AND status = 'active'
+		ORDER BY created_at DESC
+		LIMIT 1`, tenantID, entityType).Scan(&payloadJSON)
+	if err != nil {
+		return nil, fmt.Errorf("viewstudio: entity type %q not found: %w", entityType, err)
+	}
+
+	// Decode the compiled schema payload
+	var schema struct {
+		Fields        []compiledFieldRaw `json:"fields"`
+		Relationships []struct {
+			Key        string `json:"key"`
+			Label      string `json:"label"`
+			TargetType string `json:"target_type"`
+		} `json:"relationships"`
+	}
+	if err := json.Unmarshal(payloadJSON, &schema); err != nil {
+		return nil, fmt.Errorf("viewstudio: parse compiled schema: %w", err)
+	}
+
+	var items []EntityFieldDef
+	for _, f := range schema.Fields {
+		label := f.Label
+		if label == "" {
+			label = f.Key
+		}
+		items = append(items, EntityFieldDef{
+			FieldKey:  f.Key,
+			Label:     label,
+			FieldType: f.CompiledType,
+			Required:  f.Required,
+			ReadOnly:  f.Expression != "",
+		})
+	}
+	for _, rel := range schema.Relationships {
+		label := rel.Label
+		if label == "" {
+			label = rel.Key
+		}
+		items = append(items, EntityFieldDef{
+			FieldKey:      rel.Key,
+			Label:         label,
+			FieldType:     "relation",
+			IsRelation:    true,
+			RelatedEntity: rel.TargetType,
+		})
+	}
+	if items == nil {
+		items = []EntityFieldDef{}
+	}
+	return items, nil
+}
+
+// compiledFieldRaw is the minimal shape of a compiled field we need here.
+type compiledFieldRaw struct {
+	Key          string `json:"key"`
+	Label        string `json:"label"`
+	CompiledType string `json:"compiled_type"`
+	Required     bool   `json:"required"`
+	Expression   string `json:"expression,omitempty"`
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 func generateArtifactName(entity, viewCode, label string) string {
