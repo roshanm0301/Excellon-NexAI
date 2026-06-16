@@ -1,6 +1,9 @@
 import { readFileSync, existsSync, unlinkSync } from 'fs'
+import { fileURLToPath } from 'url'
 import * as path from 'path'
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const REPO_ROOT = path.resolve(__dirname, '../../../..')
 const PID_FILE = path.join(REPO_ROOT, '.test-backend.pid')
 

@@ -1,7 +1,10 @@
 import { execSync, spawn } from 'child_process'
 import { existsSync, writeFileSync } from 'fs'
+import { fileURLToPath } from 'url'
 import * as path from 'path'
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const REPO_ROOT = path.resolve(__dirname, '../../../..')
 const GO_SERVER_BIN = path.join(REPO_ROOT, '.test-server')
 

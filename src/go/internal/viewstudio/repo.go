@@ -45,14 +45,21 @@ func (r *Repo) CreateView(ctx context.Context, tenantID, userID string, req Crea
 	}
 	defer tx.Rollback(ctx)
 
+	// Treat empty view_code as NULL so the partial unique index (WHERE view_code IS NOT NULL)
+	// does not conflict across views that have no explicit code.
+	var viewCodeParam *string
+	if req.ViewCode != "" {
+		viewCodeParam = &req.ViewCode
+	}
+
 	// Insert artifact_header
 	_, err = tx.Exec(ctx, `
-		INSERT INTO artifact_header (artifact_id, artifact_name, artifact_type, tenant_id, node_id, 
+		INSERT INTO artifact_header (artifact_id, artifact_name, artifact_type, tenant_id, node_id,
 		                             surface_type, primary_entity, view_code, view_label, view_category,
 		                             created_at, updated_at, created_by)
 		VALUES ($1, $2, 'ui_view', $3, NULL, $4, $5, $6, $7, $8, $9, $9, $10)`,
 		artifactID, artifactName, tenantID,
-		req.SurfaceType, req.PrimaryEntity, req.ViewCode, req.ViewLabel, req.ViewCategory,
+		req.SurfaceType, req.PrimaryEntity, viewCodeParam, req.ViewLabel, req.ViewCategory,
 		now, userID)
 	if err != nil {
 		return nil, fmt.Errorf("viewstudio: insert header: %w", err)
