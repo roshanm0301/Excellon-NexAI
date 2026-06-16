@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import type { ComponentNode, ViewPayload, EventDefinition, DataSourceConfig, FieldBinding, VisibilityRule } from '../../../types/viewStudio'
+import type { ComponentNode, ViewPayload, EventDefinition, DataSourceConfig, FieldBinding, VisibilityRule, ComponentRegistryEntry } from '../../../types/viewStudio'
+import { canInsert } from '../../../lib/viewTreeValidator'
 
 // ─── Canvas State Types ──────────────────────────────────────────────────────
 
@@ -10,6 +11,7 @@ export interface CanvasState {
   primaryEntity: string | null
   isDirty: boolean
   payload: ViewPayload | null
+  revision: number
 
   // Selection
   selectedKey: string | null
@@ -25,8 +27,12 @@ export interface CanvasState {
   history: ViewPayload[]
   historyIndex: number
 
+  // Component registry cache (for placement validation)
+  registry: ComponentRegistryEntry[]
+
   // Actions
-  setView: (viewId: string, viewCode: string | null, payload: ViewPayload, primaryEntity?: string | null) => void
+  setView: (viewId: string, viewCode: string | null, payload: ViewPayload, primaryEntity?: string | null, revision?: number) => void
+  setRevision: (revision: number) => void
   reset: () => void
   select: (key: string | null) => void
   hover: (key: string | null) => void
@@ -34,6 +40,8 @@ export interface CanvasState {
   togglePalette: () => void
   togglePreview: () => void
   setInsertTarget: (target: InsertTarget | null) => void
+  setRegistry: (entries: ComponentRegistryEntry[]) => void
+  canInsertChild: (parentKey: string, childCode: string) => boolean
 
   // Tree mutations
   updateTree: (tree: ComponentNode) => void
@@ -131,6 +139,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   primaryEntity: null,
   isDirty: false,
   payload: null,
+  revision: 0,
   selectedKey: null,
   hoveredKey: null,
   panelMode: 'properties',
@@ -139,12 +148,14 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   insertTarget: null,
   history: [],
   historyIndex: -1,
+  registry: [],
 
-  setView: (viewId, viewCode, payload, primaryEntity = null) => set({
+  setView: (viewId, viewCode, payload, primaryEntity = null, revision = 0) => set({
     viewId,
     viewCode,
     primaryEntity: primaryEntity ?? null,
     payload,
+    revision,
     isDirty: false,
     selectedKey: null,
     hoveredKey: null,
@@ -152,12 +163,15 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     historyIndex: 0,
   }),
 
+  setRevision: (revision) => set({ revision }),
+
   reset: () => set({
     viewId: null,
     viewCode: null,
     primaryEntity: null,
     isDirty: false,
     payload: null,
+    revision: 0,
     selectedKey: null,
     hoveredKey: null,
     panelMode: 'properties',
@@ -166,6 +180,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     insertTarget: null,
     history: [],
     historyIndex: -1,
+    registry: [],
   }),
 
   select: (key) => set({ selectedKey: key }),
@@ -174,6 +189,16 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   togglePalette: () => set(s => ({ paletteOpen: !s.paletteOpen })),
   togglePreview: () => set(s => ({ previewMode: !s.previewMode })),
   setInsertTarget: (target) => set({ insertTarget: target }),
+
+  setRegistry: (entries) => set({ registry: entries }),
+
+  canInsertChild: (parentKey, childCode) => {
+    const state = get()
+    if (!state.payload) return false
+    const parentNode = findNode(state.payload.component_tree, parentKey)
+    if (!parentNode) return false
+    return canInsert(parentNode.component_code, childCode, state.registry)
+  },
 
   updateTree: (tree) => {
     const state = get()

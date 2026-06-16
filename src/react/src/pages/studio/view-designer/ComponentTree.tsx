@@ -21,7 +21,7 @@ interface TreeNodeProps {
 }
 
 function TreeNode({ node, depth }: TreeNodeProps) {
-  const { selectedKey, hoveredKey, select, hover, removeNode, duplicateNode, insertNode } = useCanvasStore()
+  const { selectedKey, hoveredKey, select, hover, removeNode, duplicateNode, insertNode, canInsertChild } = useCanvasStore()
 
   const isSelected = selectedKey === node.component_key
   const isHovered = hoveredKey === node.component_key
@@ -59,7 +59,9 @@ function TreeNode({ node, depth }: TreeNodeProps) {
     const name = e.dataTransfer.getData('application/x-component-name')
     if (!code) return
 
-    const newKey = `${code}_${Math.random().toString(36).slice(2, 8)}`
+    if (!canInsertChild(node.component_key, code)) return
+
+    const newKey = `${code}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`
     insertNode(node.component_key, {
       component_key: newKey,
       component_code: code,
@@ -67,12 +69,15 @@ function TreeNode({ node, depth }: TreeNodeProps) {
       props: {},
       children: [],
     })
-  }, [node.component_key, insertNode])
+  }, [node.component_key, insertNode, canInsertChild])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
-    e.dataTransfer.dropEffect = 'copy'
-  }, [])
+    const code = e.dataTransfer.types.includes('application/x-component-code')
+      ? e.dataTransfer.getData('application/x-component-code')
+      : ''
+    e.dataTransfer.dropEffect = (!code || canInsertChild(node.component_key, code)) ? 'copy' : 'none'
+  }, [node.component_key, canInsertChild])
 
   const classNames = [
     'ct-node',

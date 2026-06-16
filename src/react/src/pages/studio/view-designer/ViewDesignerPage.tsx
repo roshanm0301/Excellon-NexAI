@@ -27,7 +27,7 @@ export function ViewDesignerPage() {
   const {
     setView, reset, isDirty, payload, previewMode,
     togglePreview, undo, redo, canUndo, canRedo,
-    paletteOpen, selectedKey,
+    paletteOpen, selectedKey, setRegistry,
   } = useCanvasStore()
 
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -37,7 +37,7 @@ export function ViewDesignerPage() {
   useEffect(() => {
     if (viewData) {
       const p = viewData.latest_payload as ViewPayload
-      setView(viewData.artifact_id, viewData.view_code ?? null, p, viewData.primary_entity ?? null)
+      setView(viewData.artifact_id, viewData.view_code ?? null, p, viewData.primary_entity ?? null, viewData.revision ?? 0)
     }
     return () => { reset() }
   }, [viewData, setView, reset])
@@ -79,15 +79,22 @@ export function ViewDesignerPage() {
     })
   }, [viewId, publishMut, success, error])
 
-  // Auto-save (debounced 3s)
-  useAutoSave(viewId, {
+  // Auto-save (debounced 3s) — M5.2: exposes conflictDetected
+  const { conflictDetected } = useAutoSave(viewId, {
     enabled: true,
     onSaved: () => { /* silent auto-save */ },
     onError: () => error('Auto-save failed', 'Could not auto-save draft'),
   })
 
-  // Tree validation
+  // Tree validation + registry cache for placement guards
   const { data: registry } = useComponentRegistry()
+
+  useEffect(() => {
+    if (registry) {
+      setRegistry(registry)
+    }
+  }, [registry, setRegistry])
+
   const validation = useMemo(() => {
     if (!payload?.component_tree || !registry) return null
     const surfaceType = (viewData?.surface_type ?? 'standard_crud') as SurfaceType
@@ -186,6 +193,14 @@ export function ViewDesignerPage() {
           </Button>
         </div>
       </header>
+
+      {/* ─── Revision conflict banner (M5.2) ────────────────────────────── */}
+      {conflictDetected && (
+        <div className="autosave-conflict" role="alert">
+          <span>Another editor changed this view. Reload to see latest.</span>
+          <button onClick={() => window.location.reload()}>Reload</button>
+        </div>
+      )}
 
       {/* ─── Main Canvas Area ────────────────────────────────────────────── */}
       <div className="vd-body">

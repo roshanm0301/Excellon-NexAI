@@ -24,13 +24,13 @@ const CATEGORY_ORDER: ComponentCategory[] = [
 ]
 
 function generateKey(code: string): string {
-  return `${code}_${Math.random().toString(36).slice(2, 8)}`
+  return `${code}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`
 }
 
 export function ComponentPalette() {
   const [search, setSearch] = useState('')
   const { data: components } = useComponentRegistry()
-  const { insertNode, payload } = useCanvasStore()
+  const { insertNode, payload, canInsertChild } = useCanvasStore()
 
   const grouped = useMemo(() => {
     const items = components ?? []
@@ -59,6 +59,7 @@ export function ComponentPalette() {
     if (!payload) return
     // Insert at page_root if nothing selected, or at the root
     const parentKey = payload.component_tree.component_key
+    if (!canInsertChild(parentKey, component.component_code)) return
     insertNode(parentKey, {
       component_key: generateKey(component.component_code),
       component_code: component.component_code,
@@ -88,20 +89,27 @@ export function ComponentPalette() {
               {cat} ({items.length})
             </div>
             <div className="cp-category__items">
-              {items.map(c => (
-                <div
-                  key={c.component_code}
-                  className="cp-item"
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, c)}
-                  onDoubleClick={() => handleDoubleClick(c)}
-                  title={`${c.component_name} — double-click or drag to add`}
-                >
-                  <Icon size={14} className="cp-item__icon" />
-                  <span className="cp-item__name">{c.component_name}</span>
-                  {c.is_container && <span className="cp-item__badge">container</span>}
-                </div>
-              ))}
+              {items.map(c => {
+                const rootKey = payload?.component_tree.component_key ?? ''
+                const rootAllowed = !rootKey || canInsertChild(rootKey, c.component_code)
+                return (
+                  <div
+                    key={c.component_code}
+                    className={`cp-item${rootAllowed ? '' : ' cp-item--disabled'}`}
+                    draggable={rootAllowed}
+                    onDragStart={(e) => rootAllowed ? handleDragStart(e, c) : e.preventDefault()}
+                    onDoubleClick={() => rootAllowed && handleDoubleClick(c)}
+                    title={rootAllowed
+                      ? `${c.component_name} — double-click or drag to add`
+                      : `${c.component_name} — cannot be placed here`}
+                    aria-disabled={!rootAllowed}
+                  >
+                    <Icon size={14} className="cp-item__icon" />
+                    <span className="cp-item__name">{c.component_name}</span>
+                    {c.is_container && <span className="cp-item__badge">container</span>}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )

@@ -3,12 +3,18 @@ package viewstudio
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/excellon/nexai/internal/db"
 	"github.com/excellon/nexai/internal/idgen"
 )
+
+// ErrRevisionConflict is returned when a SaveDraft update encounters a
+// concurrent modification — the caller's revision no longer matches the
+// current revision stored in the database.
+var ErrRevisionConflict = errors.New("viewstudio: revision conflict")
 
 // Repo handles all database operations for the view studio.
 type Repo struct {
@@ -212,7 +218,11 @@ func (r *Repo) GetViewWithPayload(ctx context.Context, tenantID, artifactID stri
 
 // ─── Draft save ──────────────────────────────────────────────────────────────
 
-func (r *Repo) SaveDraft(ctx context.Context, tenantID, artifactID, userID string, payload json.RawMessage) (*ViewVersion, error) {
+// SaveDraft persists a draft payload. clientRevision is the revision the caller
+// last observed; if the stored revision has advanced (concurrent edit), it
+// returns ErrRevisionConflict instead of overwriting.
+// Pass clientRevision = 0 to skip the optimistic-concurrency check (e.g. first save).
+func (r *Repo) SaveDraft(ctx context.Context, tenantID, artifactID, userID string, payload json.RawMessage, clientRevision int64) (*ViewVersion, error) {
 	// Check ownership
 	var ownerTenant string
 	err := r.pool.QueryRow(ctx, `SELECT tenant_id FROM artifact_header WHERE artifact_id = $1 AND artifact_type = 'ui_view'`, artifactID).Scan(&ownerTenant)
@@ -230,23 +240,33 @@ func (r *Repo) SaveDraft(ctx context.Context, tenantID, artifactID, userID strin
 	// Check if latest is a draft — if so, update in place. If not, create new draft.
 	var existingDraftID string
 	err = r.pool.QueryRow(ctx, `
-		SELECT version_id FROM artifact_version 
+		SELECT version_id FROM artifact_version
 		WHERE artifact_id = $1 AND version_no = $2 AND is_draft = true AND is_active = false`,
 		artifactID, latestNo).Scan(&existingDraftID)
 
 	now := time.Now().UTC()
 
 	if err == nil && existingDraftID != "" {
-		// Update existing draft
+		// Optimistic concurrency: only update if revision matches (or caller passes 0 to bypass).
 		var revision int64
-		err = r.pool.QueryRow(ctx, `
-			UPDATE artifact_version
-			SET payload = $1, created_at = $2, created_by = $3, revision = COALESCE(revision, 1) + 1
-			WHERE version_id = $4
-			RETURNING revision`,
-			payload, now, userID, existingDraftID).Scan(&revision)
+		if clientRevision > 0 {
+			err = r.pool.QueryRow(ctx, `
+				UPDATE artifact_version
+				SET payload = $1, created_at = $2, created_by = $3, revision = COALESCE(revision, 1) + 1
+				WHERE version_id = $4 AND COALESCE(revision, 1) = $5
+				RETURNING revision`,
+				payload, now, userID, existingDraftID, clientRevision).Scan(&revision)
+		} else {
+			err = r.pool.QueryRow(ctx, `
+				UPDATE artifact_version
+				SET payload = $1, created_at = $2, created_by = $3, revision = COALESCE(revision, 1) + 1
+				WHERE version_id = $4
+				RETURNING revision`,
+				payload, now, userID, existingDraftID).Scan(&revision)
+		}
 		if err != nil {
-			return nil, fmt.Errorf("viewstudio: update draft: %w", err)
+			// pgx returns pgx.ErrNoRows when WHERE matches zero rows (revision mismatch)
+			return nil, ErrRevisionConflict
 		}
 		// Update header timestamp
 		_, _ = r.pool.Exec(ctx, `UPDATE artifact_header SET updated_at = $1, revision = COALESCE(revision, 1) + 1 WHERE artifact_id = $2`, now, artifactID)

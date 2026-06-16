@@ -2,6 +2,7 @@ package viewstudio
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -162,8 +163,12 @@ func (h *Handler) saveDraft(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ver, err := h.repo.SaveDraft(r.Context(), tenantID, viewKey, userID, req.Payload)
+	ver, err := h.repo.SaveDraft(r.Context(), tenantID, viewKey, userID, req.Payload, req.Revision)
 	if err != nil {
+		if errors.Is(err, ErrRevisionConflict) {
+			writeErrorCode(w, r, http.StatusConflict, "REVISION_CONFLICT", "another editor has modified this view — reload to see the latest version")
+			return
+		}
 		slog.Error("viewstudio: save draft", "error", err)
 		writeError(w, r, http.StatusInternalServerError, "failed to save draft")
 		return
@@ -521,6 +526,17 @@ func writeError(w http.ResponseWriter, r *http.Request, status int, msg string, 
 		errBody["details"] = details[0]
 	}
 	_ = json.NewEncoder(w).Encode(map[string]any{"error": errBody})
+}
+
+// writeErrorCode is like writeError but lets the caller specify an explicit error code string.
+func writeErrorCode(w http.ResponseWriter, r *http.Request, status int, code, msg string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(map[string]any{"error": map[string]any{
+		"code":     code,
+		"message":  msg,
+		"trace_id": chimw.GetReqID(r.Context()),
+	}})
 }
 
 func errorCodeForStatus(status int) string {

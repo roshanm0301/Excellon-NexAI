@@ -225,6 +225,7 @@ export interface CreateViewRequest {
 
 export interface SaveDraftRequest {
   payload: ViewPayload;
+  revision?: number;
 }
 
 export interface PublishViewRequest {

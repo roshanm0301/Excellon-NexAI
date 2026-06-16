@@ -82,7 +82,8 @@ type CreateViewRequest struct {
 }
 
 type SaveDraftRequest struct {
-	Payload json.RawMessage `json:"payload"`
+	Payload  json.RawMessage `json:"payload"`
+	Revision int64           `json:"revision,omitempty"`
 }
 
 type PublishRequest struct {

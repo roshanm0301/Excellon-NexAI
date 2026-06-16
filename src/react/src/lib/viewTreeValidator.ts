@@ -222,6 +222,19 @@ export function canInsertChild(
   return { allowed: true }
 }
 
+/**
+ * Simple boolean helper — returns true if childCode can be inserted as a
+ * direct child of parentCode according to the registry rules.
+ * Used by the canvas store and palette/tree components for real-time guards.
+ */
+export function canInsert(
+  parentCode: string,
+  childCode: string,
+  registryEntries: ComponentRegistryEntry[],
+): boolean {
+  return canInsertChild(parentCode, childCode, registryEntries).allowed
+}
+
 /** Get validation summary as counts */
 export function getValidationSummary(result: ValidationResult): {
   errorCount: number
