@@ -39,6 +39,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 		r.Post("/views", h.createView)
 		r.Put("/views/{viewKey}/draft", h.saveDraft)
 		r.Post("/views/{viewKey}/publish", h.publishView)
+		r.Post("/views/{viewKey}/validate", h.validateView)
 		r.Post("/views/{viewKey}/rollback/{versionID}", h.rollbackView)
 		r.Delete("/views/{viewKey}", h.archiveView)
 	})
@@ -181,13 +182,71 @@ func (h *Handler) publishView(w http.ResponseWriter, r *http.Request) {
 	var req PublishRequest
 	_ = json.NewDecoder(r.Body).Decode(&req)
 
-	ver, err := h.repo.Publish(r.Context(), tenantID, viewKey, userID, req.Changelog)
+	// Load current draft payload for validation
+	_, ver, err := h.repo.GetViewWithPayload(r.Context(), tenantID, viewKey)
+	if err != nil {
+		slog.Error("viewstudio: publish: load draft", "error", err)
+		writeError(w, r, http.StatusNotFound, "view not found")
+		return
+	}
+
+	// Run server-side publish validation before committing
+	valResult, err := ValidatePublish(ver.Payload)
+	if err != nil {
+		slog.Error("viewstudio: publish: validation parse error", "error", err)
+		writeError(w, r, http.StatusUnprocessableEntity, "payload could not be parsed: "+err.Error())
+		return
+	}
+	if len(valResult.Errors) > 0 {
+		slog.Warn("viewstudio: publish: validation failed", "view_key", viewKey, "error_count", len(valResult.Errors))
+		writeError(w, r, http.StatusUnprocessableEntity, "view payload failed publish validation", valResult)
+		return
+	}
+
+	pubVer, err := h.repo.Publish(r.Context(), tenantID, viewKey, userID, req.Changelog)
 	if err != nil {
 		slog.Error("viewstudio: publish", "error", err)
 		writeError(w, r, http.StatusConflict, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, ver)
+	writeJSON(w, http.StatusOK, pubVer)
+}
+
+// ─── Designer: validate (dry-run, no publish) ────────────────────────────────
+
+func (h *Handler) validateView(w http.ResponseWriter, r *http.Request) {
+	tenantID := middleware.TenantID(r.Context())
+	viewKey := chi.URLParam(r, "viewKey")
+	if tenantID == "" || viewKey == "" {
+		writeError(w, r, http.StatusBadRequest, "missing tenant or viewKey")
+		return
+	}
+
+	// Support inline payload in request body, or fall back to current draft
+	var body struct {
+		Payload json.RawMessage `json:"payload"`
+	}
+	if decErr := json.NewDecoder(r.Body).Decode(&body); decErr != nil || len(body.Payload) == 0 {
+		// Fall back to current draft
+		_, ver, err := h.repo.GetViewWithPayload(r.Context(), tenantID, viewKey)
+		if err != nil {
+			writeError(w, r, http.StatusNotFound, "view not found")
+			return
+		}
+		body.Payload = ver.Payload
+	}
+
+	valResult, err := ValidatePublish(body.Payload)
+	if err != nil {
+		writeError(w, r, http.StatusUnprocessableEntity, "payload could not be parsed: "+err.Error())
+		return
+	}
+
+	status := http.StatusOK
+	if len(valResult.Errors) > 0 {
+		status = http.StatusUnprocessableEntity
+	}
+	writeJSON(w, status, valResult)
 }
 
 // ─── Designer: rollback ──────────────────────────────────────────────────────

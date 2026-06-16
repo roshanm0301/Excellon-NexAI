@@ -412,10 +412,25 @@ function FallbackComponent({ node, children }: PreviewProps) {
   )
 }
 
-// ─── Render Map — both PascalCase and snake_case ──────────────────────────────
+// ─── Render Map ───────────────────────────────────────────────────────────────
+//
+// Canonical component_code registry (snake_case, matching seed):
+//   page_root, section, tab_container, tab_panel, grid_row, grid_column,
+//   card, accordion, split_pane, drawer_panel, modal_container,
+//   wizard_step_container, header_line_section, form_section, repeater,
+//   conditional_container, text_input, number_input, currency_input,
+//   date_picker, time_picker, datetime_picker, dropdown_select, multi_select,
+//   checkbox, checkbox_group, radio_group, toggle_switch, textarea,
+//   rich_text_editor, file_upload, reference_select, label, heading,
+//   paragraph, badge, status_badge, metric_comparison, avatar, divider,
+//   data_table, data_card_grid, filter_panel, related_list, button, toolbar
+//
+// All active registry codes have a renderer below (snake_case aliases section).
+// PascalCase aliases are retained for backward compatibility during migration.
+// Unsupported codes fall back to FallbackComponent.
 
 export const COMPONENT_RENDER_MAP: Record<string, PreviewRenderer> = {
-  // Layout — PascalCase (from registry)
+  // Layout — PascalCase (legacy aliases, kept for backward compatibility)
   PageRoot: PageRoot,
   Section: SectionRenderer,
   Row: RowRenderer,

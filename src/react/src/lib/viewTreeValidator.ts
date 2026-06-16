@@ -94,7 +94,7 @@ export function validateTree(
 
     // Parent constraint
     if (parentCode && entry.allowed_parents.length > 0) {
-      if (!entry.allowed_parents.includes('any') && !entry.allowed_parents.includes(parentCode)) {
+      if (!entry.allowed_parents.includes('all') && !entry.allowed_parents.includes('any') && !entry.allowed_parents.includes(parentCode)) {
         errors.push({
           code: 'INVALID_PARENT',
           message: `"${node.component_code}" cannot be a child of "${parentCode}". Allowed: ${entry.allowed_parents.join(', ')}`,
@@ -123,7 +123,7 @@ export function validateTree(
     }
 
     // Allowed children constraint
-    if (entry.allowed_children.length > 0 && !entry.allowed_children.includes('any')) {
+    if (entry.allowed_children.length > 0 && !entry.allowed_children.includes('all') && !entry.allowed_children.includes('any')) {
       for (const child of children) {
         if (!entry.allowed_children.includes(child.component_code)) {
           errors.push({
@@ -135,18 +135,27 @@ export function validateTree(
       }
     }
 
-    // Required props validation (from registry config_schema)
-    const schema = entry.config_schema as { required?: string[] } | undefined
-    if (schema?.required) {
-      for (const requiredProp of schema.required) {
-        const propVal = node.props?.[requiredProp]
-        if (propVal === undefined || propVal === null || propVal === '') {
-          warnings.push({
-            code: 'MISSING_REQUIRED_PROP',
-            message: `"${node.component_code}" is missing required prop "${requiredProp}"`,
-            field: node.component_key,
-          })
-        }
+    // Required props validation (from registry config_schema — JSON Schema draft-7)
+    // Supports both top-level `required` array and properties with `x-required: true`
+    const schema = entry.config_schema as {
+      required?: string[]
+      properties?: Record<string, { 'x-required'?: boolean }>
+    } | undefined
+    const requiredFromTopLevel: string[] = schema?.required ?? []
+    const requiredFromProperties: string[] = schema?.properties
+      ? Object.entries(schema.properties)
+          .filter(([, def]) => def['x-required'] === true)
+          .map(([key]) => key)
+      : []
+    const allRequired = [...new Set([...requiredFromTopLevel, ...requiredFromProperties])]
+    for (const requiredProp of allRequired) {
+      const propVal = node.props?.[requiredProp]
+      if (propVal === undefined || propVal === null || propVal === '') {
+        warnings.push({
+          code: 'MISSING_REQUIRED_PROP',
+          message: `"${node.component_code}" is missing required prop "${requiredProp}"`,
+          field: node.component_key,
+        })
       }
     }
 
@@ -198,13 +207,13 @@ export function canInsertChild(
     return { allowed: false, reason: `"${parentCode}" is not a container` }
   }
 
-  if (parentEntry.allowed_children.length > 0 && !parentEntry.allowed_children.includes('any')) {
+  if (parentEntry.allowed_children.length > 0 && !parentEntry.allowed_children.includes('all') && !parentEntry.allowed_children.includes('any')) {
     if (!parentEntry.allowed_children.includes(childCode)) {
       return { allowed: false, reason: `"${childCode}" is not allowed inside "${parentCode}"` }
     }
   }
 
-  if (childEntry.allowed_parents.length > 0 && !childEntry.allowed_parents.includes('any')) {
+  if (childEntry.allowed_parents.length > 0 && !childEntry.allowed_parents.includes('all') && !childEntry.allowed_parents.includes('any')) {
     if (!childEntry.allowed_parents.includes(parentCode)) {
       return { allowed: false, reason: `"${childCode}" cannot be placed inside "${parentCode}"` }
     }
