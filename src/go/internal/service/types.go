@@ -20,7 +20,7 @@ type InvokeRequest struct {
 	ServiceKey string         `json:"serviceKey"`
 	Method     string         `json:"method"`
 	TenantID   string         `json:"tenantId"`
-	Caller     string         `json:"caller,omitempty"` // Who initiated (workflow step ID, rule key, etc.)
+	Caller     string         `json:"caller,omitempty"` // Who initiated the call (rule key, user action, etc.)
 	Input      map[string]any `json:"input"`
 }
 

@@ -1,4 +1,4 @@
-# Pattern: React List Page
+﻿# Pattern: React List Page
 
 > Canonical reference for GitHub Copilot. Read this before writing any new list/index page.
 
@@ -39,7 +39,7 @@ export function EntityDesignerPage() {
   const { success, error } = useToast()
   const qc = useQueryClient()
 
-  // Local UI state — no global store
+  // Local UI state â€” no global store
   const [search, setSearch] = useState('')
   const [deleteTarget, setDeleteTarget] = useState<Artifact | null>(null)
 
@@ -146,7 +146,7 @@ export function EntityDesignerPage() {
 ## Navigate to Editor Pattern
 
 ```tsx
-// From list row — always pass ?id= for unambiguous lookup
+// From list row â€” always pass ?id= for unambiguous lookup
 navigate(`/entities/${row.entity_type}?id=${row.id}`)
 
 // From Create mutation onSuccess
@@ -191,16 +191,15 @@ Row actions are a `Column` entry with an empty `label` and a fixed `width`:
 
 ## What Copilot CAN Replicate
 
-- Additional list pages for other resource types (rules, overlays, workflows, nodes)
 - Following this exact component skeleton and import structure
 - Additional `useMutation` entries for other row actions (publish, archive, duplicate)
 - Additional `Column` entries in the column definition array
 
 ## What Copilot Must NOT Do
 
-- Do NOT call `fetch()` directly — all API calls must go through `studioApi.ts`
+- Do NOT call `fetch()` directly â€” all API calls must go through `studioApi.ts`
 - Do NOT use third-party component libraries (no MUI, Ant Design, Chakra)
-- Do NOT introduce a global state store (Zustand/Redux) — use `useState` for local UI state
+- Do NOT introduce a global state store (Zustand/Redux) â€” use `useState` for local UI state
 - Do NOT write class components
-- Do NOT use `any` in TypeScript — type all column generics and API responses
-- Do NOT duplicate `studioApi.ts` functions — add new API functions to the existing file
+- Do NOT use `any` in TypeScript â€” type all column generics and API responses
+- Do NOT duplicate `studioApi.ts` functions â€” add new API functions to the existing file

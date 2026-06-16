@@ -4,7 +4,6 @@ export interface CapabilityFlags {
   dbStoreType?: 'master' | 'transaction' | 'log'
   softDelete?: boolean
   auditTrail?: boolean
-  workflow?: boolean
   expressions?: boolean
   nodeScoping?: boolean
   pii?: boolean
@@ -24,7 +23,6 @@ const STORE_TYPES: { value: 'master' | 'transaction' | 'log'; label: string; des
 const TOGGLE_FLAGS: { key: keyof Omit<CapabilityFlags, 'dbStoreType'>; label: string; description: string }[] = [
   { key: 'softDelete', label: 'Soft Delete', description: 'Records move to recycle bin instead of hard delete' },
   { key: 'auditTrail', label: 'Full Audit Trail', description: 'Record every change with actor and timestamp' },
-  { key: 'workflow', label: 'Workflow / Status Machine', description: 'Enable status transitions and workflow engine' },
   { key: 'expressions', label: 'Computed Fields (Expressions)', description: 'Allow JSONata expressions on fields' },
   { key: 'nodeScoping', label: 'Node / Branch Scoping', description: 'Scope records to org hierarchy nodes' },
   { key: 'pii', label: 'Contains PII Fields', description: 'Enable PII masking, encryption, and GDPR controls' },

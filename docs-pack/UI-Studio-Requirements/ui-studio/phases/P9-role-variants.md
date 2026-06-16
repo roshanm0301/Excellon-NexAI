@@ -1,4 +1,4 @@
-# Phase 9 — Role Variants, Permissions & Enterprise Depth
+﻿# Phase 9 â€” Role Variants, Permissions & Enterprise Depth
 
 ---
 
@@ -7,11 +7,11 @@
 | Field | Value |
 |---|---|
 | **Milestone** | M10 |
-| **Gate Condition** | All P1 features operational — role variants, full DOM-removal permissions, cascading lookups |
-| **Depends On** | [Phase 4](P4-runtime-renderer.md) `PermissionFilter` (basic) · [Phase 8](P8-publish-governance.md) published lifecycle stable |
-| **Agents** | Agent 12 ‖ Agent 8 ‖ Agent 5 (parallel) → Agent 4 → Agent 14 (QA) + Agent 17 + Agent 15 + Agent 16 |
-| **Code Changes** | ✅ VariantPanel · RelationshipPanelRuntime · ModalDrawerRuntime · variantResolver · full PermissionFilter |
-| **Commit** | `feat: ui-studio Phase 9 — role variants, full permission-aware rendering (DOM removal), cascading lookups, all P1 features` |
+| **Gate Condition** | All P1 features operational â€” role variants, full DOM-removal permissions, cascading lookups |
+| **Depends On** | [Phase 4](P4-runtime-renderer.md) `PermissionFilter` (basic) Â· [Phase 8](P8-publish-governance.md) published lifecycle stable |
+| **Agents** | Agent 12 â€– Agent 8 â€– Agent 5 (parallel) â†’ Agent 4 â†’ Agent 14 (QA) + Agent 17 + Agent 15 + Agent 16 |
+| **Code Changes** | âœ… VariantPanel Â· RelationshipPanelRuntime Â· ModalDrawerRuntime Â· variantResolver Â· full PermissionFilter |
+| **Commit** | `feat: ui-studio Phase 9 â€” role variants, full permission-aware rendering (DOM removal), cascading lookups, all P1 features` |
 
 ---
 
@@ -26,10 +26,10 @@ app/src/react/src/lib/studio-v2/variantResolver.ts                          NEW
 
 ---
 
-## 9.1 Role / Context Variants (overlay — not clone)
+## 9.1 Role / Context Variants (overlay â€” not clone)
 
 ```typescript
-// At runtime — variant resolution order:
+// At runtime â€” variant resolution order:
 // 1. Load published base version payload
 // 2. GET /api/v1/studio/views/:viewKey/variants?role=Clerk&context={...}
 // 3. Apply matching variant overrides as delta onto base payload
@@ -37,10 +37,9 @@ app/src/react/src/lib/studio-v2/variantResolver.ts                          NEW
 
 // Variant condition examples:
 // { type: 'role',           operator: 'equals',  value: 'Clerk' }
-// { type: 'workflow_state', operator: 'equals',  value: 'APPROVED' }
 // { type: 'record_field',   operator: 'in',      value: ['DomesticSale','Export'] }
 
-// Overrides structure (delta only — not full payload):
+// Overrides structure (delta only â€” not full payload):
 // { field_overrides: { discount: { readonly: true } },
 //   action_overrides: { delete: { visible: false } },
 //   section_overrides: { internal_section: { visible: false } } }
@@ -57,13 +56,13 @@ app/src/react/src/lib/studio-v2/variantResolver.ts                          NEW
 // Response: { visible_fields, editable_fields, masked_fields, allowed_actions, disabled_reasons }
 
 // PermissionFilter applies BEFORE rendering:
-// - NOT in visible_fields  → component ABSENT from DOM (NOT CSS display:none)
-// - NOT in editable_fields → component rendered as disabled
-// - IN masked_fields       → value shown as ***
-// - NOT in allowed_actions → action button not rendered at all
+// - NOT in visible_fields  â†’ component ABSENT from DOM (NOT CSS display:none)
+// - NOT in editable_fields â†’ component rendered as disabled
+// - IN masked_fields       â†’ value shown as ***
+// - NOT in allowed_actions â†’ action button not rendered at all
 ```
 
-> ⚠️ **CRITICAL (Agent 12):** Hidden fields must be ABSENT from the DOM.
+> âš ï¸ **CRITICAL (Agent 12):** Hidden fields must be ABSENT from the DOM.
 > CSS `display:none` or `visibility:hidden` is NOT acceptable.
 > Agent 14 security test: `document.querySelector('[data-field="salary"]') === null`
 
@@ -73,12 +72,12 @@ app/src/react/src/lib/studio-v2/variantResolver.ts                          NEW
 
 | Feature | Implementation |
 |---|---|
-| P1-24 Relationship Panel | `RelationshipPanelRuntime` — related records list below main form |
+| P1-24 Relationship Panel | `RelationshipPanelRuntime` â€” related records list below main form |
 | P1-29 Bulk Actions | Checkbox column in `list_grid` + bulk action bar when rows selected |
 | P1-30 Saved View Config | User filter presets stored per view per user in `user_preferences` table |
 | P1-31 Advanced Filter Builder | `ConditionTreeBuilder` in filter mode on `list_grid` |
 | P1-32 Role/Persona Variants | `VariantPanel` in designer + `variantResolver` at runtime |
-| P1-33 Permission-Aware Rendering | Full `PermissionFilter` (DOM removal) — upgrade from Phase 4 stub |
+| P1-33 Permission-Aware Rendering | Full `PermissionFilter` (DOM removal) â€” upgrade from Phase 4 stub |
 | P1-34 Cascading Lookup Config | Parent field selector in Inspector Binding tab |
 | P1-35 Modal/Drawer/Side Panel | `ModalDrawerRuntime` triggered by action button |
 | P1-36 Record Summary/Highlights | `RecordHighlights` shows computed KPI values |
@@ -87,7 +86,7 @@ app/src/react/src/lib/studio-v2/variantResolver.ts                          NEW
 
 ## Testing Phase 9
 
-### Security / DOM Removal Tests — `Permissions.test.ts`
+### Security / DOM Removal Tests â€” `Permissions.test.ts`
 
 ```typescript
 // 1. Hidden field is ABSENT from DOM
@@ -130,7 +129,7 @@ test('action button not in allowed_actions is absent', async () => {
   })
 })
 
-// 4. Tenant isolation — tenant B cannot see tenant A data
+// 4. Tenant isolation â€” tenant B cannot see tenant A data
 test('permission API called with correct tenant context', async () => {
   let capturedBody: any = null
   server.use(rest.post('/api/v1/permission/evaluate-view', async (req, res, ctx) => {
@@ -143,7 +142,7 @@ test('permission API called with correct tenant context', async () => {
 })
 ```
 
-### Variant Tests — `Variants.test.ts`
+### Variant Tests â€” `Variants.test.ts`
 
 ```typescript
 // 1. Salesperson variant: discount field read-only
@@ -161,21 +160,18 @@ test('Salesperson variant makes discount field read-only', async () => {
 })
 
 // 2. After-approval variant: all fields disabled
-test('APPROVED workflow state variant disables all fields', async () => {
   server.use(rest.get('/api/v1/studio/views/test_view/variants', (req, res, ctx) =>
     res(ctx.json([{
       variant_name: 'Post-Approval',
-      conditions: [{ type: 'workflow_state', operator: 'equals', value: 'APPROVED' }],
       overrides: { section_overrides: { main_form: { readonly: true } } },
       priority: 50
     }]))
   ))
-  render(<StudioRenderer viewKey="test_view" />, { workflowState: 'APPROVED' })
   const inputs = screen.getAllByRole('textbox')
   inputs.forEach(input => expect(input).toBeDisabled())
 })
 
-// 3. Two matching variants — higher priority (lower number) wins
+// 3. Two matching variants â€” higher priority (lower number) wins
 test('variant with priority=50 overrides variant with priority=100', async () => {
   server.use(rest.get('/api/v1/studio/views/test_view/variants', (req, res, ctx) =>
     res(ctx.json([
@@ -186,12 +182,12 @@ test('variant with priority=50 overrides variant with priority=100', async () =>
     ]))
   ))
   render(<StudioRenderer viewKey="test_view" />, { user: { role: 'Clerk' } })
-  // priority 50 wins — notes visible=true
+  // priority 50 wins â€” notes visible=true
   await expect(screen.findByTestId('field-notes')).resolves.toBeInTheDocument()
 })
 
-// 4. No matching variant — base payload used unchanged
-test('no matching variant — base payload rendered unchanged', async () => {
+// 4. No matching variant â€” base payload used unchanged
+test('no matching variant â€” base payload rendered unchanged', async () => {
   server.use(rest.get('/api/v1/studio/views/test_view/variants', (req, res, ctx) =>
     res(ctx.json([])) // no variants
   ))
@@ -202,7 +198,7 @@ test('no matching variant — base payload rendered unchanged', async () => {
 })
 ```
 
-### Cascading Lookup Tests — `CascadingLookup.test.ts`
+### Cascading Lookup Tests â€” `CascadingLookup.test.ts`
 
 ```typescript
 // 1. warehouseId lookup filters by current branchId
@@ -228,10 +224,10 @@ test('changing branchId clears warehouseId value', async () => {
 })
 ```
 
-### Bulk Action Tests — `BulkActions.test.ts`
+### Bulk Action Tests â€” `BulkActions.test.ts`
 
 ```typescript
-// 1. Select rows → bulk action bar appears
+// 1. Select rows â†’ bulk action bar appears
 test('selecting 3 rows shows bulk action bar', async () => {
   render(<ListGridRuntime config={listConfig} />)
   // check 3 rows
@@ -267,7 +263,7 @@ test('confirm bulk action fires for all selected records', async () => {
 })
 ```
 
-### E2E Tests — `RoleVariants.e2e.ts` (Playwright)
+### E2E Tests â€” `RoleVariants.e2e.ts` (Playwright)
 
 ```typescript
 // E2E 1: Clerk cannot see salary field
@@ -294,9 +290,9 @@ test('relationship panel shows related purchase orders', async ({ page }) => {
 
 ---
 
-## Agents — Phase 9
+## Agents â€” Phase 9
 
-> 🔀 **PARALLEL** — Agents 12, 8, and 5 run simultaneously.
+> ðŸ”€ **PARALLEL** â€” Agents 12, 8, and 5 run simultaneously.
 
 | Lane | Agent | Responsibility | Primary Files |
 |---|---|---|---|
@@ -306,7 +302,7 @@ test('relationship panel shows related purchase orders', async ({ page }) => {
 
 After A, B, C complete:
 
-> ➡️ **SEQUENTIAL** — Agent 4 after all frontend done.
+> âž¡ï¸ **SEQUENTIAL** â€” Agent 4 after all frontend done.
 
 | Agent | Task |
 |---|---|
@@ -314,24 +310,23 @@ After A, B, C complete:
 | **Agent 14: QA** | Run all security, variant, cascading, bulk action, and E2E tests above |
 | **Agent 17: API Contract Alignment** | `ViewVariant`, `PermissionEvaluateResponse` types match Go structs |
 | **Agent 15: Documentation** | M10 milestone summary + role variants guide + permission rendering reference |
-| **Agent 16: Phase Coordinator** | Hidden fields absent from DOM, variants overlay correctly, all P1 operational — **gate M11** |
+| **Agent 16: Phase Coordinator** | Hidden fields absent from DOM, variants overlay correctly, all P1 operational â€” **gate M11** |
 
 ---
 
-## ✅ Gate Condition — M10
+## âœ… Gate Condition â€” M10
 
 ```
-Security (automated — must be exact):
+Security (automated â€” must be exact):
   document.querySelector('[data-field="salary"]') === null
   for a Clerk-role user navigating to /employees/123
 
 Variant overlay:
-  Salesperson variant → discount field rendered as disabled (not absent)
-  APPROVED workflow_state variant → all form inputs disabled
+  Salesperson variant â†’ discount field rendered as disabled (not absent)
 
 Cascading lookup:
-  branchId change → warehouseId options re-query with branch_id filter
-  branchId change → warehouseId value cleared
+  branchId change â†’ warehouseId options re-query with branch_id filter
+  branchId change â†’ warehouseId value cleared
 
 All P1 features:
   [ ] P1-24 Relationship Panel visible on record page
@@ -343,4 +338,4 @@ All P1 features:
 ```
 
 > **Previous phase:** [Phase 8](P8-publish-governance.md)
-> **Next phase:** [Phase 10 — AI Generation & Templates](P10-ai-templates.md)
+> **Next phase:** [Phase 10 â€” AI Generation & Templates](P10-ai-templates.md)

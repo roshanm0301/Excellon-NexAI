@@ -10,7 +10,7 @@ import (
 	"github.com/excellon/nexai/internal/retention"
 )
 
-// Agent is a background goroutine that runs lifecycle transitions.
+// Agent is a background goroutine that applies recycle and retention cleanup.
 type Agent struct {
 	pool      *db.Pool
 	retention *retention.Service

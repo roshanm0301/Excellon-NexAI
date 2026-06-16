@@ -1,4 +1,4 @@
-# DATA-ARCHITECTURE.md — PostgreSQL Schema, Tables & Migration Rules
+﻿# DATA-ARCHITECTURE.md â€” PostgreSQL Schema, Tables & Migration Rules
 
 > **Read before writing any SQL, migration file, or database-touching Go code.**
 
@@ -8,7 +8,6 @@
 
 The platform uses a **single-table JSONB strategy** for all entity records. There is no per-entity DDL. Business entity data of every type lives in `entity_record` with a `payload JSONB` column. PostgreSQL expression indexes provide query performance on payload fields.
 
-Schema metadata (field definitions, statuses, rules, workflows) lives in the versioned artifact tables and the `compiled_artifact` cache.
 
 ---
 
@@ -18,9 +17,8 @@ Schema metadata (field definitions, statuses, rules, workflows) lives in the ver
 
 | Table | Purpose |
 |-------|---------|
-| `artifact_header` | Identity row for every metadata artifact (entity schema, rule set, workflow, etc.) |
 | `artifact_version` | One row per save; `is_active=true` = published/live version |
-| `compiled_artifact` | Go compiler output — what runtime code reads. Never bypassed. |
+| `compiled_artifact` | Go compiler output â€” what runtime code reads. Never bypassed. |
 | `artifact_overlay_delta` | Per-layer delta JSON for the 5-layer overlay system |
 
 ### Entity Records
@@ -31,14 +29,9 @@ Schema metadata (field definitions, statuses, rules, workflows) lives in the ver
 | `entity_sequence` | Atomic sequential counters for display IDs (ORD-000001, etc.) |
 | `entity_index_queue` | DDL queue for `CREATE INDEX CONCURRENTLY` jobs |
 
-### Workflow & Rules
 
 | Table | Purpose |
 |-------|---------|
-| `workflow_instance` | One row per entity record that has entered a workflow |
-| `workflow_transition_log` | Immutable history of every state transition |
-| `workflow_human_task` | Human review/approval tasks created by the workflow engine |
-| `business_workflow_instance` | Running multi-step process instances |
 
 ### PII & Compliance
 
@@ -52,7 +45,7 @@ Schema metadata (field definitions, statuses, rules, workflows) lives in the ver
 
 | Table | Purpose |
 |-------|---------|
-| `studio_node` | Organisational hierarchy (adjacency list: platform → vertical → tenant → branch) |
+| `studio_node` | Organisational hierarchy (adjacency list: platform â†’ vertical â†’ tenant â†’ branch) |
 
 ### Audit & Lifecycle
 
@@ -71,7 +64,6 @@ Schema metadata (field definitions, statuses, rules, workflows) lives in the ver
 CREATE TABLE artifact_header (
     artifact_id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     artifact_name VARCHAR(300) NOT NULL,     -- e.g. "entity.sales_order"
-    artifact_type VARCHAR(100) NOT NULL,     -- e.g. "entity_schema", "rule_set", "WorkflowGraph"
     tenant_id     VARCHAR(100) NOT NULL,
     node_id       VARCHAR(200),              -- NULL = tenant-level scope
     created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -216,8 +208,6 @@ CREATE TABLE entity_index_queue (
 |----------------|---------|
 | `entity_schema` | Entity Designer, Entity Runtime |
 | `rule_set` | Rules Engine |
-| `WorkflowGraph` | Workflow Engine |
-| `business_workflow_template` | Business Workflow Engine |
 | `picklist` | Field compiler (picklist resolution) |
 | `field_type_catalog` | Entity Compiler step 1 |
 | `overlay_delta` | Overlay System |
@@ -230,7 +220,7 @@ CREATE TABLE entity_index_queue (
 1. **File naming:** `{unix_timestamp}_{snake_case_description}.up.sql` and `.down.sql`
 2. **Always reversible:** Every `.up.sql` must have a `.down.sql` that undoes it
 3. **Backward compatible:** No breaking changes to existing columns in production
-4. **Column removal:** Two-step process — first rename to `{col}_deprecated` and deploy, then drop in a follow-up migration
+4. **Column removal:** Two-step process â€” first rename to `{col}_deprecated` and deploy, then drop in a follow-up migration
 5. **Startup execution:** `golang-migrate up` runs on service startup in dev; separate job before deployment in production
 6. **No inline production indexes:** Use the index queue for expression indexes on `entity_record`
 7. **Standard indexes:** Structural indexes (PKs, FKs, basic lookups) can be inline in migrations
@@ -250,15 +240,15 @@ ALTER TABLE entity_record DROP COLUMN IF EXISTS foo;
 
 ---
 
-## The Single-Table Strategy — Why and Consequences
+## The Single-Table Strategy â€” Why and Consequences
 
-**Why:** Eliminates per-entity DDL migrations. A new entity type is defined in the Entity Designer and published — no migration needed. The `entity_record` table holds all business data.
+**Why:** Eliminates per-entity DDL migrations. A new entity type is defined in the Entity Designer and published â€” no migration needed. The `entity_record` table holds all business data.
 
 **Consequences:**
 - Type validation is application-level (compiled schema enforces types, not PostgreSQL)
 - Query performance on payload fields requires expression indexes (managed by `entity_index_queue`)
 - Reporting across entity types uses JSONB operators
-- No foreign key constraints between entity types at DB level — referential integrity enforced by the entity runtime
+- No foreign key constraints between entity types at DB level â€” referential integrity enforced by the entity runtime
 
 **Expression index pattern (added via queue, not inline):**
 ```sql
@@ -270,7 +260,7 @@ CREATE INDEX CONCURRENTLY idx_er_tenant_sales_order_status
 
 ---
 
-## Soft Delete — Universal Rule
+## Soft Delete â€” Universal Rule
 
 **Never hard-delete business records.** All deletes set `deleted_at = NOW()`.
 
@@ -279,6 +269,6 @@ Runtime queries always filter:
 WHERE deleted_at IS NULL
 ```
 
-The recycle bin API queries without this filter (intentional — it shows deleted records).
+The recycle bin API queries without this filter (intentional â€” it shows deleted records).
 
-The data lifecycle pipeline (Recycle Bin → Archive → Anonymise → Purge) handles eventual hard deletion after the configured retention period.
+The data lifecycle pipeline (Recycle Bin â†’ Archive â†’ Anonymise â†’ Purge) handles eventual hard deletion after the configured retention period.

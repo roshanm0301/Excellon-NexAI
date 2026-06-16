@@ -1,4 +1,4 @@
-import type { Artifact } from '../../config/studioApi'
+﻿import type { Artifact } from '../../config/studioApi'
 
 const TS = '2026-06-03T00:00:00.000Z'
 const TENANT = '00000000-0000-0000-0000-000000000001'
@@ -33,14 +33,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['uomCode', 'uomName', 'decimalPlaces', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -68,8 +60,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Address', fields: ['address', 'city', 'state', 'pincode'] },
       { name: 'Contact', fields: ['phone', 'email', 'isActive'] },
     ],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -94,8 +84,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Address', fields: ['address', 'city', 'state', 'pincode'] },
       { name: 'Contact', fields: ['phone', 'gstin', 'isActive'] },
     ],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [{ name: 'organisation', type: 'parent', targetEntity: 'organisation', foreignKey: 'organisation' }],
   }),
 
@@ -110,8 +98,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['deptCode', 'deptName', 'branch', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -136,22 +122,12 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Assignment', fields: ['branch', 'department', 'designation'] },
       { name: 'Contact', fields: ['email', 'phone', 'joiningDate', 'isActive'] },
     ],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-      { name: 'terminated', label: 'Terminated', color: '#EF4444' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-      { from: 'active', to: 'terminated', label: 'Terminate' },
-    ],
     relationships: [],
   }),
 
   a('00000000-0000-0000-0001-000000000006', 'customer', {
     displayName: 'Customer', pluralName: 'Customers', category: 'master', icon: 'users', color: '#3B82F6',
-    capabilities: { softDelete: true, auditTrail: true, pii: true, workflow: true },
+    capabilities: { softDelete: true, auditTrail: true, pii: true },
     idConfig: { strategy: 'uuid_v7' },
     fields: [
       { name: 'customerCode', label: 'Customer Code', type: 'string', required: true, unique: true, indexed: true, storageType: 'physical' },
@@ -182,18 +158,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Address', fields: ['billingAddress', 'billingCity', 'billingState', 'billingPincode'] },
       { name: 'Account', fields: ['customerSource', 'isActive', 'blacklisted'] },
     ],
-    statuses: [
-      { name: 'prospect', label: 'Prospect', color: '#F59E0B', isInitial: true },
-      { name: 'active', label: 'Active', color: '#22C55E' },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-      { name: 'blacklisted', label: 'Blacklisted', color: '#EF4444' },
-    ],
-    transitions: [
-      { from: 'prospect', to: 'active', label: 'Activate' },
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Reactivate' },
-      { from: 'active', to: 'blacklisted', label: 'Blacklist' },
-    ],
     relationships: [{ name: 'orders', type: 'child', targetEntity: 'sale_order', foreignKey: 'customer' }],
   }),
 
@@ -209,8 +173,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['hsnCode', 'description', 'taxableCategory', 'applicableTaxRate', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -234,8 +196,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Rates', fields: ['cgstRate', 'sgstRate', 'igstRate', 'cessRate'] },
       { name: 'Validity', fields: ['effectiveFrom', 'isActive'] },
     ],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -266,16 +226,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Tax & Pricing', fields: ['hsnCode', 'taxCategory', 'basePrice', 'mrp', 'uom'] },
       { name: 'Inventory', fields: ['stockQty', 'isActive'] },
     ],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'discontinued', label: 'Discontinued', color: '#94A3B8' },
-      { name: 'endOfLife', label: 'End of Life', color: '#EF4444' },
-    ],
-    transitions: [
-      { from: 'active', to: 'discontinued', label: 'Discontinue' },
-      { from: 'discontinued', to: 'active', label: 'Reactivate' },
-      { from: 'discontinued', to: 'endOfLife', label: 'End of Life' },
-    ],
     relationships: [],
   }),
 
@@ -293,8 +243,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['priceListCode', 'priceListName', 'vehicle', 'basePrice', 'effectiveFrom', 'effectiveTo', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'expired', label: 'Expired', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'expired', label: 'Expire' }],
     relationships: [],
   }),
 
@@ -313,8 +261,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['financierCode', 'financierName', 'bankName', 'contactPhone', 'email', 'minLoanAmount', 'maxLoanAmount', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -331,8 +277,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['providerCode', 'providerName', 'phone', 'email', 'licenseNumber', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -346,8 +290,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['termCode', 'termName', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -361,8 +303,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['typeCode', 'typeName', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -378,8 +318,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['slotCode', 'slotName', 'fromTime', 'toTime', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -397,8 +335,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['warehouseCode', 'warehouseName', 'branch', 'address', 'warehouseType', 'capacity', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -414,8 +350,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['category', 'code', 'label', 'sortOrder', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }],
-    transitions: [],
     relationships: [],
   }),
 
@@ -453,23 +387,12 @@ export const seedArtifacts: Artifact[] = [
       { name: 'GST', fields: ['cgstRate', 'sgstRate', 'igstRate', 'cgstAmount', 'sgstAmount', 'igstAmount', 'lineAmount'] },
       { name: 'Notes', fields: ['lineRemark'] },
     ],
-    statuses: [
-      { name: 'open', label: 'Open', color: '#3B82F6', isInitial: true },
-      { name: 'partiallyProcessed', label: 'Partially Processed', color: '#F59E0B' },
-      { name: 'processed', label: 'Processed', color: '#22C55E' },
-      { name: 'cancelled', label: 'Cancelled', color: '#EF4444' },
-    ],
-    transitions: [
-      { from: 'open', to: 'cancelled', label: 'Cancel' },
-      { from: 'open', to: 'partiallyProcessed', label: 'Partial Process' },
-      { from: 'partiallyProcessed', to: 'processed', label: 'Complete' },
-    ],
     relationships: [{ name: 'saleOrder', type: 'parent', targetEntity: 'sale_order', foreignKey: 'saleOrderId' }],
   }),
 
   a('00000000-0000-0000-0001-000000000019', 'sale_order', {
     displayName: 'Sale Order', pluralName: 'Sale Orders', category: 'transaction', icon: 'file-text', color: '#3B82F6',
-    capabilities: { softDelete: true, auditTrail: true, workflow: true },
+    capabilities: { softDelete: true, auditTrail: true },
     idConfig: { strategy: 'uuid_v7', displayId: { enabled: true, prefix: 'SO', separator: '-', seed: 1, padding: 6 } },
     fields: [
       { name: 'status', label: 'Status', type: 'string', required: false, unique: false, indexed: true, storageType: 'physical', readOnly: true },
@@ -519,30 +442,15 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Totals', fields: ['totalQuantity', 'totalBaseAmount', 'totalTaxAmount', 'netAmount'] },
       { name: 'Internal', fields: ['remarks', 'cancellationReason'] },
     ],
-    statuses: [
-      { name: 'open', label: 'Open', color: '#3B82F6', isInitial: true },
-      { name: 'partiallyConverted', label: 'Partially Converted', color: '#F59E0B' },
-      { name: 'converted', label: 'Converted', color: '#8B5CF6' },
-      { name: 'invoiced', label: 'Invoiced', color: '#22C55E' },
-      { name: 'expired', label: 'Expired', color: '#94A3B8' },
-      { name: 'cancelled', label: 'Cancelled', color: '#EF4444' },
-    ],
-    transitions: [
-      { from: 'open', to: 'cancelled', label: 'Cancel' },
-      { from: 'open', to: 'expired', label: 'Expire' },
-      { from: 'open', to: 'partiallyConverted', label: 'Partial Convert' },
-      { from: 'partiallyConverted', to: 'converted', label: 'Convert' },
-      { from: 'converted', to: 'invoiced', label: 'Invoice' },
-    ],
     relationships: [
       { name: 'lines', type: 'child', targetEntity: 'sale_order_line', foreignKey: 'saleOrderId' },
       { name: 'customer', type: 'parent', targetEntity: 'customer', foreignKey: 'customer' },
     ],
   }),
 
-  // ─── Accounts Module ──────────────────────────────────────────────────────
+  // â”€â”€â”€ Accounts Module â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  // Tier 1 — Pure lookup masters
+  // Tier 1 â€” Pure lookup masters
   a('00000000-0000-0000-0003-000000000001', 'account_template_type', {
     displayName: 'Account Template Type', pluralName: 'Account Template Types', category: 'master', icon: 'layers', color: '#0EA5E9',
     capabilities: { softDelete: true, auditTrail: true },
@@ -555,8 +463,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'systemName', 'displayName', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -572,8 +478,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'systemName', 'displayName', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -589,8 +493,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'systemName', 'displayName', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -605,8 +507,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['systemName', 'displayName', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -622,8 +522,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'systemName', 'displayName', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -639,8 +537,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'systemName', 'displayName', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -656,12 +552,10 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'systemName', 'displayName', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
-  // Tier 2 — Single dependency
+  // Tier 2 â€” Single dependency
   a('00000000-0000-0000-0003-000000000008', 'account_template', {
     displayName: 'Account Template', pluralName: 'Account Templates', category: 'master', icon: 'file-text', color: '#0EA5E9',
     capabilities: { softDelete: true, auditTrail: true },
@@ -678,8 +572,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['accountTemplateType', 'isRootAccount', 'code', 'systemName', 'displayName', 'entryType', 'accountKey', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [{ name: 'accountTemplateType', type: 'parent', targetEntity: 'account_template_type', foreignKey: 'accountTemplateType' }],
   }),
 
@@ -698,8 +590,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['businessType', 'code', 'systemName', 'displayName', 'description', 'noPosting', 'isDefaultBu', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [{ name: 'businessType', type: 'parent', targetEntity: 'business_type', foreignKey: 'businessType' }],
   }),
 
@@ -724,15 +614,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Date Range', fields: ['startDate', 'endDate'] },
       { name: 'Flags', fields: ['isScheduleYearEnd', 'isPerformYearEnd', 'isReconciled', 'isActive'] },
     ],
-    statuses: [
-      { name: 'open', label: 'Open', color: '#3B82F6', isInitial: true },
-      { name: 'closed', label: 'Closed', color: '#94A3B8' },
-      { name: 'reconciled', label: 'Reconciled', color: '#22C55E' },
-    ],
-    transitions: [
-      { from: 'open', to: 'closed', label: 'Close Year' },
-      { from: 'closed', to: 'reconciled', label: 'Reconcile' },
-    ],
     relationships: [{ name: 'periodType', type: 'parent', targetEntity: 'period_type', foreignKey: 'periodType' }],
   }),
 
@@ -750,12 +631,10 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['entityId', 'refEntityId', 'apiKey', 'childCode', 'childName', 'childId', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }],
-    transitions: [],
     relationships: [],
   }),
 
-  // Tier 3 — Multi-dependency
+  // Tier 3 â€” Multi-dependency
   a('00000000-0000-0000-0003-000000000012', 'account_posting_type', {
     displayName: 'Account Posting Type', pluralName: 'Account Posting Types', category: 'master', icon: 'arrow-right-left', color: '#0EA5E9',
     capabilities: { softDelete: true, auditTrail: true },
@@ -770,12 +649,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'entityName', 'businessUnitAccount', 'businessUnitAccountName', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'draft', label: 'Draft', color: '#94A3B8', isInitial: true },
-      { name: 'active', label: 'Active', color: '#22C55E' },
-      { name: 'inactive', label: 'Inactive', color: '#EF4444' },
-    ],
-    transitions: [{ from: 'draft', to: 'active', label: 'Activate' }, { from: 'active', to: 'inactive', label: 'Deactivate' }],
     relationships: [{ name: 'businessUnitAccount', type: 'parent', targetEntity: 'business_unit_account', foreignKey: 'businessUnitAccount' }],
   }),
 
@@ -799,11 +672,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Date Range', fields: ['startDate', 'endDate'] },
       { name: 'Flags', fields: ['isReconciled', 'isActive'] },
     ],
-    statuses: [
-      { name: 'open', label: 'Open', color: '#3B82F6', isInitial: true },
-      { name: 'closed', label: 'Closed', color: '#94A3B8' },
-    ],
-    transitions: [{ from: 'open', to: 'closed', label: 'Close Period' }],
     relationships: [{ name: 'fiscalYear', type: 'parent', targetEntity: 'fiscal_year', foreignKey: 'fiscalYear' }],
   }),
 
@@ -817,12 +685,10 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['fiscalYear', 'schedulerDate', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }],
     relationships: [{ name: 'fiscalYear', type: 'parent', targetEntity: 'fiscal_year', foreignKey: 'fiscalYear' }],
   }),
 
-  // Tier 4 — Complex with json-type fields
+  // Tier 4 â€” Complex with json-type fields
   a('00000000-0000-0000-0003-000000000015', 'master_account_template', {
     displayName: 'Master Account Template', pluralName: 'Master Account Templates', category: 'master', icon: 'layout-template', color: '#0EA5E9',
     capabilities: { softDelete: true, auditTrail: true },
@@ -850,8 +716,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Links', fields: ['accountType', 'accountTemplate', 'isGroup', 'isSubLedger', 'isAccountPosting', 'isTaxLinked'] },
       { name: 'Advanced', fields: ['entitySubLedgerIds', 'externalMappingCode', 'description', 'isActive'] },
     ],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -882,8 +746,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Links', fields: ['accountType', 'accountTemplate', 'businessUnitAccount', 'isGroup', 'isSubLedger', 'isAccountPosting'] },
       { name: 'Advanced', fields: ['entitySubLedgerIds', 'description', 'isActive'] },
     ],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -910,12 +772,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Links', fields: ['accountTemplate', 'accountType', 'masterAccountTemplate'] },
       { name: 'Notes', fields: ['description', 'isActive'] },
     ],
-    statuses: [
-      { name: 'draft', label: 'Draft', color: '#94A3B8', isInitial: true },
-      { name: 'active', label: 'Active', color: '#22C55E' },
-      { name: 'inactive', label: 'Inactive', color: '#EF4444' },
-    ],
-    transitions: [{ from: 'draft', to: 'active', label: 'Activate' }, { from: 'active', to: 'inactive', label: 'Deactivate' }],
     relationships: [],
   }),
 
@@ -944,8 +800,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Details', fields: ['accountName', 'accountKey', 'entryType', 'ruleName', 'businessUnitAccountName', 'postingTypeTemplateName', 'displayCondition'] },
       { name: 'Configuration', fields: ['bankDetails', 'conditionJson', 'action', 'isActive'] },
     ],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -978,8 +832,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Settlement', fields: ['currencyId', 'settlementTypeId', 'settlementTypeName'] },
       { name: 'Advanced', fields: ['branches', 'isLock', 'externalMappingCode', 'remarks', 'isActive'] },
     ],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -992,14 +844,12 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['accountObject', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }],
     relationships: [],
   }),
 
   a('00000000-0000-0000-0003-000000000021', 'recurring_journal', {
     displayName: 'Recurring Journal', pluralName: 'Recurring Journals', category: 'transaction', icon: 'refresh-cw', color: '#0EA5E9',
-    capabilities: { softDelete: true, auditTrail: true, workflow: true },
+    capabilities: { softDelete: true, auditTrail: true },
     idConfig: { strategy: 'uuid_v7' },
     fields: [
       { name: 'fiscalYear', label: 'Fiscal Year', type: 'reference', referenceEntity: 'fiscal_year', required: false, unique: false, indexed: true, storageType: 'physical' },
@@ -1028,24 +878,12 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Posting', fields: ['postingDetails', 'isAutomaticallyPost'] },
       { name: 'Links', fields: ['fiscalYear', 'isActive'] },
     ],
-    statuses: [
-      { name: 'draft', label: 'Draft', color: '#94A3B8', isInitial: true },
-      { name: 'active', label: 'Active', color: '#22C55E' },
-      { name: 'paused', label: 'Paused', color: '#F59E0B' },
-      { name: 'completed', label: 'Completed', color: '#3B82F6' },
-    ],
-    transitions: [
-      { from: 'draft', to: 'active', label: 'Activate' },
-      { from: 'active', to: 'paused', label: 'Pause' },
-      { from: 'paused', to: 'active', label: 'Resume' },
-      { from: 'active', to: 'completed', label: 'Complete' },
-    ],
     relationships: [{ name: 'fiscalYear', type: 'parent', targetEntity: 'fiscal_year', foreignKey: 'fiscalYear' }],
   }),
 
-  // ─── Tax Module ───────────────────────────────────────────────────────────
+  // â”€â”€â”€ Tax Module â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  // Tier 1 — Pure lookup masters
+  // Tier 1 â€” Pure lookup masters
   a('00000000-0000-0000-0004-000000000001', 'tax_definition', {
     displayName: 'Tax Definition', pluralName: 'Tax Definitions', category: 'master', icon: 'file-badge', color: '#10B981',
     capabilities: { softDelete: true, auditTrail: true },
@@ -1058,12 +896,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['systemName', 'displayName', 'version', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'draft', label: 'Draft', color: '#94A3B8', isInitial: true },
-      { name: 'active', label: 'Active', color: '#22C55E' },
-      { name: 'deprecated', label: 'Deprecated', color: '#EF4444' },
-    ],
-    transitions: [{ from: 'draft', to: 'active', label: 'Activate' }, { from: 'active', to: 'deprecated', label: 'Deprecate' }],
     relationships: [],
   }),
 
@@ -1081,8 +913,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['systemName', 'displayName', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }],
-    transitions: [],
     relationships: [],
   }),
 
@@ -1101,8 +931,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['systemName', 'displayName', 'isDisplayValue', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }],
-    transitions: [],
     relationships: [],
   }),
 
@@ -1121,12 +949,10 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['systemName', 'displayName', 'sortOrder', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }],
-    transitions: [],
     relationships: [],
   }),
 
-  // Tier 2 — Reference tax_definition
+  // Tier 2 â€” Reference tax_definition
   a('00000000-0000-0000-0004-000000000005', 'tax_type', {
     displayName: 'Tax Type', pluralName: 'Tax Types', category: 'master', icon: 'percent', color: '#10B981',
     capabilities: { softDelete: true, auditTrail: true },
@@ -1141,12 +967,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxDefinition', 'taxPeriodType', 'code', 'name', 'version', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'draft', label: 'Draft', color: '#94A3B8', isInitial: true },
-      { name: 'active', label: 'Active', color: '#22C55E' },
-      { name: 'deprecated', label: 'Deprecated', color: '#EF4444' },
-    ],
-    transitions: [{ from: 'draft', to: 'active', label: 'Activate' }, { from: 'active', to: 'deprecated', label: 'Deprecate' }],
     relationships: [{ name: 'taxDefinition', type: 'parent', targetEntity: 'tax_definition', foreignKey: 'taxDefinition' }],
   }),
 
@@ -1167,8 +987,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxDefinition', 'code', 'displayName', 'jurisdictionType', 'parentJurisdiction', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [{ name: 'taxDefinition', type: 'parent', targetEntity: 'tax_definition', foreignKey: 'taxDefinition' }],
   }),
 
@@ -1184,8 +1002,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxDefinition', 'systemName', 'displayName', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [{ name: 'taxDefinition', type: 'parent', targetEntity: 'tax_definition', foreignKey: 'taxDefinition' }],
   }),
 
@@ -1201,8 +1017,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxDefinition', 'systemName', 'displayName', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [{ name: 'taxDefinition', type: 'parent', targetEntity: 'tax_definition', foreignKey: 'taxDefinition' }],
   }),
 
@@ -1222,8 +1036,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxType', 'entityId', 'entityName', 'entityType', 'entityDescription', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -1247,8 +1059,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxDefinition', 'code', 'name', 'value', 'taxGroupType', 'componentCalculationType', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [{ name: 'taxDefinition', type: 'parent', targetEntity: 'tax_definition', foreignKey: 'taxDefinition' }],
   }),
 
@@ -1268,15 +1078,10 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxDefinition', 'taxType', 'periodType', 'systemName', 'displayName', 'numberOfPeriodType', 'startDate', 'endDate', 'isActive'] }],
-    statuses: [
-      { name: 'open', label: 'Open', color: '#3B82F6', isInitial: true },
-      { name: 'closed', label: 'Closed', color: '#94A3B8' },
-    ],
-    transitions: [{ from: 'open', to: 'closed', label: 'Close Year' }],
     relationships: [{ name: 'taxDefinition', type: 'parent', targetEntity: 'tax_definition', foreignKey: 'taxDefinition' }],
   }),
 
-  // Tier 3 — Reference Tier 2
+  // Tier 3 â€” Reference Tier 2
   a('00000000-0000-0000-0004-000000000012', 'tax_nature', {
     displayName: 'Tax Nature', pluralName: 'Tax Natures', category: 'master', icon: 'git-branch', color: '#10B981',
     capabilities: { softDelete: true, auditTrail: true },
@@ -1291,8 +1096,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxDefinition', 'taxCategory', 'taxFilingSection', 'code', 'name', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -1313,8 +1116,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxGroup', 'codeType', 'code', 'name', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [{ name: 'taxGroup', type: 'parent', targetEntity: 'tax_group', foreignKey: 'taxGroup' }],
   }),
 
@@ -1329,8 +1130,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxDefinition', 'organizationId', 'isRootConfiguration', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }],
     relationships: [{ name: 'taxDefinition', type: 'parent', targetEntity: 'tax_definition', foreignKey: 'taxDefinition' }],
   }),
 
@@ -1350,11 +1149,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxYear', 'taxType', 'periodType', 'systemName', 'displayName', 'startDate', 'endDate', 'sortOrder', 'isActive'] }],
-    statuses: [
-      { name: 'open', label: 'Open', color: '#3B82F6', isInitial: true },
-      { name: 'closed', label: 'Closed', color: '#94A3B8' },
-    ],
-    transitions: [{ from: 'open', to: 'closed', label: 'Close Period' }],
     relationships: [{ name: 'taxYear', type: 'parent', targetEntity: 'tax_year', foreignKey: 'taxYear' }],
   }),
 
@@ -1370,8 +1164,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxJurisdiction', 'attributeKey', 'attributeValue', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }],
-    transitions: [],
     relationships: [{ name: 'taxJurisdiction', type: 'parent', targetEntity: 'tax_jurisdiction', foreignKey: 'taxJurisdiction' }],
   }),
 
@@ -1387,12 +1179,10 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxNature', 'attributeKey', 'attributeValue', 'description', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }],
-    transitions: [],
     relationships: [{ name: 'taxNature', type: 'parent', targetEntity: 'tax_nature', foreignKey: 'taxNature' }],
   }),
 
-  // Tier 4 — Complex
+  // Tier 4 â€” Complex
   a('00000000-0000-0000-0004-000000000018', 'tax_attribute', {
     displayName: 'Tax Attribute', pluralName: 'Tax Attributes', category: 'master', icon: 'sliders', color: '#10B981',
     capabilities: { softDelete: true, auditTrail: true },
@@ -1414,8 +1204,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Reference', fields: ['referenceEntity', 'referenceEntityName', 'referenceFieldId', 'referenceFieldName'] },
       { name: 'Configuration', fields: ['values', 'isActive'] },
     ],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -1439,8 +1227,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Details', fields: ['taxEntity', 'code', 'systemName', 'displayName', 'documentTypeName', 'isParent', 'parentInterface'] },
       { name: 'Contract', fields: ['properties', 'description', 'isActive'] },
     ],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [],
   }),
 
@@ -1469,8 +1255,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Calculation', fields: ['formula', 'roundOffType', 'roundOffValue', 'decimalPrecision'] },
       { name: 'Flags', fields: ['isDisplayOnTransactions', 'isAccountPosting', 'isActive'] },
     ],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [{ name: 'taxType', type: 'parent', targetEntity: 'tax_type', foreignKey: 'taxType' }],
   }),
 
@@ -1490,17 +1274,6 @@ export const seedArtifacts: Artifact[] = [
     sections: [
       { name: 'Details', fields: ['taxType', 'priority', 'validFrom', 'validTo', 'isActive'] },
       { name: 'Rate Logic', fields: ['conditions', 'formulas'] },
-    ],
-    statuses: [
-      { name: 'draft', label: 'Draft', color: '#94A3B8', isInitial: true },
-      { name: 'active', label: 'Active', color: '#22C55E' },
-      { name: 'expired', label: 'Expired', color: '#F59E0B' },
-      { name: 'superseded', label: 'Superseded', color: '#EF4444' },
-    ],
-    transitions: [
-      { from: 'draft', to: 'active', label: 'Activate' },
-      { from: 'active', to: 'expired', label: 'Expire' },
-      { from: 'active', to: 'superseded', label: 'Supersede' },
     ],
     relationships: [{ name: 'taxType', type: 'parent', targetEntity: 'tax_type', foreignKey: 'taxType' }],
   }),
@@ -1522,12 +1295,10 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: true, unique: false, indexed: false, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxType', 'sequence', 'columnName', 'columnTypeName', 'columnType', 'columnEntity', 'dataTypeName', 'isRequired', 'defaultValue', 'isActive'] }],
-    statuses: [{ name: 'active', label: 'Active', color: '#22C55E', isInitial: true }, { name: 'inactive', label: 'Inactive', color: '#94A3B8' }],
-    transitions: [{ from: 'active', to: 'inactive', label: 'Deactivate' }, { from: 'inactive', to: 'active', label: 'Activate' }],
     relationships: [{ name: 'taxType', type: 'parent', targetEntity: 'tax_type', foreignKey: 'taxType' }],
   }),
 
-  // ─── Accounting — Ledger & Sub-Ledger ────────────────────────────────────
+  // â”€â”€â”€ Accounting â€” Ledger & Sub-Ledger â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   a('00000000-0000-0000-0005-000000000001', 'ledger', {
     displayName: 'Ledger', pluralName: 'Ledgers', category: 'transaction', icon: 'book-open', color: '#F59E0B',
@@ -1564,11 +1335,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Amounts', fields: ['debitedAmount', 'creditedAmount', 'openingBalance', 'closingBalance'] },
       { name: 'Notes', fields: ['note', 'isActive'] },
     ],
-    statuses: [
-      { name: 'posted', label: 'Posted', color: '#22C55E', isInitial: true },
-      { name: 'reversed', label: 'Reversed', color: '#EF4444' },
-    ],
-    transitions: [{ from: 'posted', to: 'reversed', label: 'Reverse' }],
     relationships: [
       { name: 'fiscalYear', type: 'parent', targetEntity: 'fiscal_year', foreignKey: 'fiscalYear' },
       { name: 'fiscalPeriod', type: 'parent', targetEntity: 'fiscal_period', foreignKey: 'fiscalPeriod' },
@@ -1617,18 +1383,13 @@ export const seedArtifacts: Artifact[] = [
       { name: 'Amounts', fields: ['debitedAmount', 'creditedAmount', 'openingBalance', 'closingBalance'] },
       { name: 'Notes', fields: ['note', 'isActive'] },
     ],
-    statuses: [
-      { name: 'posted', label: 'Posted', color: '#22C55E', isInitial: true },
-      { name: 'reversed', label: 'Reversed', color: '#EF4444' },
-    ],
-    transitions: [{ from: 'posted', to: 'reversed', label: 'Reverse' }],
     relationships: [
       { name: 'ledger', type: 'parent', targetEntity: 'ledger', foreignKey: 'ledger' },
       { name: 'fiscalYear', type: 'parent', targetEntity: 'fiscal_year', foreignKey: 'fiscalYear' },
     ],
   }),
 
-  // ── ACCOUNTS MODULE ──────────────────────────────────────────────────────────
+  // â”€â”€ ACCOUNTS MODULE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   a('00000000-0000-0000-0003-000000000001', 'account_template_type', {
     displayName: 'Account Template Type', pluralName: 'Account Template Types', category: 'master', icon: 'tag', color: '#6366F1',
@@ -1641,14 +1402,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1663,14 +1416,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1685,14 +1430,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1708,14 +1445,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'daysCount', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1730,14 +1459,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1752,14 +1473,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1775,14 +1488,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'intervalDays', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1798,14 +1503,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'templateTypeId', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1821,14 +1518,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'businessTypeId', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1846,14 +1535,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'periodTypeId', 'startDate', 'endDate', 'isCurrent', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1869,14 +1550,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['entityType', 'entityId', 'displayValue', 'secondaryValue', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1892,14 +1565,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'businessUnitAccountId', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1919,14 +1584,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'fiscalYearId', 'periodTypeId', 'startDate', 'endDate', 'periodNumber', 'isClosed', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1943,14 +1600,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'fiscalYearId', 'schedulerDate', 'frequency', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1968,14 +1617,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'accountTypeId', 'accountTemplateId', 'entitySubLedgerIds', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -1994,14 +1635,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'accountTypeId', 'accountTemplateId', 'businessUnitAccountId', 'entitySubLedgerIds', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2019,14 +1652,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'accountTemplateId', 'masterAccountTemplateId', 'accountTypeId', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2046,14 +1671,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'accountPostingTypeId', 'postingTypeTemplateId', 'tenantChartOfAccountId', 'action', 'conditionJson', 'bankDetails', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2069,14 +1686,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'tenantChartOfAccountId', 'branches', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2092,14 +1701,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'accountObject', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2117,18 +1718,10 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'fiscalYearId', 'daysOfWeek', 'postingDetails', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
-  // ── TAX MODULE ───────────────────────────────────────────────────────────────
+  // â”€â”€ TAX MODULE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   a('00000000-0000-0000-0004-000000000001', 'tax_definition', {
     displayName: 'Tax Definition', pluralName: 'Tax Definitions', category: 'master', icon: 'shield', color: '#6366F1',
@@ -2142,14 +1735,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'description', 'regimeType', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2165,14 +1750,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'dataTypeEnum', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2188,14 +1765,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'method', 'decimalPlaces', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2211,14 +1780,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'granularity', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2237,14 +1798,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'taxPeriodTypeId', 'description', 'isRecoverable', 'isCompound', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2262,14 +1815,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'parentJurisdictionId', 'level', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2285,14 +1830,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2309,14 +1846,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'sectionIdentifier', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2333,14 +1862,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxTypeId', 'entityDiscriminator', 'externalEntityId', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2358,14 +1879,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'groupType', 'calculationType', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2384,14 +1897,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'taxPeriodTypeId', 'startDate', 'endDate', 'isCurrent', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2409,14 +1914,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'taxCategoryId', 'taxFilingSectionId', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2433,14 +1930,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxGroupId', 'lookupStandard', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2457,14 +1946,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxDefinitionId', 'registrationNumber', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2484,14 +1965,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxYearId', 'taxPeriodTypeId', 'startDate', 'endDate', 'periodNumber', 'isClosed', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2506,14 +1979,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxJurisdictionId', 'attributeKey', 'attributeValue', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2528,14 +1993,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['taxNatureId', 'attributeKey', 'attributeValue', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2554,14 +2011,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxTypeId', 'dataTypeId', 'taxEntityId', 'values', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2579,14 +2028,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxEntityId', 'parentId', 'properties', 'description', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 
@@ -2606,14 +2047,6 @@ export const seedArtifacts: Artifact[] = [
       { name: 'isActive', label: 'Is Active', type: 'boolean', required: false, unique: false, indexed: false, default: true, storageType: 'physical' },
     ],
     sections: [{ name: 'Details', fields: ['code', 'name', 'taxTypeId', 'roundOffTypeId', 'componentType', 'formula', 'rate', 'sequenceOrder', 'isActive'] }],
-    statuses: [
-      { name: 'active', label: 'Active', color: '#22C55E', isInitial: true },
-      { name: 'inactive', label: 'Inactive', color: '#94A3B8' },
-    ],
-    transitions: [
-      { from: 'active', to: 'inactive', label: 'Deactivate' },
-      { from: 'inactive', to: 'active', label: 'Activate' },
-    ],
     relationships: [],
   }),
 ]

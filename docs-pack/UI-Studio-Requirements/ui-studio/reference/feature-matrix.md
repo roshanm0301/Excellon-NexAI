@@ -1,11 +1,11 @@
-# Feature Matrix — All 63 Features
+﻿# Feature Matrix â€” All 63 Features
 
 > Complete list of all UI Studio features across P0 (must-have), P1 (important), and P2 (nice-to-have).
 > Each feature links to its implementation phase.
 
 ---
 
-## P0 — 20 Core Features (Phases 1–8)
+## P0 â€” 20 Core Features (Phases 1â€“8)
 
 > P0 features define the minimum viable UI Studio. All must be complete before M9.
 
@@ -26,15 +26,14 @@
 | P0-13 | Field Change Event Configuration | Phase 5 | M6 | [ ] |
 | P0-14 | Grid Cell Change Event Configuration | Phase 5 | M6 | [ ] |
 | P0-15 | Action Placement Configuration | Phase 3 | M4 | [ ] |
-| P0-16 | Workflow UX Integration | Phase 7 | M8 | [ ] |
 | P0-17 | Save / Publish / Rollback | Phase 8 | M9 | [ ] |
 | P0-18 | Preview with Context Simulation | Phase 8 | M9 | [ ] |
-| P0-19 | Publish Validation (41 rules V001–V051) | Phase 8 | M9 | [ ] |
+| P0-19 | Publish Validation (41 rules V001â€“V051) | Phase 8 | M9 | [ ] |
 | P0-20 | Runtime Renderer Contract | Phase 4 | M5 | [ ] |
 
 ---
 
-## P1 — 23 Important Features (Phases 5–9)
+## P1 â€” 23 Important Features (Phases 5â€“9)
 
 > P1 features make the Studio production-grade. All must be complete before M10.
 
@@ -56,7 +55,6 @@
 | P1-34 | Cascading Lookup Configuration | Phase 9 | M10 | [ ] |
 | P1-35 | Modal / Drawer / Side Panel Builder | Phase 9 | M10 | [ ] |
 | P1-36 | Record Summary / Highlights Panel | Phase 9 | M10 | [ ] |
-| P1-37 | Status Strip / Workflow Timeline | Phase 7 | M8 | [ ] |
 | P1-38 | Attachment / Notes / Audit Timeline | Phase 6 + 7 | M7 + M8 | [ ] |
 | P1-39 | View Dependency / Impact Analysis | Phase 8 | M9 | [ ] |
 | P1-40 | Schema Change Sync Indicator | Phase 8 | M9 | [ ] |
@@ -66,7 +64,7 @@
 
 ---
 
-## P2 — 20 Enhancement Features (Phase 10)
+## P2 â€” 20 Enhancement Features (Phase 10)
 
 > P2 features complete the enterprise experience. All delivered in M11.
 
@@ -81,8 +79,8 @@
 | P2-50 | Personalization (column widths, filter presets per user) | [ ] |
 | P2-51 | Runtime Usage Analytics (telemetry events) | [ ] |
 | P2-52 | Performance Budgeting (alert when render > 3000ms) | [ ] |
-| P2-53 | Accessibility Checks (A001–A005 pre-publish rules) | [ ] |
-| P2-54 | Localization Checks (L001–L004 pre-publish rules) | [ ] |
+| P2-53 | Accessibility Checks (A001â€“A005 pre-publish rules) | [ ] |
+| P2-54 | Localization Checks (L001â€“L004 pre-publish rules) | [ ] |
 | P2-55 | Advanced Expression Mode (full JSONata editor) | [ ] |
 | P2-56 | No-Code Rule Builder Wizard | [ ] |
 | P2-57 | AI-Assisted View Generation (NlpPanel + Claude API) | [ ] |
@@ -95,7 +93,7 @@
 
 ---
 
-## Additional Components — 12 (registered Phase 2, runtime Phase 4)
+## Additional Components â€” 12 (registered Phase 2, runtime Phase 4)
 
 These are registered in the component registry seed but their runtime renderers are built in Phase 4+:
 

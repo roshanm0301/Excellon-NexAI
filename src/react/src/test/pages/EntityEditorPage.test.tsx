@@ -8,17 +8,6 @@ import { createElement } from 'react'
 // Mock Monaco Editor to avoid JSDOM issues
 vi.mock('@monaco-editor/react', () => ({ default: () => createElement('div', { 'data-testid': 'monaco-editor' }) }))
 
-// Mock xyflow to avoid canvas/resize issues
-vi.mock('@xyflow/react', () => ({
-  ReactFlow: () => createElement('div', { 'data-testid': 'react-flow' }),
-  Background: () => null,
-  Controls: () => null,
-  MiniMap: () => null,
-  addEdge: vi.fn(),
-  useNodesState: () => [[], vi.fn(), vi.fn()],
-  useEdgesState: () => [[], vi.fn(), vi.fn()],
-}))
-
 // Mock studioApi
 vi.mock('../../config/studioApi', () => ({
   studioFetch: vi.fn(),

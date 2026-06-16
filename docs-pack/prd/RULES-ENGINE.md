@@ -1,4 +1,4 @@
-# PRD: RULES-ENGINE.md — Rules Engine
+﻿# PRD: RULES-ENGINE.md â€” Rules Engine
 
 > **Source document:** 05-rules-engine.md
 > **Read also:** BACKEND-STANDARDS.md, ENTITY-DESIGNER.md
@@ -7,7 +7,6 @@
 
 ## What It Is
 
-The Rules Engine evaluates a JSON-based condition tree against entity field values ("facts") and fires declarative actions. Rules run server-side before every entity create/update and during workflow transitions, and optionally client-side on field change events.
 
 Rules are stored as versioned `rule_set` artifacts and managed through the Rule Builder UI.
 
@@ -17,16 +16,15 @@ Rules are stored as versioned `rule_set` artifacts and managed through the Rule 
 
 | Runtime | File | When used |
 |---------|------|-----------|
-| Go `ProductionEvaluator` | `src/go/internal/rules/production_evaluator.go` | Server — before all entity writes, all workflow transitions |
 | Node.js `evaluator.ts` | `src/node/src/rules/evaluator.ts` | API gateway level validation (Node.js layer only) |
 
-Both implement the same condition DSL and produce identical results. The Go evaluator is authoritative — the Node.js evaluator is a mirror.
+Both implement the same condition DSL and produce identical results. The Go evaluator is authoritative â€” the Node.js evaluator is a mirror.
 
-Client-side rule evaluation uses a compiled bundle served to the React app. Client-side results are optimistic only — the server always re-evaluates.
+Client-side rule evaluation uses a compiled bundle served to the React app. Client-side results are optimistic only â€” the server always re-evaluates.
 
 ---
 
-## Condition DSL — BehaviorNode
+## Condition DSL â€” BehaviorNode
 
 ```typescript
 // Recursive condition tree
@@ -51,8 +49,8 @@ type BehaviorNode =
 | `not_in` | Value is not in array | array |
 | `between` | Between two values (inclusive) | `[min, max]` |
 | `matches` | Regex match | string (regex pattern) |
-| `exists` | Field is not undefined | — |
-| `is_null` | Field is null or undefined | — |
+| `exists` | Field is not undefined | â€” |
+| `is_null` | Field is null or undefined | â€” |
 
 ### FactBag
 
@@ -70,7 +68,7 @@ type SessionFacts struct {
 ```
 
 Field references in conditions:
-- `entity.{fieldName}` — entity payload fields
+- `entity.{fieldName}` â€” entity payload fields
 - `session.role`, `session.tenant_id`, `session.node_ref`
 
 ---
@@ -101,7 +99,7 @@ Field references in conditions:
 
 ---
 
-## Go — ProductionEvaluator
+## Go â€” ProductionEvaluator
 
 ```go
 // src/go/internal/rules/production_evaluator.go
@@ -122,14 +120,14 @@ func (e *ProductionEvaluator) EvaluateRules(
 1. `loadRuleSet(ctx, ruleSetKey, tenantID, nodeID)`
    - Try node-scoped rule set first (`node_id = $nodeID`)
    - Fall back to tenant-level (`node_id IS NULL`)
-   - `pgx.ErrNoRows` → empty result (not an error)
+   - `pgx.ErrNoRows` â†’ empty result (not an error)
 2. `filterByTrigger(rules, trigger)`
    - `client_side=true`: skip `"server"` and `"server_only"` rules
    - `client_side=false`: skip `"client"` rules
    - `"both"` and empty (defaults to `"server"`) pass through
-3. `sort.Slice` by priority (ascending — lower number fires first)
-4. For each applicable rule: unmarshal `condition_json` → evaluate → if matched, fire all actions
-5. `SET_FIELD` mutates fb immediately — subsequent rules see updated value
+3. `sort.Slice` by priority (ascending â€” lower number fires first)
+4. For each applicable rule: unmarshal `condition_json` â†’ evaluate â†’ if matched, fire all actions
+5. `SET_FIELD` mutates fb immediately â€” subsequent rules see updated value
 6. Collect ALL BLOCKs before returning (no early exit)
 
 ```go
@@ -151,21 +149,19 @@ Rules are evaluated before the database write:
 
 ```
 Handler.create() / Handler.update()
-  → build FactBag from (entityPayload, actorSession)
-  → rulesEval.EvaluateRules(ctx, "entity."+entityType, fb, TriggerContext{})
-  → if result.Blocked → return HTTP 422 with violations list
-  → apply result.Mutations (SET_FIELD) to payload
-  → check result.RequiredFields against payload
-  → proceed to repo.Create() / repo.Update()
+  â†’ build FactBag from (entityPayload, actorSession)
+  â†’ rulesEval.EvaluateRules(ctx, "entity."+entityType, fb, TriggerContext{})
+  â†’ if result.Blocked â†’ return HTTP 422 with violations list
+  â†’ apply result.Mutations (SET_FIELD) to payload
+  â†’ check result.RequiredFields against payload
+  â†’ proceed to repo.Create() / repo.Update()
 ```
 
 Rule set key convention: `"entity." + entityType` (matches artifact name).
 
 ---
 
-## Integration with Workflow Engine
 
-Rule guards gate transitions. Each `TransitionDef.RuleGuards` is an array of rule set keys. All listed rule sets are evaluated before a transition. Any BLOCK result prevents the transition.
 
 ---
 
@@ -195,7 +191,7 @@ Rule guards gate transitions. Each `TransitionDef.RuleGuards` is an array of rul
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/v1/admin/rules` | List — filter by `entity_type`, `is_active` |
+| `GET` | `/api/v1/admin/rules` | List â€” filter by `entity_type`, `is_active` |
 | `POST` | `/api/v1/admin/rules` | Create |
 | `GET` | `/api/v1/admin/rules/{id}` | Get |
 | `PUT` | `/api/v1/admin/rules/{id}` | Update |
@@ -228,10 +224,10 @@ Rule guards gate transitions. Each `TransitionDef.RuleGuards` is an array of rul
 - Three-panel layout:
 
 ```
-┌──────────────┬─────────────────────────┬───────────────────┐
-│  Rule List   │  Condition Tree          │  Actions Panel    │
-│  (sidebar)   │  (recursive builder)     │  (action list)    │
-└──────────────┴─────────────────────────┴───────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  Rule List   â”‚  Condition Tree          â”‚  Actions Panel    â”‚
+â”‚  (sidebar)   â”‚  (recursive builder)     â”‚  (action list)    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Header fields:** Rule Key, Entity Type, Trigger, Priority, Fire On (server/client/both/server_only)
@@ -239,7 +235,7 @@ Rule guards gate transitions. Each `TransitionDef.RuleGuards` is an array of rul
 ### ConditionTreeBuilder
 
 - **File:** `src/react/src/pages/admin/behavior/rules/ConditionTreeBuilder.tsx`
-- Recursive React component — renders AND/OR/NOT containers + compare leaves
+- Recursive React component â€” renders AND/OR/NOT containers + compare leaves
 - Field picker, operator dropdown, value input per leaf
 - Depth-based visual styling; maximum depth: 5 levels
 - Add Child / Delete per node

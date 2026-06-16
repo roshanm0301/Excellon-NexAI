@@ -1,4 +1,4 @@
-# FRONTEND-STANDARDS.md — React Application Architecture & Conventions
+﻿# FRONTEND-STANDARDS.md â€” React Application Architecture & Conventions
 
 > **Read before writing any React or TypeScript code.**
 
@@ -8,19 +8,18 @@
 
 ```
 src/react/src/
-├── pages/
-│   ├── admin/           # List/management pages (EntityDesignerPage, RuleBuilderPage, etc.)
-│   └── studio/          # Editor pages (EntityEditorPage, WorkflowCanvasPage, etc.)
-├── components/
-│   ├── studio/          # All framework UI components, organised by subsystem
-│   │   ├── EntityDesigner/
-│   │   ├── NodeTree/
-│   │   └── ...
-│   └── expression/      # ExpressionEditor (Monaco + JSONata)
-├── config/
-│   └── studioApi.ts     # THE ONLY FILE THAT CALLS fetch() — all API calls go here
-├── design-system/       # Excellon Design System — read before writing any component
-└── hooks/               # Custom hooks (TanStack Query wrappers)
+â”œâ”€â”€ pages/
+â”‚   â”œâ”€â”€ admin/           # List/management pages (EntityDesignerPage, RuleBuilderPage, etc.)
+â”œâ”€â”€ components/
+â”‚   â”œâ”€â”€ studio/          # All framework UI components, organised by subsystem
+â”‚   â”‚   â”œâ”€â”€ EntityDesigner/
+â”‚   â”‚   â”œâ”€â”€ NodeTree/
+â”‚   â”‚   â””â”€â”€ ...
+â”‚   â””â”€â”€ expression/      # ExpressionEditor (Monaco + JSONata)
+â”œâ”€â”€ config/
+â”‚   â””â”€â”€ studioApi.ts     # THE ONLY FILE THAT CALLS fetch() â€” all API calls go here
+â”œâ”€â”€ design-system/       # Excellon Design System â€” read before writing any component
+â””â”€â”€ hooks/               # Custom hooks (TanStack Query wrappers)
 ```
 
 ---
@@ -55,7 +54,7 @@ async function studioFetch<T>(path: string, init?: RequestInit): Promise<T> {
     return res.json() as Promise<T>;
 }
 
-// Example function — all API functions follow this exact shape
+// Example function â€” all API functions follow this exact shape
 export async function listEntityArtifacts(tenantId: string): Promise<ArtifactHeader[]> {
     return studioFetch<ArtifactHeader[]>(`/v1/artifacts?artifact_type=entity_schema&tenant_id=${tenantId}`);
 }
@@ -104,9 +103,9 @@ export function useDeleteArtifact() {
 | Server/remote data | TanStack Query (`useQuery`) | Handles loading, caching, refetching |
 | Editor local state (EntityEditorPage, etc.) | Local `useState` per page | Editor is self-contained; no sharing needed |
 | Form state (within a component) | React Hook Form | Consistent validation + dirty tracking |
-| Global UI state (e.g. sidebar open/closed) | If truly needed: Zustand — but first ask if it's really needed | Keep as local as possible |
+| Global UI state (e.g. sidebar open/closed) | If truly needed: Zustand â€” but first ask if it's really needed | Keep as local as possible |
 
-**The EntityEditorPage owns all editor state as `useState` hooks.** This is intentional. The tabs share state through the page component's props. This is the established pattern — follow it.
+**The EntityEditorPage owns all editor state as `useState` hooks.** This is intentional. The tabs share state through the page component's props. This is the established pattern â€” follow it.
 
 ---
 
@@ -150,7 +149,7 @@ export default function SomethingPage() {
 
 ```tsx
 // pages/studio/SomethingEditorPage.tsx
-// Editor pages use local useState — no global store
+// Editor pages use local useState â€” no global store
 export default function SomethingEditorPage() {
     const { id } = useParams();
     const isNew = !id;
@@ -205,7 +204,7 @@ export default function SomethingEditorPage() {
 ## TypeScript Rules
 
 ```typescript
-// ✅ Strict types always
+// âœ… Strict types always
 interface ArtifactHeader {
     artifactId: string;
     artifactName: string;
@@ -215,15 +214,15 @@ interface ArtifactHeader {
     updatedAt: string;
 }
 
-// ✅ Discriminated unions for variants
+// âœ… Discriminated unions for variants
 type StorageType = 'physical' | 'computed';
 type PiiCategory = 'none' | 'indirect' | 'direct' | 'special_category' | 'biometric';
 
-// ❌ Never use 'any'
-// ❌ Never use 'as unknown as X'
-// ❌ Never use non-null assertion (!) unless genuinely guaranteed by context
+// âŒ Never use 'any'
+// âŒ Never use 'as unknown as X'
+// âŒ Never use non-null assertion (!) unless genuinely guaranteed by context
 
-// ✅ Type guard pattern for narrowing
+// âœ… Type guard pattern for narrowing
 function isComputedField(field: FieldDef): field is ComputedFieldDef {
     return field.storageType === 'computed';
 }
@@ -234,17 +233,17 @@ function isComputedField(field: FieldDef): field is ComputedFieldDef {
 ## Design System Usage
 
 ```tsx
-// ✅ Always import from design system
+// âœ… Always import from design system
 import { Button, Input, Badge, Modal, TabGroup, Tab } from '../../design-system';
 
-// ❌ Never raw HTML elements with inline styles
+// âŒ Never raw HTML elements with inline styles
 // <div style={{ padding: '16px', color: '#333' }}>...</div>
 
-// ❌ Never third-party component libraries
+// âŒ Never third-party component libraries
 // import { Button } from '@mui/material'; // WRONG
 // import { Input } from 'antd'; // WRONG
 
-// ✅ Design tokens for any custom styling needed
+// âœ… Design tokens for any custom styling needed
 import { tokens } from '../../design-system/tokens';
 const style = { padding: tokens.spacing[4], color: tokens.color.text.primary };
 ```
@@ -256,7 +255,7 @@ The Excellon Design System is provided via Claude Design. Read it at the start o
 ## Routing Convention
 
 ```tsx
-// routes.tsx — all routes declared here
+// routes.tsx â€” all routes declared here
 const routes = [
     // Admin (list/management)
     { path: '/admin/entities', element: <EntityDesignerPage /> },
@@ -271,10 +270,9 @@ const routes = [
     { path: '/admin/entities/map', element: <EntityMapPage /> },
     { path: '/admin/rules/new', element: <RuleEditor /> },
     { path: '/admin/rules/:id/edit', element: <RuleEditor /> },
-    { path: '/admin/workflows/:id/edit', element: <WorkflowCanvasPage /> },
 ];
 
-// Lazy loading — always lazy load routes (code splitting)
+// Lazy loading â€” always lazy load routes (code splitting)
 const EntityDesignerPage = lazy(() => import('./pages/admin/EntityDesignerPage'));
 ```
 
@@ -283,7 +281,7 @@ const EntityDesignerPage = lazy(() => import('./pages/admin/EntityDesignerPage')
 ## Error Handling in Components
 
 ```tsx
-// Error boundary at route level — not per component
+// Error boundary at route level â€” not per component
 // For query errors, use the error state from useQuery:
 
 const { data, isLoading, error } = useEntityArtifacts(tenantId);
@@ -306,20 +304,20 @@ const mutation = useMutation({
 
 The full catalogue is in Claude Design. Key components used across the framework:
 
-- `VirtualGrid` — virtual-scroll table for all list pages
-- `Button` — primary, secondary, ghost, danger variants
-- `Input`, `Textarea` — text inputs
-- `Select`, `MultiSelect` — dropdown selectors
-- `Toggle` — boolean toggle switch
-- `Badge`, `StatusBadge` — status indicators
-- `Modal` — confirmations and forms
-- `Drawer` / `Panel` — slide-in editors
-- `TabGroup`, `Tab` — tabbed content
-- `Accordion`, `AccordionRow` — collapsible rows (used in FieldBuilder)
-- `PageLayout`, `EditorLayout` — page shells
-- `Toast` — notifications
-- `ConfirmDialog` — destructive action confirmations
-- `Skeleton` — loading placeholders
-- `EmptyState`, `ErrorState` — empty/error feedback
+- `VirtualGrid` â€” virtual-scroll table for all list pages
+- `Button` â€” primary, secondary, ghost, danger variants
+- `Input`, `Textarea` â€” text inputs
+- `Select`, `MultiSelect` â€” dropdown selectors
+- `Toggle` â€” boolean toggle switch
+- `Badge`, `StatusBadge` â€” status indicators
+- `Modal` â€” confirmations and forms
+- `Drawer` / `Panel` â€” slide-in editors
+- `TabGroup`, `Tab` â€” tabbed content
+- `Accordion`, `AccordionRow` â€” collapsible rows (used in FieldBuilder)
+- `PageLayout`, `EditorLayout` â€” page shells
+- `Toast` â€” notifications
+- `ConfirmDialog` â€” destructive action confirmations
+- `Skeleton` â€” loading placeholders
+- `EmptyState`, `ErrorState` â€” empty/error feedback
 
 Do not replicate these. Import from the design system.

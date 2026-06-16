@@ -1,4 +1,4 @@
-# Pattern: Go Chi Handler
+﻿# Pattern: Go Chi Handler
 
 > Canonical reference for GitHub Copilot. Read this before writing any new Go handler.
 
@@ -9,7 +9,7 @@ Every HTTP handler in this codebase follows the same structure:
 - Constructor injection via `NewXxxHandler(repo *XxxRepo, ...) *XxxHandler`
 - Route registration via `RegisterRoutes(r chi.Router)`
 - Context extraction from the request context (never from headers directly in handlers)
-- Shared helpers `writeJSON`, `writeError`, `decodeJSON` — never inline JSON encoding
+- Shared helpers `writeJSON`, `writeError`, `decodeJSON` â€” never inline JSON encoding
 
 ## Canonical Example
 
@@ -26,18 +26,18 @@ import (
     "github.com/excellon/nexai/internal/middleware"
 )
 
-// 1. Struct — only injected dependencies, no globals
+// 1. Struct â€” only injected dependencies, no globals
 type ArtifactHandler struct {
     repo     *ArtifactRepo
     compiler *compiler.Service
 }
 
-// 2. Constructor — always returns pointer, never error
+// 2. Constructor â€” always returns pointer, never error
 func NewArtifactHandler(repo *ArtifactRepo, svc *compiler.Service) *ArtifactHandler {
     return &ArtifactHandler{repo: repo, compiler: svc}
 }
 
-// 3. Route registration — all routes in one place
+// 3. Route registration â€” all routes in one place
 func (h *ArtifactHandler) RegisterRoutes(r chi.Router) {
     r.Post("/", h.create)
     r.Get("/", h.list)
@@ -47,12 +47,12 @@ func (h *ArtifactHandler) RegisterRoutes(r chi.Router) {
     r.Delete("/{id}", h.delete)
 }
 
-// 4. Handler method — always (w http.ResponseWriter, r *http.Request)
+// 4. Handler method â€” always (w http.ResponseWriter, r *http.Request)
 func (h *ArtifactHandler) create(w http.ResponseWriter, r *http.Request) {
-    // 4a. Context extraction — always via middleware helpers, never r.Header.Get() directly
+    // 4a. Context extraction â€” always via middleware helpers, never r.Header.Get() directly
     tenantID := middleware.TenantID(r.Context())
     userID   := middleware.UserID(r.Context())
-    // 4b. Fallback for dev when header is absent — remove once auth middleware is in place
+    // 4b. Fallback for dev when header is absent â€” remove once auth middleware is in place
     if tenantID == "" {
         tenantID = "00000000-0000-0000-0000-000000000001"
     }
@@ -136,7 +136,6 @@ Never call `r.Header.Get("x-tenant-id")` directly inside a handler. Always go th
 
 ## What Copilot CAN Replicate
 
-- Additional CRUD handlers for new resource types (rules, workflows, overlays, nodes)
 - Following the exact same struct/constructor/RegisterRoutes/handler method shape
 - Adding new routes inside `RegisterRoutes`
 - Using `writeJSON`, `writeError`, `decodeJSON` helpers exactly as shown
@@ -145,14 +144,13 @@ Never call `r.Header.Get("x-tenant-id")` directly inside a handler. Always go th
 
 ## What Copilot Must NOT Do
 
-- Do NOT write handlers that call `r.Header.Get(...)` directly — use middleware helpers
+- Do NOT write handlers that call `r.Header.Get(...)` directly â€” use middleware helpers
 - Do NOT add JWT validation, token parsing, or Keycloak calls to any handler
-- Do NOT add authorization / permission logic inside handler code — that belongs in middleware only
-- Do NOT touch `src/go/internal/compiler/` — compiler internals are Claude Code territory
-- Do NOT touch `src/go/internal/overlay/resolver.go` — overlay resolver is Claude Code territory
-- Do NOT touch `src/go/internal/pii/` — PII encryption/masking is Claude Code territory
-- Do NOT touch `src/go/internal/expression/` — JSONata VM pool is Claude Code territory
-- Do NOT touch `src/go/internal/rules/production_evaluator.go` — rule evaluation is Claude Code territory
-- Do NOT touch `src/go/internal/workflow/production_runtime.go` — workflow state machine is Claude Code territory
-- Do NOT write inline SQL in handler methods — SQL belongs only in repo files
+- Do NOT add authorization / permission logic inside handler code â€” that belongs in middleware only
+- Do NOT touch `src/go/internal/compiler/` â€” compiler internals are Claude Code territory
+- Do NOT touch `src/go/internal/overlay/resolver.go` â€” overlay resolver is Claude Code territory
+- Do NOT touch `src/go/internal/pii/` â€” PII encryption/masking is Claude Code territory
+- Do NOT touch `src/go/internal/expression/` â€” JSONata VM pool is Claude Code territory
+- Do NOT touch `src/go/internal/rules/production_evaluator.go` â€” rule evaluation is Claude Code territory
+- Do NOT write inline SQL in handler methods â€” SQL belongs only in repo files
 - Do NOT introduce global variables or `init()` functions

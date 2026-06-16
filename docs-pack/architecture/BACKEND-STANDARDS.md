@@ -1,4 +1,4 @@
-# BACKEND-STANDARDS.md — Go Service Architecture & Conventions
+﻿# BACKEND-STANDARDS.md â€” Go Service Architecture & Conventions
 
 > **Read before writing any Go code.**
 
@@ -10,22 +10,20 @@ All packages live under `src/go/internal/`. Each package owns one subsystem. The
 
 ```
 src/go/internal/
-├── admin/               handler.go               Studio API (artifacts, nodes, attributes, indexes)
-├── compiler/            entity_schema.go         6-step entity schema compilation
-├── entityruntime/       handler.go, repo.go, computed.go   Entity record CRUD
-├── expression/          engine.go, handler.go    JSONata via goja
-├── rules/               production_evaluator.go  Rule evaluation
-├── workflow/            production_runtime.go, loader.go, sla_worker.go
-├── business_workflow/   engine.go, instance_repo.go, template_loader.go
-├── overlay/             resolver.go              5-layer overlay merge
-├── pii/                 service.go, crypto.go, kms.go, vault.go, masking.go
-├── audit/               service.go, diff.go, partition.go
-├── recycle/             service.go
-├── retention/           service.go
-├── purge/               agent.go
-├── indexmgmt/           service.go
-├── idgen/               idgen.go
-└── nlp/                 handler.go
+â”œâ”€â”€ admin/               handler.go               Studio API (artifacts, nodes, attributes, indexes)
+â”œâ”€â”€ compiler/            entity_schema.go         6-step entity schema compilation
+â”œâ”€â”€ entityruntime/       handler.go, repo.go, computed.go   Entity record CRUD
+â”œâ”€â”€ expression/          engine.go, handler.go    JSONata via goja
+â”œâ”€â”€ rules/               production_evaluator.go  Rule evaluation
+â”œâ”€â”€ overlay/             resolver.go              5-layer overlay merge
+â”œâ”€â”€ pii/                 service.go, crypto.go, kms.go, vault.go, masking.go
+â”œâ”€â”€ audit/               service.go, diff.go, partition.go
+â”œâ”€â”€ recycle/             service.go
+â”œâ”€â”€ retention/           service.go
+â”œâ”€â”€ purge/               agent.go
+â”œâ”€â”€ indexmgmt/           service.go
+â”œâ”€â”€ idgen/               idgen.go
+â””â”€â”€ nlp/                 handler.go
 ```
 
 ---
@@ -36,7 +34,7 @@ src/go/internal/
 // cmd/server/main.go
 r := chi.NewRouter()
 
-// Global middleware — order matters
+// Global middleware â€” order matters
 r.Use(middleware.RequestID)
 r.Use(middleware.RealIP)
 r.Use(middleware.Logger)
@@ -106,7 +104,7 @@ func Role(ctx context.Context) string     { return ctx.Value(CtxRole).(string) }
 ## Handler Pattern
 
 ```go
-// Canonical handler struct — constructor injection, no global state
+// Canonical handler struct â€” constructor injection, no global state
 type Handler struct {
     pool      *pgxpool.Pool
     repo      *Repo          // or interface if testing matters
@@ -160,7 +158,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 ## Repository Pattern
 
 ```go
-// No service layer for simple CRUD — handler calls repo directly
+// No service layer for simple CRUD â€” handler calls repo directly
 type Repo struct {
     pool *pgxpool.Pool
 }
@@ -207,14 +205,13 @@ func writeError(w http.ResponseWriter, status int, code, message string) {
 }
 
 // Common error codes
-// entity.not_found            → 404
-// entity.composite_key_violation → 409
-// entity.schema_not_found     → 500
-// entity.rule_violation       → 422
-// entity.workflow_guard_failed → 403
-// entity.invalid_transition   → 400
-// expression.invalid          → 422
-// request.invalid             → 400
+// entity.not_found            â†’ 404
+// entity.composite_key_violation â†’ 409
+// entity.schema_not_found     â†’ 500
+// entity.rule_violation       â†’ 422
+// entity.invalid_transition   â†’ 400
+// expression.invalid          â†’ 422
+// request.invalid             â†’ 400
 ```
 
 ---
@@ -257,7 +254,7 @@ All entity records use a `payload JSONB` column. These are the approved patterns
 WHERE entity_type = $1 AND tenant_id = $2 AND deleted_at IS NULL
   AND (payload->>'status') = $3
 
--- Partial update (JSONB merge — does NOT remove existing keys)
+-- Partial update (JSONB merge â€” does NOT remove existing keys)
 UPDATE entity_record
 SET payload = payload || $1::jsonb,
     version_no = version_no + 1,
@@ -281,17 +278,16 @@ WHERE entity_type = $1 AND tenant_id = $2 AND deleted_at IS NULL
 
 ## Async Post-Operations Pattern
 
-Audit recording, workflow post-actions, SLA creation, and outbox events are fire-and-forget:
 
 ```go
-// CORRECT — fire and forget
+// CORRECT â€” fire and forget
 go func() {
     if err := h.auditSvc.Record(context.Background(), event); err != nil {
         slog.Error("audit record failed", "err", err, "entity_id", entityID)
     }
 }()
 
-// NEVER wait for these — they must not block the main transaction
+// NEVER wait for these â€” they must not block the main transaction
 ```
 
 ---
@@ -320,19 +316,19 @@ slog.Error("repo query failed",
 
 ## Database Migration Rules
 
-1. Files in `db/migrations/` — format: `{unix_timestamp}_{snake_case_description}.up.sql` + `.down.sql`
+1. Files in `db/migrations/` â€” format: `{unix_timestamp}_{snake_case_description}.up.sql` + `.down.sql`
 2. Always have a `.down.sql` that reverses the `.up.sql`
-3. Never use `ALTER TABLE` to drop a column — deprecate first (rename to `_deprecated_colname`), deploy, then drop in a follow-up migration
-4. Never add an index inline in a migration for production data tables — use the index queue
+3. Never use `ALTER TABLE` to drop a column â€” deprecate first (rename to `_deprecated_colname`), deploy, then drop in a follow-up migration
+4. Never add an index inline in a migration for production data tables â€” use the index queue
 5. Every new table must include: `tenant_id`, `created_at`, `updated_at`, `created_by`
 6. Run `golang-migrate up` on service startup in dev; separate job in production
 
 ---
 
-## Dependency Injection — Main.go Pattern
+## Dependency Injection â€” Main.go Pattern
 
 ```go
-// main.go wires everything — no global singletons
+// main.go wires everything â€” no global singletons
 pool, _ := pgxpool.New(ctx, os.Getenv("DATABASE_URL"))
 redisClient := cache.NewRedis(os.Getenv("REDIS_URL"))  // optional
 
@@ -341,10 +337,8 @@ overlayResolver := overlay.NewResolver(pool, redisClient)
 piiService := pii.NewService(pool, os.Getenv("ENCRYPTION_MASTER_KEY"))
 auditService := audit.NewService(pool)
 rulesEvaluator := rules.NewProductionEvaluator(pool)
-workflowRuntime := workflow.NewProductionRuntime(pool, rulesEvaluator, auditService)
 compiler_ := compiler.NewCompiler(pool)
 
-entityHandler := entityruntime.NewHandler(pool, piiService, expressionEngine, rulesEvaluator, workflowRuntime, auditService)
 adminHandler := admin.NewHandler(pool, overlayResolver, compiler_)
 // ... etc
 ```

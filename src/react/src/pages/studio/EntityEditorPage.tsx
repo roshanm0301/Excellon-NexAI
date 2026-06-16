@@ -25,7 +25,6 @@ import { useArtifact } from '../../hooks/useArtifact'
 import { FieldBuilder, type FieldDef } from '../../components/studio/EntityDesigner/FieldBuilder'
 import { SectionBuilder, type Section } from '../../components/studio/EntityDesigner/SectionBuilder'
 import { RelationshipBuilder, type Relationship } from '../../components/studio/EntityDesigner/RelationshipBuilder'
-import { StatusFlowEditor, type StatusDef, type Transition } from '../../components/studio/EntityDesigner/StatusFlowEditor'
 import { CapabilityFlagsPanel, type CapabilityFlags } from '../../components/studio/EntityDesigner/CapabilityFlagsPanel'
 import { CompositeIndexPanel, type IndexDef } from '../../components/studio/EntityDesigner/CompositeIndexPanel'
 import { IndexMigrationPanel } from '../../components/studio/EntityDesigner/IndexMigrationPanel'
@@ -85,8 +84,6 @@ export function EntityEditorPage() {
   const [fields, setFields] = useState<FieldDef[]>([])
   const [sections, setSections] = useState<Section[]>([])
   const [relationships, setRelationships] = useState<Relationship[]>([])
-  const [statuses, setStatuses] = useState<StatusDef[]>([])
-  const [transitions, setTransitions] = useState<Transition[]>([])
   const [indexes, setIndexes] = useState<IndexDef[]>([])
   const [capabilityFlags, setCapabilityFlags] = useState<CapabilityFlags>({})
   const [idConfig, setIdConfig] = useState<IDConfig>({ strategy: 'uuid_v4' })
@@ -109,8 +106,6 @@ export function EntityEditorPage() {
     setFields((p.fields as FieldDef[] | undefined) ?? [])
     setSections((p.sections as Section[] | undefined) ?? [])
     setRelationships((p.relationships as Relationship[] | undefined) ?? [])
-    setStatuses((p.statuses as StatusDef[] | undefined) ?? [])
-    setTransitions((p.transitions as Transition[] | undefined) ?? [])
     setIndexes((p.indexes as IndexDef[] | undefined) ?? [])
     setCapabilityFlags((p.capabilityFlags as CapabilityFlags | undefined) ?? {})
     setIdConfig((p.idConfig as IDConfig | undefined) ?? { strategy: 'uuid_v4' })
@@ -176,8 +171,6 @@ export function EntityEditorPage() {
       fields,
       sections,
       relationships,
-      statuses,
-      transitions,
       indexes,
       capabilityFlags,
       idConfig,
@@ -374,16 +367,6 @@ export function EntityEditorPage() {
                 placeholder="Brief description of this entity"
               />
             </FormRow>
-            {!isNew && artifact && (
-              <div style={{ marginTop: 24 }}>
-                <StatusFlowEditor
-                  statuses={statuses}
-                  transitions={transitions}
-                  onStatusesChange={(s) => { setStatuses(s); setIsDirty(true) }}
-                  onTransitionsChange={(t) => { setTransitions(t); setIsDirty(true) }}
-                />
-              </div>
-            )}
           </div>
         )}
 

@@ -1,7 +1,7 @@
-# P8 — Publish Lifecycle & Governance
+﻿# P8 â€” Publish Lifecycle & Governance
 
 **Milestone:** M9
-**Track:** Track 10 — Publish Lifecycle and Governance
+**Track:** Track 10 â€” Publish Lifecycle and Governance
 **Implementation:** [docs/ui-studio/phases/P8-publish-governance.md](../../ui-studio/phases/P8-publish-governance.md)
 
 ---
@@ -17,8 +17,8 @@ Make publishing a UI Studio view a safe, auditable, and reversible operation. A 
 The lifecycle has four stages:
 
 ```
-Draft → [Validate] → [Preview] → Publish → Active
-                                     ↑
+Draft â†’ [Validate] â†’ [Preview] â†’ Publish â†’ Active
+                                     â†‘
                        Rollback from any prior active version
 ```
 
@@ -27,7 +27,7 @@ Draft → [Validate] → [Preview] → Publish → Active
 | Rule | Business Meaning |
 |---|---|
 | Only one version active per view | Two active versions of the same view never served simultaneously |
-| Published versions are immutable | Once published, a version cannot be edited — saving creates a new draft |
+| Published versions are immutable | Once published, a version cannot be edited â€” saving creates a new draft |
 | Rollback re-activates a prior version | Any previously active version can be restored instantly |
 | Runtime only loads active versions | Draft views are never visible to end users |
 | Cache invalidated on publish / rollback | Users see the new version immediately |
@@ -42,14 +42,13 @@ Before a view can be published, 41 validation rules are checked. A view with any
 
 | Category | Rules | Examples |
 |---|---|---|
-| Structural | V001–V005 | Page root must have at least one section; component key must be unique |
-| Binding | V010–V014 | Field binding references non-existent entity field; lookup has no data source |
-| Events | V020–V024 | Event action targets field not in view; circular event dependency |
-| Actions | V030–V031 | No save action configured; action references undefined workflow transition |
-| Performance | V040–V041 | View has more than 100 components; multiple eager data sources |
-| Schema Drift | V050–V051 | Bound entity field was deleted; bound field type changed |
-| Accessibility | A001–A005 | Missing label on input field |
-| Localization | L001–L004 | Hardcoded text found in user-facing label |
+| Structural | V001â€“V005 | Page root must have at least one section; component key must be unique |
+| Binding | V010â€“V014 | Field binding references non-existent entity field; lookup has no data source |
+| Events | V020â€“V024 | Event action targets field not in view; circular event dependency |
+| Performance | V040â€“V041 | View has more than 100 components; multiple eager data sources |
+| Schema Drift | V050â€“V051 | Bound entity field was deleted; bound field type changed |
+| Accessibility | A001â€“A005 | Missing label on input field |
+| Localization | L001â€“L004 | Hardcoded text found in user-facing label |
 
 ---
 
@@ -70,7 +69,7 @@ When comparing two published versions, the system must show a human-readable sum
 
 - Added components (new)
 - Removed components (deleted)
-- Changed component properties (before → after)
+- Changed component properties (before â†’ after)
 - Added or removed event definitions
 - Changed field bindings
 - Changed metadata (view label, surface type, view code)
@@ -94,8 +93,8 @@ Every action on a published view must be logged:
 | Action | Logged |
 |---|---|
 | Draft saved | Yes |
-| Published | Yes — with who and when |
-| Rolled back | Yes — with which version was restored and who did it |
+| Published | Yes â€” with who and when |
+| Rolled back | Yes â€” with which version was restored and who did it |
 | Archived | Yes |
 
 The Version History panel must show all versions with their status, published by, and published at.
@@ -121,12 +120,12 @@ The Version History panel must show all versions with their status, published by
 Implement Publish Lifecycle and Governance.
 
 Requirements:
-- Publish lifecycle: Draft → Validate → Preview → Publish → Active.
+- Publish lifecycle: Draft â†’ Validate â†’ Preview â†’ Publish â†’ Active.
 - Only one active version per view at any time.
 - Published versions are immutable.
 - Rollback: re-activate any prior version.
 - Runtime: never loads draft versions.
-- Publish validation: implement all 41 validation rules (V001–V051 + A001–A005 + L001–L004).
+- Publish validation: implement all 41 validation rules (V001â€“V051 + A001â€“A005 + L001â€“L004).
   Block publish if any error-severity violation found.
 - Preview modal: role simulation, record picker, device size toggle.
 - Semantic diff view: show added/removed/changed components and bindings between two versions.
@@ -139,11 +138,11 @@ Requirements:
 
 ## Business Success Criteria
 
-- A misconfigured view (broken binding, circular event) cannot be published — validation blocks it with a clear error
+- A misconfigured view (broken binding, circular event) cannot be published â€” validation blocks it with a clear error
 - A published view can be rolled back to any prior version in one action
 - The preview shows exactly what the end user will see, including permission filtering
-- Every publish and rollback is in the audit log — the compliance team can trace any configuration change
-- Schema drift is detected automatically — configurator is alerted before it causes a runtime error
+- Every publish and rollback is in the audit log â€” the compliance team can trace any configuration change
+- Schema drift is detected automatically â€” configurator is alerted before it causes a runtime error
 
 ---
 

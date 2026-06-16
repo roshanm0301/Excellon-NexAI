@@ -1,14 +1,14 @@
-# P2 — Component Registry
+﻿# P2 â€” Component Registry
 
 **Milestone:** M3
-**Track:** Track 3 — Component Registry + §8 Additional Components + §9 Registry Requirements
+**Track:** Track 3 â€” Component Registry + Â§8 Additional Components + Â§9 Registry Requirements
 **Implementation:** [docs/ui-studio/phases/P2-component-registry.md](../../ui-studio/phases/P2-component-registry.md)
 
 ---
 
 ## Business Goal
 
-Create a typed, governed registry of all UI components available in UI Studio. Every component must be defined through this registry — no hardcoded components in individual forms or views.
+Create a typed, governed registry of all UI components available in UI Studio. Every component must be defined through this registry â€” no hardcoded components in individual forms or views.
 
 The registry is the single source of truth for what components exist, what surfaces they support, what bindings they accept, and how they behave at runtime and in the designer.
 
@@ -25,7 +25,7 @@ Without a registry:
 With a registry:
 - Every component is defined once and reused everywhere
 - Surface constraints enforced at design time (e.g. editor_grid only on header_line)
-- New components added by registering — not by modifying core code
+- New components added by registering â€” not by modifying core code
 - Plugin components follow the same contract as platform components
 
 ---
@@ -38,7 +38,6 @@ Each component in the registry must define:
 |---|---|
 | Component code | Unique identifier (e.g. `text_input`, `editor_grid`) |
 | Component name | Human-readable label |
-| Component category | Grouping (Input / Transaction / Visualization / Workflow / etc.) |
 | Supported surfaces | Which surface types this component can be placed on |
 | Supported bindings | What data types this component can bind to |
 | Configuration schema | JSON Schema for all configurable properties |
@@ -61,14 +60,13 @@ Each component in the registry must define:
 | Navigation / Structural | Page root, section, tab container, column layout, card |
 | Media / Document | File upload, image gallery, rich text editor |
 | Location | Map / geolocation |
-| Workflow | Status strip, approval panel, audit timeline |
 | Governance | Validation summary, record highlights |
 
 ---
 
 ## Additional Required Components
 
-These 12 components must be registered as standard configurable components — not hardcoded in specific forms:
+These 12 components must be registered as standard configurable components â€” not hardcoded in specific forms:
 
 | Component | Business Use Case |
 |---|---|
@@ -140,16 +138,15 @@ Include the additional components from the UI Studio add-on list.
 ## Business Success Criteria
 
 - All platform components are queryable from the registry API
-- Surface filtering works — only valid components shown for selected surface
+- Surface filtering works â€” only valid components shown for selected surface
 - Admin screen allows browsing and filtering of all components
 - Plugin registration and removal works without modifying platform code
-- No component is hardcoded in a form — all sourced from registry
+- No component is hardcoded in a form â€” all sourced from registry
 
 ---
 
 ## BA Verification Checklist
 
-- [ ] All 56 platform components registered (8 layout + 14 form + 10 display + 8 data + 6 transaction + 4 visualization + 4 workflow + 2 media)
 - [ ] All 12 additional components registered
 - [ ] Each component has: code, category, supported surfaces, supported bindings, config schema, runtime renderer, designer panel
 - [ ] Surface filter returns correct subset

@@ -23,7 +23,6 @@ type BadgeVariant = 'success' | 'warn' | 'error' | 'info' | 'purple' | 'brand' |
 const ARTIFACT_TYPE_OPTIONS = [
   { value: 'entity_schema', label: 'entity_schema' },
   { value: 'rule_set', label: 'rule_set' },
-  { value: 'WorkflowGraph', label: 'WorkflowGraph' },
 ]
 
 const LAYER_OPTIONS = [

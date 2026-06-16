@@ -110,16 +110,6 @@ func parse(payload []byte) (*RawEntitySchema, error) {
 			raw.Fields[i].Type = "text"
 		}
 	}
-	for i, status := range raw.Statuses {
-		if status.Key == "" && status.Name != "" {
-			raw.Statuses[i].Key = status.Name
-		}
-	}
-	for i, transition := range raw.Transitions {
-		if transition.Command == "" && transition.Label != "" {
-			raw.Transitions[i].Command = transition.Label
-		}
-	}
 	return &raw, nil
 }
 
@@ -172,8 +162,6 @@ func compileSchema(entityType string, version int, raw *RawEntitySchema) (*Compi
 		Version:       version,
 		Sections:      raw.Sections,
 		Relationships: raw.Relationships,
-		Statuses:      raw.Statuses,
-		Transitions:   raw.Transitions,
 		Capabilities:  caps,
 		Settings:      settings,
 		Retention:     raw.Retention,

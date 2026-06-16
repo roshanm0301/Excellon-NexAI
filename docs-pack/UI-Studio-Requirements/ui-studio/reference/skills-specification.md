@@ -1,4 +1,4 @@
-# Skills Specification — 5 Claude Code Skills
+﻿# Skills Specification â€” 5 Claude Code Skills
 
 > These are Claude Code skills (not agents) that accelerate UI Studio development.
 > Invoke with `/skill ui-studio-<name>` during implementation.
@@ -24,7 +24,6 @@
 /skill ui-studio-component-builder
 component_code: approval_checklist
 component_name: Approval Checklist
-category: workflow
 supported_surfaces: ["standard_crud","header_line"]
 ```
 
@@ -98,9 +97,9 @@ Add column 'is_template' BOOLEAN DEFAULT false to artifact_header.
 **Input:** feature spec section (copy from phase file) + implemented file paths
 
 **Output:**
-- Unit test file (`*.test.ts`) — function-level tests for pure logic
-- Integration test file (`*.integration.test.ts`) — API + DB tests
-- E2E test file (`*.e2e.ts`) — Playwright user flow tests
+- Unit test file (`*.test.ts`) â€” function-level tests for pure logic
+- Integration test file (`*.integration.test.ts`) â€” API + DB tests
+- E2E test file (`*.e2e.ts`) â€” Playwright user flow tests
 - Test cases match the Testing section of the relevant phase file
 - Coverage includes: happy path, edge cases, error conditions
 

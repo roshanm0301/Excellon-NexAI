@@ -1,16 +1,16 @@
-# P4 — Runtime Renderer & Data Binding
+﻿# P4 â€” Runtime Renderer & Data Binding
 
 **Milestone:** M5
-**Track:** Track 5 — Runtime Renderer + Track 6 — Data Binding & Data Source Override
+**Track:** Track 5 â€” Runtime Renderer + Track 6 â€” Data Binding & Data Source Override
 **Implementation:** [docs/ui-studio/phases/P4-runtime-renderer.md](../../ui-studio/phases/P4-runtime-renderer.md)
 
-> **Note:** Track 6 (Data Binding) is merged into this phase. Data binding is a core capability of the runtime renderer — fields cannot render without it.
+> **Note:** Track 6 (Data Binding) is merged into this phase. Data binding is a core capability of the runtime renderer â€” fields cannot render without it.
 
 ---
 
 ## Business Goal
 
-Render published views from metadata at runtime with real entity data. The runtime must faithfully execute the designer's configuration — layout, components, bindings, permissions, and behavior — without any hardcoded form logic.
+Render published views from metadata at runtime with real entity data. The runtime must faithfully execute the designer's configuration â€” layout, components, bindings, permissions, and behavior â€” without any hardcoded form logic.
 
 ---
 
@@ -27,8 +27,7 @@ Apply data source overrides and filter configurations
 Apply permission-aware rendering (hide / disable / mask)
 Apply configured behavior rules
 Display validation errors and warnings from the rule engine
-Display workflow state from the workflow engine
-Handle broken or missing metadata safely — no page crash
+Handle broken or missing metadata safely â€” no page crash
 ```
 
 ---
@@ -44,7 +43,6 @@ Handle broken or missing metadata safely — no page crash
 | Lookup / data source | Component draws its options from a configured query |
 | Computed | Component value derived from an expression over form state |
 | Context | Component draws from session context (user, tenant, role, date) |
-| Workflow state | Component reflects the current workflow state of the record |
 
 ### Cascading Lookup Requirement
 
@@ -52,7 +50,7 @@ When a parent entity picker changes its value, any dependent child entity picker
 1. Clear their current value
 2. Re-query their options using the new parent value as a filter
 
-Example: Branch changes → Warehouse picker clears and re-fetches warehouses for the new branch.
+Example: Branch changes â†’ Warehouse picker clears and re-fetches warehouses for the new branch.
 
 ### Data Source Override
 
@@ -74,7 +72,7 @@ The runtime must apply the following permission outcomes:
 
 | Permission Outcome | Runtime Behaviour |
 |---|---|
-| Field not in visible fields | Field is completely absent from the DOM — not CSS hidden |
+| Field not in visible fields | Field is completely absent from the DOM â€” not CSS hidden |
 | Field not in editable fields | Field is rendered as disabled / read-only |
 | Field in masked fields | Field value shown as `***` |
 | Action not in allowed actions | Action button is absent from the DOM |
@@ -124,7 +122,6 @@ Requirements:
 - Render line grids bound to line entities.
 - Apply behavior rules.
 - Apply permission-aware rendering.
-- Display workflow state.
 - Display validation errors and warnings.
 - Handle broken metadata gracefully.
 ```
@@ -134,8 +131,8 @@ Requirements:
 ## Business Success Criteria
 
 - A published view renders the correct entity record data without any code changes
-- Permission rules are respected — hidden fields genuinely absent from the page
-- Broken component shows placeholder — page does not crash
+- Permission rules are respected â€” hidden fields genuinely absent from the page
+- Broken component shows placeholder â€” page does not crash
 - Cascading lookup refreshes correctly when parent changes
 - Existing views continue to work when no Studio view is published
 
@@ -148,8 +145,8 @@ Requirements:
 - [ ] Lookup / entity picker loads correct options
 - [ ] Cascading lookup: parent change clears and refreshes child picker
 - [ ] Data source override applies configured filter
-- [ ] Hidden field is absent from DOM (not CSS hidden) — confirmed by inspection
+- [ ] Hidden field is absent from DOM (not CSS hidden) â€” confirmed by inspection
 - [ ] Masked field shows `***`
-- [ ] Broken component shows error placeholder — rest of view renders
+- [ ] Broken component shows error placeholder â€” rest of view renders
 - [ ] Existing dynamic form pages still work when no Studio view published
 - [ ] Implementation matches [ui-studio P4 file](../../ui-studio/phases/P4-runtime-renderer.md)

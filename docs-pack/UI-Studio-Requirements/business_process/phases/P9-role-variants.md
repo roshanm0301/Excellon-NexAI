@@ -1,14 +1,14 @@
-# P9 — Role Variants, Permissions & Enterprise Depth
+﻿# P9 â€” Role Variants, Permissions & Enterprise Depth
 
 **Milestone:** M10
-**Track:** P1 Features (P1-24, P1-29 through P1-36) — no direct source track
+**Track:** P1 Features (P1-24, P1-29 through P1-36) â€” no direct source track
 **Implementation:** [docs/ui-studio/phases/P9-role-variants.md](../../ui-studio/phases/P9-role-variants.md)
 
 ---
 
 ## Business Goal
 
-Different users looking at the same transaction document must see different views of it. A salesperson sees their own fields; a manager sees additional approval controls; a read-only auditor sees masked sensitive data. These are not different forms — they are the same published view with role-specific overlays applied at runtime.
+Different users looking at the same transaction document must see different views of it. A salesperson sees their own fields; a manager sees additional approval controls; a read-only auditor sees masked sensitive data. These are not different forms â€” they are the same published view with role-specific overlays applied at runtime.
 
 This phase also delivers the remaining P1 enterprise features: relationship panels, bulk actions, advanced filtering, cascading lookups, modal/drawer builders, and record summary highlights.
 
@@ -23,7 +23,6 @@ A variant is a delta overlay applied on top of the base published view payload f
 | Condition Type | Example |
 |---|---|
 | Role | Show "Discount" field only for Salesperson role |
-| Workflow state | Disable all fields when record is in APPROVED state |
 | Record field value | Show "Export Details" section only when Sale Type is Export |
 
 ### Variant Priority
@@ -46,7 +45,7 @@ A variant can override:
 
 | Permission Decision | How UI Studio Renders It |
 |---|---|
-| Field not in visible fields | Component is **completely absent from the DOM** — not CSS hidden |
+| Field not in visible fields | Component is **completely absent from the DOM** â€” not CSS hidden |
 | Field not in editable fields | Component rendered as disabled (read-only) |
 | Field in masked fields | Value shown as `***` |
 | Action not in allowed actions | Action button is **completely absent from the DOM** |
@@ -77,7 +76,7 @@ When a user changes the value of a parent field (e.g., Branch), all child lookup
 1. Clear their current selected value
 2. Re-query their option list filtered to the new parent value
 
-This must work at runtime without any custom code — it is configured in the view designer.
+This must work at runtime without any custom code â€” it is configured in the view designer.
 
 ---
 
@@ -105,14 +104,14 @@ Role variants:
 - Multiple matching variants: highest priority wins.
 
 Permission-aware rendering:
-- Fields NOT in visible_fields → ABSENT from DOM (not CSS hidden).
-- Fields NOT in editable_fields → rendered disabled.
-- Fields IN masked_fields → value shown as ***.
-- Actions NOT in allowed_actions → ABSENT from DOM.
+- Fields NOT in visible_fields â†’ ABSENT from DOM (not CSS hidden).
+- Fields NOT in editable_fields â†’ rendered disabled.
+- Fields IN masked_fields â†’ value shown as ***.
+- Actions NOT in allowed_actions â†’ ABSENT from DOM.
 
 Cascading lookups:
 - Configure parent field in inspector Binding tab.
-- At runtime: parent change → clear child value, re-fetch child options with parent value as filter.
+- At runtime: parent change â†’ clear child value, re-fetch child options with parent value as filter.
 
 P1 features:
 - RelationshipPanelRuntime: show related records below main form.
@@ -127,17 +126,16 @@ P1 features:
 
 ## Business Success Criteria
 
-- A salesperson opening a Sale Order sees a different field set than a manager opening the same record — without any code change
-- A field excluded by permissions is truly invisible to the user — cannot be found in the page source
+- A salesperson opening a Sale Order sees a different field set than a manager opening the same record â€” without any code change
+- A field excluded by permissions is truly invisible to the user â€” cannot be found in the page source
 - Changing Branch clears Warehouse and fetches only warehouses for the new branch
 - Bulk approve of 10 records fires in a single action
-- Role variant configuration is done in the UI Studio designer — no developer involvement required
+- Role variant configuration is done in the UI Studio designer â€” no developer involvement required
 
 ---
 
 ## BA Verification Checklist
 
-- [ ] VariantPanel available in designer — configurator can define role and workflow state conditions
 - [ ] Variant overlay applies correctly at runtime for matching role
 - [ ] Two variants matching: highest priority variant takes effect
 - [ ] Field NOT in visible_fields: DOM inspection confirms element is absent (not just hidden)

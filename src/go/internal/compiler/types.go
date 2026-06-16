@@ -26,8 +26,6 @@ type RawEntitySchema struct {
 	Fields        []RawField        `json:"fields"`
 	Sections      []RawSection      `json:"sections"`
 	Relationships []RawRelationship `json:"relationships"`
-	Statuses      []RawStatus       `json:"statuses,omitempty"`
-	Transitions   []RawTransition   `json:"transitions,omitempty"`
 	Capabilities  *RawCapabilities  `json:"capabilities,omitempty"`
 	Settings      *RawSettings      `json:"settings,omitempty"`
 	Indexes       []RawIndexRule    `json:"indexes,omitempty"`
@@ -47,34 +45,6 @@ type RawField struct {
 	Options      []SelectOption   `json:"options,omitempty"`
 	Expression   string           `json:"expression,omitempty"`
 	Validation   *FieldValidation `json:"validation,omitempty"`
-}
-
-type RawStatus struct {
-	Key       string `json:"key,omitempty"`
-	Name      string `json:"name,omitempty"`
-	Label     string `json:"label,omitempty"`
-	Initial   bool   `json:"initial,omitempty"`
-	IsInitial bool   `json:"isInitial,omitempty"`
-	Terminal  bool   `json:"terminal,omitempty"`
-	SLAHours  int    `json:"sla_hours,omitempty"`
-}
-
-type RawTransition struct {
-	From       string                `json:"from"`
-	To         string                `json:"to"`
-	Command    string                `json:"command,omitempty"`
-	Label      string                `json:"label,omitempty"`
-	Roles      []string              `json:"roles,omitempty"`
-	RoleGuards []string              `json:"role_guards,omitempty"`
-	RuleGuards []string              `json:"rule_guards,omitempty"`
-	Guards     []string              `json:"guards,omitempty"`
-	Actions    []RawTransitionAction `json:"actions,omitempty"`
-}
-
-type RawTransitionAction struct {
-	Type          string         `json:"type"`
-	Payload       map[string]any `json:"payload,omitempty"`
-	FailurePolicy string         `json:"failure_policy,omitempty"`
 }
 
 type SelectOption struct {
@@ -109,7 +79,6 @@ type RawCapabilities struct {
 	SoftDelete  bool `json:"soft_delete"`
 	PII         bool `json:"pii"`
 	Audit       bool `json:"audit"`
-	Workflow    bool `json:"workflow"`
 	Expressions bool `json:"expressions"`
 }
 
@@ -139,8 +108,6 @@ type CompiledSchema struct {
 	FieldIndex     map[string]int    `json:"field_index"`
 	Sections       []RawSection      `json:"sections"`
 	Relationships  []RawRelationship `json:"relationships"`
-	Statuses       []RawStatus       `json:"statuses,omitempty"`
-	Transitions    []RawTransition   `json:"transitions,omitempty"`
 	Capabilities   RawCapabilities   `json:"capabilities"`
 	Settings       RawSettings       `json:"settings"`
 	IndexPlan      []CompiledIndex   `json:"index_plan"`

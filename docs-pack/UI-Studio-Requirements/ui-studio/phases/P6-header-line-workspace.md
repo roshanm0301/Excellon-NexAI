@@ -1,4 +1,4 @@
-# Phase 6 — Header-Line Transaction Workspace
+﻿# Phase 6 â€” Header-Line Transaction Workspace
 
 ---
 
@@ -7,13 +7,13 @@
 | Field | Value |
 |---|---|
 | **Milestone** | M7 |
-| **Gate Condition** | Generic header-line surface fully operational — validated with Sale Order E2E |
-| **Depends On** | [Phase 5](P5-event-engine.md) — Event engine operational for row-level events |
-| **Agents** | Agent 4 ‖ Agent 11 ‖ Agent 8 (parallel) → Agent 14 (QA) + Agent 17 + Agent 15 + Agent 16 |
-| **Code Changes** | ✅ HeaderLineRenderer · EditorGridRuntime · TotalsPanelRuntime · HeaderLineCanvas · ActionBarRuntime · AttachmentNotesRuntime |
-| **Commit** | `feat: ui-studio Phase 6 — header-line transaction workspace, editor grid, totals panel, ViewCode propagation` |
+| **Gate Condition** | Generic header-line surface fully operational â€” validated with Sale Order E2E |
+| **Depends On** | [Phase 5](P5-event-engine.md) â€” Event engine operational for row-level events |
+| **Agents** | Agent 4 â€– Agent 11 â€– Agent 8 (parallel) â†’ Agent 14 (QA) + Agent 17 + Agent 15 + Agent 16 |
+| **Code Changes** | âœ… HeaderLineRenderer Â· EditorGridRuntime Â· TotalsPanelRuntime Â· HeaderLineCanvas Â· ActionBarRuntime Â· AttachmentNotesRuntime |
+| **Commit** | `feat: ui-studio Phase 6 â€” header-line transaction workspace, editor grid, totals panel, ViewCode propagation` |
 
-> ⚠️ **GENERIC ONLY — no hardcoded Sale Order, Purchase Order, or Service Job logic.**
+> âš ï¸ **GENERIC ONLY â€” no hardcoded Sale Order, Purchase Order, or Service Job logic.**
 > All configuration is metadata-driven via `HeaderLineConfig`. The Sale Order E2E test is the exit
 > condition but it must pass through generic configuration, not special-cased code.
 
@@ -37,7 +37,7 @@ app/src/react/src/components/studio-v2/HeaderLineCanvas.tsx              NEW (de
 ```typescript
 export interface HeaderLineConfig {
   header: {
-    entity_type: string           // primary entity (generic — not hardcoded)
+    entity_type: string           // primary entity (generic â€” not hardcoded)
     sections:    SectionConfig[]
     action_bar:  ActionBarConfig
   }
@@ -45,7 +45,6 @@ export interface HeaderLineConfig {
   totals_panel:      TotalsPanelConfig
   attachment_panel:  AttachmentConfig
   validation_summary: ValidationSummaryConfig
-  workflow_strip:    WorkflowStripConfig
 }
 
 export interface LineGridConfig {
@@ -81,25 +80,25 @@ export interface DynamicChargeColumnConfig {
 
 ---
 
-## 6.2 Designer Canvas Zones — `HeaderLineCanvas.tsx`
+## 6.2 Designer Canvas Zones â€” `HeaderLineCanvas.tsx`
 
 ```
 header_line surface shows these fixed zones:
-┌─────────────────────────────────────────────────┐
-│  HEADER ZONE                                    │
-│  (form sections + field bindings to header      │
-│   entity — e.g. Customer, Branch, Date)         │
-├─────────────────────────────────────────────────┤
-│  LINE GRID ZONE 1                               │
-│  [Configure columns] [+ Dynamic Charge Column]  │
-├─────────────────────────────────────────────────┤
-│  [+ Add Another Line Grid]                      │
-├─────────────────────────────────────────────────┤
-│  TOTALS PANEL                                   │
-│  [+ Add Total Row]   Expression: JSONata        │
-├─────────────────────────────────────────────────┤
-│  ATTACHMENTS / NOTES                            │
-└─────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  HEADER ZONE                                    â”‚
+â”‚  (form sections + field bindings to header      â”‚
+â”‚   entity â€” e.g. Customer, Branch, Date)         â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚  LINE GRID ZONE 1                               â”‚
+â”‚  [Configure columns] [+ Dynamic Charge Column]  â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚  [+ Add Another Line Grid]                      â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚  TOTALS PANEL                                   â”‚
+â”‚  [+ Add Total Row]   Expression: JSONata        â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚  ATTACHMENTS / NOTES                            â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
 Right Inspector tabs when header_line surface selected:
 - Header Fields: entity field picker for header form sections
@@ -121,11 +120,11 @@ On view load:
   5. Render totals panel (computed from line data via JSONata)
 
 On any header field change:
-  → Fire event engine for field-level events
+  â†’ Fire event engine for field-level events
 
 On line cell change:
-  → Fire row event chain (recalculate_row_amount, etc.)
-  → Recompute totals panel
+  â†’ Fire row event chain (recalculate_row_amount, etc.)
+  â†’ Recompute totals panel
 
 ViewCode propagated on ALL API calls from runtime:
   GET  /api/v1/entities/SaleOrder/123?viewCode=SO_VEHICLE_BOOKING
@@ -137,8 +136,7 @@ Save:
   - ViewCode included in POST body for backend RuleSet resolution
 
 Submit:
-  - Trigger workflow transition via workflow engine API
-  - UI Studio does NOT own the transition logic — just calls the API
+  - UI Studio does NOT own the transition logic â€” just calls the API
 ```
 
 ---
@@ -151,8 +149,7 @@ GET  /api/v1/entities/SaleOrder/123?viewCode=SO_VEHICLE_BOOKING
 POST /api/v1/entities/SaleOrder    body: { viewCode: 'SO_VEHICLE_BOOKING', ... }
 PUT  /api/v1/entities/SaleOrder/123 body: { viewCode: 'SO_VEHICLE_BOOKING', ... }
 
-// Backend WorkflowResolver and RuleEngine use ViewCode to select correct rule set.
-// ViewCode comes from ViewArtifactPayload.view_code — set at view design time.
+// ViewCode comes from ViewArtifactPayload.view_code â€” set at view design time.
 ```
 
 ---
@@ -160,11 +157,11 @@ PUT  /api/v1/entities/SaleOrder/123 body: { viewCode: 'SO_VEHICLE_BOOKING', ... 
 ## 6.5 Dynamic Tax / Charge Columns
 
 ```typescript
-// LineGridRuntime.tsx — at render time:
+// LineGridRuntime.tsx â€” at render time:
 // POST /api/v1/charges/applicable
 // body: { view_code: viewCode, primary_entity: entityType, context: headerValues }
 // response: [{ charge_code, label, is_editable }]
-// Merge returned columns into fixed columns list — prevents hardcoding tax structures in UI
+// Merge returned columns into fixed columns list â€” prevents hardcoding tax structures in UI
 
 // Agree on API shape BEFORE parallel agent execution:
 interface ChargeColumnResponse {
@@ -180,7 +177,7 @@ interface ChargeColumnResponse {
 ## 6.6 Totals Panel Expressions
 
 ```
-Designer config panel for TotalsPanel (JSONata — no eval(), no new Function()):
+Designer config panel for TotalsPanel (JSONata â€” no eval(), no new Function()):
 
 [+ Add Total Row]
 
@@ -195,7 +192,7 @@ Designer config panel for TotalsPanel (JSONata — no eval(), no new Function())
 
 ## Testing Phase 6
 
-### Unit Tests — `HeaderLineConfig.test.ts`
+### Unit Tests â€” `HeaderLineConfig.test.ts`
 
 ```typescript
 // 1. Totals panel expression evaluates correctly via JSONata
@@ -232,7 +229,7 @@ test('save request body includes view_code', async () => {
 })
 ```
 
-### Integration Tests — `HeaderLineIntegration.integration.test.ts`
+### Integration Tests â€” `HeaderLineIntegration.integration.test.ts`
 
 ```typescript
 // 1. Add row creates line entity record
@@ -252,7 +249,7 @@ test('delete row soft-deletes line record', async () => {
 })
 
 // 3. Partial save failure rolls back all lines (transaction integrity)
-test('partial save failure rolls back — no orphan line records', async () => {
+test('partial save failure rolls back â€” no orphan line records', async () => {
   // mock header save to succeed, second line save to fail
   server.use(rest.post('/api/v1/entities/SaleOrderLine', (req, res, ctx, count) =>
     count === 1 ? res(ctx.status(500)) : res(ctx.json({}))
@@ -273,12 +270,12 @@ test('dynamic charge columns fetched and merged at render', async () => {
 })
 ```
 
-### E2E Exit Condition — `SaleOrderE2E.e2e.ts` (Playwright)
+### E2E Exit Condition â€” `SaleOrderE2E.e2e.ts` (Playwright)
 
-> This is the **M7 exit condition test** — must pass for the gate to open.
+> This is the **M7 exit condition test** â€” must pass for the gate to open.
 
 ```typescript
-test('Sale Order E2E — header-line workspace complete flow', async ({ page }) => {
+test('Sale Order E2E â€” header-line workspace complete flow', async ({ page }) => {
   // 1. Create header_line view via designer
   // (assumes view 'sale_order_view' already configured and published)
 
@@ -296,7 +293,7 @@ test('Sale Order E2E — header-line workspace complete flow', async ({ page }) 
   await page.fill('[data-row="0"][data-col="qty"]',     '3')
   await page.fill('[data-row="0"][data-col="rate"]',    '1000')
 
-  // 5. qty change → amount recalculates
+  // 5. qty change â†’ amount recalculates
   await expect(page.locator('[data-row="0"][data-col="amount"]')).toHaveText('3000')
 
   // 6. Add second line
@@ -314,7 +311,6 @@ test('Sale Order E2E — header-line workspace complete flow', async ({ page }) 
 
   // 9. Submit
   await page.click('[data-action="submit"]')
-  await expect(page.locator('[data-workflow-state]')).toContainText('Pending Approval')
 })
 
 // Validation: cannot save with 0 line items
@@ -333,11 +329,11 @@ test('partial save failure shows error and leaves no orphan records', async ({ p
 
 ---
 
-## Agents — Phase 6
+## Agents â€” Phase 6
 
-> ⚠️ **Agree on charge column API shape (section 6.5) BEFORE parallel execution.**
+> âš ï¸ **Agree on charge column API shape (section 6.5) BEFORE parallel execution.**
 
-> 🔀 **PARALLEL** — Agents 4, 11, and 8 run simultaneously after API shape agreed.
+> ðŸ”€ **PARALLEL** â€” Agents 4, 11, and 8 run simultaneously after API shape agreed.
 
 | Lane | Agent | Responsibility | Primary Files |
 |---|---|---|---|
@@ -352,25 +348,23 @@ After all complete:
 | **Agent 14: QA** | Run all unit, integration, and Sale Order E2E tests above |
 | **Agent 17: API Contract Alignment** | `HeaderLineConfig`, `LineGridConfig` TypeScript types match Go structs |
 | **Agent 15: Documentation** | M7 milestone summary + header-line workspace config guide |
-| **Agent 16: Phase Coordinator** | Sale Order E2E passes, ViewCode propagates, totals compute — **gate M8** |
+| **Agent 16: Phase Coordinator** | Sale Order E2E passes, ViewCode propagates, totals compute â€” **gate M8** |
 
 ---
 
-## ✅ Gate Condition — M7
+## âœ… Gate Condition â€” M7
 
 ```
 Sale Order E2E test (SaleOrderE2E.e2e.ts) must pass:
   - Header fields fill correctly
   - Add 3 line items
-  - qty change → amount recalculates
+  - qty change â†’ amount recalculates
   - Totals panel reflects correct subtotal
-  - Save → header + lines persisted in DB with ViewCode
-  - Submit → workflow transition fires (state = Pending Approval)
+  - Save â†’ header + lines persisted in DB with ViewCode
 
 Transaction integrity:
-  - Save with 0 lines → validation error shown
-  - Partial save failure → no orphan line records (DB transaction rolled back)
+  - Save with 0 lines â†’ validation error shown
+  - Partial save failure â†’ no orphan line records (DB transaction rolled back)
 ```
 
 > **Previous phase:** [Phase 5](P5-event-engine.md)
-> **Next phase:** [Phase 7 — Workflow & Rule UX](P7-workflow-rule-ux.md)

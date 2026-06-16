@@ -1,6 +1,6 @@
-const BASE_URL = import.meta.env.VITE_API_URL ?? '/api/v1'
+﻿const BASE_URL = import.meta.env.VITE_API_URL ?? '/api/v1'
 
-// Dev-mode headers — no auth in initial build
+// Dev-mode headers â€” no auth in initial build
 const DEV_HEADERS: Record<string, string> = {
   'x-tenant-id': import.meta.env.VITE_TENANT_ID ?? '00000000-0000-0000-0000-000000000001',
   'x-user-id': import.meta.env.VITE_USER_ID ?? '00000000-0000-0000-0000-000000000001',
@@ -38,7 +38,7 @@ export async function studioFetch<T>(
     } catch {
       body = await res.text()
     }
-    throw new ApiError(res.status, `${options.method ?? 'GET'} ${path} → ${res.status}`, body)
+    throw new ApiError(res.status, `${options.method ?? 'GET'} ${path} â†’ ${res.status}`, body)
   }
 
   if (res.status === 204) return undefined as T
@@ -46,7 +46,7 @@ export async function studioFetch<T>(
   return res.json() as Promise<T>
 }
 
-// ── Artifact API ──────────────────────────────────────────────────────────────
+// â”€â”€ Artifact API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface Artifact {
   version_id: string
@@ -129,7 +129,7 @@ export const deprecateArtifact = (id: string) =>
 export const deleteArtifact = (id: string) =>
   studioFetch<void>(`/artifacts/${id}`, { method: 'DELETE' })
 
-// ── Entity Record API ─────────────────────────────────────────────────────────
+// â”€â”€ Entity Record API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface EntityRecord {
   id: string
@@ -148,12 +148,6 @@ export interface EntityListResponse {
   next_cursor?: string
 }
 
-export interface TransitionResponse {
-  record: EntityRecord
-  transition?: { from: string; to: string; command?: string; label?: string }
-  action_results?: Array<{ type: string; status: string; output?: Record<string, unknown>; error?: string; skipped?: boolean }>
-}
-
 export const listEntityRecords = (type: string, params?: Record<string, string>) =>
   studioFetch<EntityListResponse>(`/entities/${type}?${new URLSearchParams(params).toString()}`)
 
@@ -165,9 +159,6 @@ export const createEntityRecord = (type: string, payload: Record<string, unknown
 
 export const updateEntityRecord = (type: string, id: string, payload: Record<string, unknown>) =>
   studioFetch<EntityRecord>(`/entities/${type}/${id}`, { method: 'PUT', body: JSON.stringify({ payload }) })
-
-export const transitionEntityRecord = (type: string, id: string, body: { command?: string; to_status?: string; note?: string; payload?: Record<string, unknown> }) =>
-  studioFetch<TransitionResponse>(`/entities/${type}/${id}/transition`, { method: 'POST', body: JSON.stringify(body) })
 
 export const deleteEntityRecord = (type: string, id: string) =>
   studioFetch<void>(`/entities/${type}/${id}`, { method: 'DELETE' })
@@ -190,7 +181,7 @@ export interface AuditEvent {
 export const getEntityHistory = (type: string, id: string) =>
   studioFetch<{ items: AuditEvent[] }>(`/entities/${type}/${id}/history`)
 
-// ── Overlay API ───────────────────────────────────────────────────────────────
+// â”€â”€ Overlay API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface OverlayDefinition {
   id: string
@@ -212,7 +203,7 @@ export const createOverlay = (body: Omit<OverlayDefinition, 'id' | 'tenant_id' |
 export const deleteOverlay = (id: string) =>
   studioFetch<void>(`/overlays/${id}`, { method: 'DELETE' })
 
-// ── Node Tree API ─────────────────────────────────────────────────────────────
+// â”€â”€ Node Tree API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface NodeTreeItem {
   id: string
@@ -229,7 +220,7 @@ export const listNodes = () =>
 export const createNode = (body: Omit<NodeTreeItem, 'id' | 'children'>) =>
   studioFetch<NodeTreeItem>('/nodes', { method: 'POST', body: JSON.stringify(body) })
 
-// ── Index Queue API ───────────────────────────────────────────────────────────
+// â”€â”€ Index Queue API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface IndexQueueItem {
   id: string
@@ -250,7 +241,7 @@ export const applyIndex = (id: string) =>
 export const discardIndex = (id: string) =>
   studioFetch<IndexQueueItem>(`/indexes/queue/${id}/discard`, { method: 'POST' })
 
-// ── Expression API ────────────────────────────────────────────────────────────
+// â”€â”€ Expression API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface ExpressionEvalResult {
   result: unknown
@@ -274,7 +265,7 @@ export const validateExpression = (expression: string) =>
     body: JSON.stringify({ expression }),
   })
 
-// ── NLP / AI API ──────────────────────────────────────────────────────────────
+// â”€â”€ NLP / AI API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface NLPChatMessage {
   role: 'user' | 'assistant'
@@ -309,38 +300,8 @@ export const nlpImport = (text: string) =>
     body: JSON.stringify({ text }),
   })
 
-// ── Workflow AI API ───────────────────────────────────────────────────────────
 
-export interface AIWorkflowGenerateRequest {
-  prompt: string
-  context: { entityTypes: string[]; existingStepIds: string[] }
-}
-
-export const nlpGenerateWorkflow = (req: AIWorkflowGenerateRequest) =>
-  studioFetch<import('../types/workflowBuilder').WorkflowDefinition>('/nlp/workflow-generate', {
-    method: 'POST',
-    body: JSON.stringify(req),
-  })
-
-export const nlpExplainWorkflow = (definition: import('../types/workflowBuilder').WorkflowDefinition) =>
-  studioFetch<{ explanation: string }>('/nlp/workflow-explain', {
-    method: 'POST',
-    body: JSON.stringify({ definition }),
-  })
-
-export interface AIImprovementSuggestion {
-  severity: 'error' | 'warning' | 'info'
-  title: string
-  description: string
-}
-
-export const nlpImproveWorkflow = (definition: import('../types/workflowBuilder').WorkflowDefinition) =>
-  studioFetch<{ suggestions: AIImprovementSuggestion[] }>('/nlp/workflow-improve', {
-    method: 'POST',
-    body: JSON.stringify({ definition }),
-  })
-
-// ── View Studio API ───────────────────────────────────────────────────────────
+// â”€â”€ View Studio API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 import type {
   View,
@@ -430,51 +391,4 @@ export const registerPlugin = (body: RegisterPluginRequest) =>
 export const removePlugin = (pluginID: string) =>
   studioFetch<void>(`${STUDIO_PREFIX}/plugins/${pluginID}`, { method: 'DELETE' })
 
-// ── Workflow Builder API ──────────────────────────────────────────────────────
 
-import type {
-  WorkflowDefinition,
-  WorkflowArtifact,
-  WorkflowListResponse,
-  CreateWorkflowRequest,
-} from '../types/workflowBuilder'
-
-const WORKFLOW_PREFIX = '/workflows'
-
-export const listWorkflowArtifacts = (params?: { status?: string; entity?: string }) => {
-  const qs = new URLSearchParams()
-  if (params?.status) qs.set('status', params.status)
-  if (params?.entity) qs.set('entity', params.entity)
-  return studioFetch<WorkflowListResponse>(`${WORKFLOW_PREFIX}?${qs.toString()}`)
-}
-
-export const createWorkflowArtifact = (body: CreateWorkflowRequest) =>
-  studioFetch<WorkflowArtifact>(`${WORKFLOW_PREFIX}`, { method: 'POST', body: JSON.stringify(body) })
-
-export const getWorkflowArtifact = (id: string) =>
-  studioFetch<WorkflowArtifact>(`${WORKFLOW_PREFIX}/${id}`)
-
-export const saveWorkflowDraft = (id: string, definition: WorkflowDefinition) =>
-  studioFetch<WorkflowArtifact>(`${WORKFLOW_PREFIX}/${id}/draft`, {
-    method: 'PUT',
-    body: JSON.stringify({ payload: definition }),
-  })
-
-export const publishWorkflowArtifact = (id: string) =>
-  studioFetch<WorkflowArtifact>(`${WORKFLOW_PREFIX}/${id}/publish`, { method: 'POST' })
-
-export const deleteWorkflowArtifact = (id: string) =>
-  studioFetch<void>(`${WORKFLOW_PREFIX}/${id}`, { method: 'DELETE' })
-
-export interface WorkflowVersion {
-  version: number
-  publishedAt: string
-  publishedBy: string
-}
-
-export interface WorkflowVersionsResponse {
-  items: WorkflowVersion[]
-}
-
-export const getWorkflowVersions = (id: string) =>
-  studioFetch<WorkflowVersionsResponse>(`${WORKFLOW_PREFIX}/${id}/versions`)

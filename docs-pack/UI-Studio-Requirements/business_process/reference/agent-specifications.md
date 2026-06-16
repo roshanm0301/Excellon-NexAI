@@ -1,4 +1,4 @@
-# Agent Specifications — UI Studio
+﻿# Agent Specifications â€” UI Studio
 
 > **Purpose:** Defines the 17 agents used to implement UI Studio. Each agent has a specific scope and boundary. Cross-reference with [docs/ui-studio/reference/agent-specifications.md](../../ui-studio/reference/agent-specifications.md) to confirm implementation prompts match these business definitions.
 
@@ -11,20 +11,19 @@
 | 1 | Product Understanding | M1, M11 | Feature clarity, boundary decisions, risk identification |
 | 2 | Codebase Gap Analysis | M1 | Classify each feature: Existing / Partial / Missing |
 | 3 | Metadata Architecture | M2 | DB schema, Go structs, TypeScript types |
-| 4 | Backend API | M2–M11 | Go API routes for every phase |
+| 4 | Backend API | M2â€“M11 | Go API routes for every phase |
 | 5 | Frontend Designer | M4, M9, M10 | React designer canvas and panels |
 | 6 | Runtime Renderer | M5 | Render published views with real data |
 | 7 | Component Registry | M3 | Build and seed the typed component registry |
 | 8 | Data Binding and Data Source | M4, M5, M6 | Binding resolver, cascading lookups |
 | 9 | Behavior and Event | M6, M10 | EventEngine (pure TypeScript), events designer tab |
-| 10 | Workflow and Rule Integration | M8 | WorkflowStatusStrip, ApprovalPanel, ValidationSummary |
 | 11 | Transaction Workspace | M7 | Header-line surface, line grids, totals panel |
 | 12 | Security and Permission | M10 | Full permission-aware rendering (DOM removal) |
 | 13 | Governance and Publishing | M9 | Publish lifecycle, rollback, diff, audit trail |
-| 14 | QA and Test | M1–M11 | All test types for every phase |
-| 15 | Documentation | M2–M11 | Milestone summaries + complete documentation suite |
-| 16 | Phase Coordinator | M1–M11 | Gate verification, milestone close/open decision |
-| 17 | API Contract Alignment | M2–M11 | Go struct ↔ TypeScript type consistency |
+| 14 | QA and Test | M1â€“M11 | All test types for every phase |
+| 15 | Documentation | M2â€“M11 | Milestone summaries + complete documentation suite |
+| 16 | Phase Coordinator | M1â€“M11 | Gate verification, milestone close/open decision |
+| 17 | API Contract Alignment | M2â€“M11 | Go struct â†” TypeScript type consistency |
 
 ---
 
@@ -74,7 +73,7 @@ Output: migration SQL, Go structs, TypeScript interfaces.
 
 ### Agent 4: Backend API Agent
 
-**Phases:** M2 (primary), M3–M11 (extended per phase)
+**Phases:** M2 (primary), M3â€“M11 (extended per phase)
 
 ```
 You are a Go backend engineer for IDMS v3 UI Studio.
@@ -118,7 +117,7 @@ Requirements:
 You are a React runtime engineer for IDMS v3 UI Studio.
 Build the runtime renderer pipeline as specified in Phase 4.
 Requirements:
-- NEVER load draft versions — only is_active=true
+- NEVER load draft versions â€” only is_active=true
 - Broken component does not crash page (ComponentErrorBoundary)
 - Permission filter removes hidden fields from DOM, not CSS
 - React Query cache TTL 5 minutes, invalidated on publish
@@ -148,8 +147,7 @@ Implement plugin registration API routes.
 ```
 You are a data binding engineer for IDMS v3 UI Studio.
 Implement binding types: entity_field, relationship, data_source,
-computed, context, workflow_state.
-Implement cascading lookup: parent field change → re-query with new filter.
+Implement cascading lookup: parent field change â†’ re-query with new filter.
 Implement BindingResolver and PermissionFilter per Phase 4 spec.
 ```
 
@@ -161,7 +159,7 @@ Implement BindingResolver and PermissionFilter per Phase 4 spec.
 
 ```
 You are a reactive UI engineer for IDMS v3 UI Studio.
-Build eventEngine.ts as PURE TYPESCRIPT — no React imports, independently testable.
+Build eventEngine.ts as PURE TYPESCRIPT â€” no React imports, independently testable.
 Implement all 14 field-change actions and 6 grid-cell-change actions.
 Build useEventEngine.ts React hook that wraps eventEngine.ts.
 Build EventsTab.tsx in designer using ConditionTreeBuilder (reuse existing).
@@ -170,16 +168,12 @@ Circular dependency detection at publish validation time.
 
 ---
 
-### Agent 10: Workflow and Rule Integration Agent
 
 **Phase:** M8
 
 ```
 You are an integration engineer for IDMS v3 UI Studio.
-Build WorkflowStatusStripRuntime, WorkflowTimelineRuntime, ApprovalPanelRuntime.
 Build ValidationSummaryRuntime that displays rule engine output.
-BOUNDARY: UI Studio DISPLAYS workflow state. Does NOT own transitions or rules.
-Workflow action buttons call workflow transition API, not UI Studio API.
 ```
 
 ---
@@ -191,7 +185,7 @@ Workflow action buttons call workflow transition API, not UI Studio API.
 ```
 You are an ERP transaction UI engineer for IDMS v3 UI Studio.
 Build the header_line surface type per Phase 6 specification.
-GENERIC — no hardcoded Sale Order, Purchase Order, or Service Job logic.
+GENERIC â€” no hardcoded Sale Order, Purchase Order, or Service Job logic.
 All configuration is metadata-driven via HeaderLineConfig TypeScript type.
 Exit condition: Sale Order E2E test must pass.
 ```
@@ -205,7 +199,7 @@ Exit condition: Sale Order E2E test must pass.
 ```
 You are a security engineer for IDMS v3 UI Studio.
 Implement full permission-aware rendering per Phase 9 specification.
-CRITICAL: Hidden fields must be ABSENT from DOM — not CSS display:none.
+CRITICAL: Hidden fields must be ABSENT from DOM â€” not CSS display:none.
 Implement variant overlay (not clone) per ViewVariant TypeScript type.
 Security test: hidden field absent from DOM, masked value shows ***, tenant isolation holds.
 ```
@@ -218,7 +212,7 @@ Security test: hidden field absent from DOM, masked value shows ***, tenant isol
 
 ```
 You are a governance engineer for IDMS v3 UI Studio.
-Implement publish lifecycle, 41 validation rules (V001–V051 + A001–A005 + L001–L004),
+Implement publish lifecycle, 41 validation rules (V001â€“V051 + A001â€“A005 + L001â€“L004),
 rollback, PreviewModal, VersionDiffView, schema drift detector, audit trail
 per Phase 8 specification.
 Publish creates IMMUTABLE version. Rollback activates target version.
@@ -229,13 +223,13 @@ Runtime cache invalidated immediately on publish or rollback.
 
 ### Agent 14: QA and Test Agent
 
-**Phases:** Every milestone M1–M11
+**Phases:** Every milestone M1â€“M11
 
 ```
 You are a QA engineer for IDMS v3 UI Studio.
 For the phase specified, write tests as listed in that phase's Testing section.
 Test file naming: *.test.ts (unit), *.integration.test.ts, *.e2e.ts (Playwright)
-No mocked databases in integration tests — use real PostgreSQL test instance.
+No mocked databases in integration tests â€” use real PostgreSQL test instance.
 E2E tests must pass in CI.
 Regression gate: all previous phase tests must still pass before milestone closes.
 ```
@@ -244,10 +238,10 @@ Regression gate: all previous phase tests must still pass before milestone close
 
 ### Agent 15: Documentation Agent
 
-**Phases:** M2–M11 (milestone summaries) + M11 (complete suite)
+**Phases:** M2â€“M11 (milestone summaries) + M11 (complete suite)
 
 ```
-For milestone summary mode (M2–M10):
+For milestone summary mode (M2â€“M10):
   Produce /docs/ui-studio/milestones/M{N}-summary.md covering:
   what was built, key files, API routes added, TypeScript types added, known limitations.
 
@@ -261,7 +255,7 @@ For M11 complete mode:
 
 ### Agent 16: Phase Coordinator Agent
 
-**Phases:** Every milestone M1–M11
+**Phases:** Every milestone M1â€“M11
 
 ```
 You are a phase coordinator for IDMS v3 UI Studio.
@@ -284,7 +278,7 @@ Do not write implementation code.
 
 ### Agent 17: API Contract Alignment Agent
 
-**Phases:** M2–M11
+**Phases:** M2â€“M11
 
 ```
 You are an API contract engineer for IDMS v3 UI Studio.
@@ -309,6 +303,5 @@ Fix both Go and TypeScript to match the type specifications.
 | Publish lifecycle, governance | UI Studio (Agent 13) |
 | Entity schema, field definitions | Entity Designer (not UI Studio) |
 | Business validation truth | Rule Engine (not UI Studio) |
-| Workflow transitions, approval routing | Workflow Engine (not UI Studio) |
 | Security / RBAC decisions | Permission Engine (not UI Studio) |
 | Print templates | Print Service (not UI Studio) |

@@ -1,4 +1,4 @@
-# AI-AGENT-GUIDE.md — Claude Code & GitHub Copilot Division of Work
+﻿# AI-AGENT-GUIDE.md â€” Claude Code & GitHub Copilot Division of Work
 
 > **Audience:** Claude Code (primary), GitHub Copilot (secondary)
 > **Purpose:** Define exactly what each agent does, when to switch, and the handoff protocol
@@ -9,26 +9,24 @@
 
 > **Claude Code sets the pattern. Copilot follows it.**
 
-Claude Code is responsible for all architectural decisions, complex subsystems, security-sensitive code, and establishing canonical patterns. GitHub Copilot is responsible for high-volume repetitive work — replicating established patterns at speed.
+Claude Code is responsible for all architectural decisions, complex subsystems, security-sensitive code, and establishing canonical patterns. GitHub Copilot is responsible for high-volume repetitive work â€” replicating established patterns at speed.
 
 A pattern that Copilot has not yet seen established by Claude Code must not be invented by Copilot. It must wait.
 
 ---
 
-## Claude Code — Full Ownership Areas
+## Claude Code â€” Full Ownership Areas
 
 Claude Code must own these without exception:
 
 ### Framework Subsystems
-- All of `src/go/internal/compiler/` — the 6-step entity schema compiler
-- All of `src/go/internal/overlay/` — 5-layer overlay resolver
-- All of `src/go/internal/pii/` — encryption, vault, masking
-- All of `src/go/internal/audit/` — audit trail service
-- All of `src/go/internal/expression/` — JSONata goja VM pool
-- All of `src/go/internal/rules/production_evaluator.go` — rule evaluation engine
-- All of `src/go/internal/workflow/production_runtime.go` — workflow state machine
-- All of `src/go/internal/business_workflow/` — process orchestration engine
-- All of `src/go/internal/indexmgmt/` — index queue and DDL generation
+- All of `src/go/internal/compiler/` â€” the 6-step entity schema compiler
+- All of `src/go/internal/overlay/` â€” 5-layer overlay resolver
+- All of `src/go/internal/pii/` â€” encryption, vault, masking
+- All of `src/go/internal/audit/` â€” audit trail service
+- All of `src/go/internal/expression/` â€” JSONata goja VM pool
+- All of `src/go/internal/rules/production_evaluator.go` â€” rule evaluation engine
+- All of `src/go/internal/indexmgmt/` â€” index queue and DDL generation
 
 ### Architecture-level decisions
 - New database table schemas
@@ -52,7 +50,7 @@ Claude Code must own these without exception:
 
 ---
 
-## GitHub Copilot — Approved Areas
+## GitHub Copilot â€” Approved Areas
 
 Copilot can work on these **after Claude Code has established the pattern**:
 
@@ -65,7 +63,7 @@ Copilot can work on these **after Claude Code has established the pattern**:
 
 ### React frontend (pattern-replication)
 - Additional page components for business modules following the EntityDesignerPage pattern
-- Additional `studioApi.ts` functions for new API endpoints — **must follow existing type patterns**
+- Additional `studioApi.ts` functions for new API endpoints â€” **must follow existing type patterns**
 - Additional TanStack Query hooks following established patterns
 - Form components for business module Masters and Transactions
 - List view pages following the VirtualGrid pattern
@@ -89,12 +87,12 @@ When Claude Code completes a subsystem or establishes a new pattern, it must:
 2. The Pattern Reference must include: what the pattern is, a canonical code example, the list of things Copilot can replicate, and the list of things Copilot must NOT do with this pattern
 
 Pattern References already needed (create these as you implement each subsystem):
-- `docs/patterns/go-handler-pattern.md` — after first entity handler is complete
-- `docs/patterns/go-repo-pattern.md` — after first repo is complete
-- `docs/patterns/react-list-page-pattern.md` — after EntityDesignerPage is complete
-- `docs/patterns/react-editor-page-pattern.md` — after EntityEditorPage is complete
-- `docs/patterns/studioapits-pattern.md` — after studioApi.ts first functions are written
-- `docs/patterns/tanstack-query-pattern.md` — after first useQuery hook is written
+- `docs/patterns/go-handler-pattern.md` â€” after first entity handler is complete
+- `docs/patterns/go-repo-pattern.md` â€” after first repo is complete
+- `docs/patterns/react-list-page-pattern.md` â€” after EntityDesignerPage is complete
+- `docs/patterns/react-editor-page-pattern.md` â€” after EntityEditorPage is complete
+- `docs/patterns/studioapits-pattern.md` â€” after studioApi.ts first functions are written
+- `docs/patterns/tanstack-query-pattern.md` â€” after first useQuery hook is written
 
 ---
 
@@ -116,7 +114,7 @@ The signal is: create a file `docs/review-needed/{task-name}.md` describing what
 
 At the start of every Claude Code session:
 
-1. Read `CLAUDE.md` (this is automatic — it's in the root)
+1. Read `CLAUDE.md` (this is automatic â€” it's in the root)
 2. Read the PRD for the subsystem being worked on
 3. Read the Pattern Reference for any pattern being replicated
 4. Check `docs/review-needed/` for any pending decisions
@@ -150,8 +148,8 @@ The current backend is Go. A future migration to Node.js is planned. During the 
 
 When GitHub Copilot is active on this codebase:
 
-1. **Always read the file header comments** — every major file has a comment block describing what it does and what it does NOT do
+1. **Always read the file header comments** â€” every major file has a comment block describing what it does and what it does NOT do
 2. **Never modify** files in `src/go/internal/compiler/`, `src/go/internal/pii/`, `src/go/internal/overlay/` without explicit human instruction
-3. **Check `docs/patterns/`** before writing any new code — if a pattern doc exists, follow it exactly
-4. **Follow the studioApi.ts convention** — all new API functions go in that file with the same typed wrapper pattern
-5. **Design system only** — every React component must use only components from `src/react/src/design-system/`
+3. **Check `docs/patterns/`** before writing any new code â€” if a pattern doc exists, follow it exactly
+4. **Follow the studioApi.ts convention** â€” all new API functions go in that file with the same typed wrapper pattern
+5. **Design system only** â€” every React component must use only components from `src/react/src/design-system/`

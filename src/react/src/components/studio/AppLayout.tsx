@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
-  LayoutGrid, Shield, GitBranch, Search, Bell, ChevronDown,
+  LayoutGrid, Shield, Search, Bell, ChevronDown,
   Menu, HelpCircle, Network, Layers, Code2, PanelTop,
 } from 'lucide-react'
 
@@ -16,7 +16,6 @@ const STUDIO_NAV: NavItem[] = [
   { path: '/admin/entities', label: 'Entity Designer', icon: <LayoutGrid size={18} /> },
   { path: '/studio/views', label: 'UI Studio', icon: <PanelTop size={18} /> },
   { path: '/admin/expressions', label: 'Expressions', icon: <Code2 size={18} /> },
-  { path: '/admin/workflows', label: 'Workflow', icon: <GitBranch size={18} /> },
 ]
 
 const ADMIN_NAV: NavItem[] = [
@@ -89,7 +88,7 @@ export function AppLayout() {
             <div className="ex-tip">
               <div className="ex-tip-h">NexAI Studio</div>
               <div className="ex-tip-b">
-                Build enterprise apps with <b>zero code</b>. Define entities, rules, and workflows.
+                Build enterprise apps with <b>zero code</b>. Define entities, rules, and interfaces.
               </div>
             </div>
           </div>
@@ -110,7 +109,7 @@ export function AppLayout() {
 
           <div className="ex-search">
             <Search size={15} />
-            <input placeholder="Search entities, rules, workflows…" />
+            <input placeholder="Search entities, rules, interfaces..." />
             <span className="ex-kbd">⌘ K</span>
           </div>
 

@@ -1,4 +1,4 @@
-# Phase 2 — Component Registry
+﻿# Phase 2 â€” Component Registry
 
 ---
 
@@ -8,10 +8,10 @@
 |---|---|
 | **Milestone** | M3 |
 | **Gate Condition** | All 56 platform components queryable via API; admin screen renders them |
-| **Depends On** | [Phase 1](P1-metadata-foundation.md) migration committed — `ui_component_registry` table must exist |
-| **Agents** | Agent 7 (Component Registry) ‖ Agent 4 (Backend API) → Agent 14 (QA) + Agent 17 (Contract) + Agent 15 (Docs) + Agent 16 (Coordinator) |
-| **Code Changes** | ✅ SQL seed · Go API routes · React admin page |
-| **Commit** | `feat: ui-studio Phase 2 — component registry, 56 platform components seeded, plugin contract, admin screen` |
+| **Depends On** | [Phase 1](P1-metadata-foundation.md) migration committed â€” `ui_component_registry` table must exist |
+| **Agents** | Agent 7 (Component Registry) â€– Agent 4 (Backend API) â†’ Agent 14 (QA) + Agent 17 (Contract) + Agent 15 (Docs) + Agent 16 (Coordinator) |
+| **Code Changes** | âœ… SQL seed Â· Go API routes Â· React admin page |
+| **Commit** | `feat: ui-studio Phase 2 â€” component registry, 56 platform components seeded, plugin contract, admin screen` |
 
 > **Depends on Phase 1:** `ui_component_registry` table created in migration `025_ui_studio_foundation.up.sql`.
 
@@ -22,12 +22,12 @@
 ```
 app/db/seed/008_ui_studio_components.sql
 app/src/react/src/pages/admin/ui-studio/ComponentRegistryPage.tsx   NEW
-app/src/react/src/config/studioViewsApi.ts                          ← extend existing
+app/src/react/src/config/studioViewsApi.ts                          â† extend existing
 ```
 
 ---
 
-## 2.1 Component Registry Seed — `008_ui_studio_components.sql`
+## 2.1 Component Registry Seed â€” `008_ui_studio_components.sql`
 
 ```sql
 INSERT INTO ui_component_registry
@@ -96,11 +96,6 @@ VALUES
 ('map_geolocation',  'Map / Geolocation',      'visualization', '["all"]',    '["entity_field","data_source"]',        false, '{}', 'MapGeolocation', 'MapGeolocationPanel'),
 ('kanban_board',     'Kanban / Board',         'visualization', '["kanban"]', '["data_source"]',                       false, '{}', 'KanbanBoard',    'KanbanBoardPanel'),
 
--- WORKFLOW (4 components)
-('workflow_status_strip',    'Workflow Status Strip',    'workflow', '["all"]', '["workflow_state"]',  false, '{"emits":["onAction"]}',                  'WorkflowStatusStrip',      'WorkflowStatusStripPanel'),
-('approval_panel',           'Approval Panel',           'workflow', '["all"]', '["workflow_state"]',  false, '{"emits":["onApprove","onReject"]}',       'ApprovalPanel',            'ApprovalPanelPanel'),
-('audit_timeline',           'Audit Timeline',           'workflow', '["all"]', '["none"]',            false, '{}',                                       'AuditTimeline',            'AuditTimelinePanel'),
-('workflow_action_button',   'Workflow Action Button',   'workflow', '["all"]', '["workflow_state"]',  false, '{"emits":["onClick"]}',                    'WorkflowActionButton',     'WorkflowActionButtonPanel'),
 
 -- MEDIA (2 components)
 ('image_document_gallery', 'Image / Document Gallery', 'media', '["all"]', '["none"]', false, '{}', 'ImageDocumentGallery', 'ImageGalleryPanel'),
@@ -109,20 +104,19 @@ VALUES
 
 ---
 
-## 2.2 Admin Page — `pages/admin/ui-studio/ComponentRegistryPage.tsx`
+## 2.2 Admin Page â€” `pages/admin/ui-studio/ComponentRegistryPage.tsx`
 
 Key UI requirements:
 - Table columns: Code | Name | Category | Surfaces | Bindings | Events | Source
 - Row expand: full `config_schema` as formatted JSON
-- Filter chips: by category (Layout / Form / Display / Data / Transaction / Visualization / Workflow / Media)
-- Filter: by surface type — show only components valid for selected surface
+- Filter: by surface type â€” show only components valid for selected surface
 - Platform components: read-only rows
 - Plugin components: editable, removable rows
 - Plugin section at bottom: install plugin (paste manifest URL), list installed plugins with remove button
 
 ---
 
-## 2.3 Navigation — add to router config
+## 2.3 Navigation â€” add to router config
 
 ```typescript
 // Add nav group "UI Studio":
@@ -134,19 +128,17 @@ Key UI requirements:
 
 ## Testing Phase 2
 
-### Unit Tests — `ComponentRegistry.test.ts`
+### Unit Tests â€” `ComponentRegistry.test.ts`
 
 ```typescript
 // 1. Seed count
-// Query ui_component_registry → expect exactly 56 rows
+// Query ui_component_registry â†’ expect exactly 56 rows
 test('seeds exactly 56 platform components', async () => {
   const result = await db.query('SELECT COUNT(*) FROM ui_component_registry WHERE source = $1', ['platform'])
   expect(Number(result.rows[0].count)).toBe(56)
 })
 
 // 2. Category counts
-// layout=8, form=14, display=10, data=8, transaction=6, visualization=4, workflow=4, media=2
-const EXPECTED_COUNTS = { layout:8, form:14, display:10, data:8, transaction:6, visualization:4, workflow:4, media:2 }
 Object.entries(EXPECTED_COUNTS).forEach(([cat, count]) => {
   test(`category '${cat}' has ${count} components`, async () => { ... })
 })
@@ -158,7 +150,7 @@ test('no component has null runtime_renderer', async () => {
 })
 ```
 
-### API Integration Tests — `ComponentRegistryAPI.integration.test.ts`
+### API Integration Tests â€” `ComponentRegistryAPI.integration.test.ts`
 
 ```typescript
 // Test 1: list all
@@ -169,7 +161,7 @@ Expected: 200, array.length === 56
 GET /api/v1/studio/component-registry?surface=header_line
 Expected: only components with "header_line" in supported_surfaces
   (editor_grid, totals_panel, tax_charge_column, action_bar_transaction,
-   validation_summary, attachment_notes, record_highlights — plus "all" components)
+   validation_summary, attachment_notes, record_highlights â€” plus "all" components)
 
 // Test 3: filter by category
 GET /api/v1/studio/component-registry?category=transaction
@@ -192,10 +184,10 @@ GET /api/v1/studio/plugins
 Expected: 200, includes the registered plugin
 
 DELETE /api/v1/studio/plugins/:pluginId
-Expected: 200 — plugin removed
+Expected: 200 â€” plugin removed
 ```
 
-### Admin Screen Tests — `ComponentRegistryPage.e2e.ts` (Playwright)
+### Admin Screen Tests â€” `ComponentRegistryPage.e2e.ts` (Playwright)
 
 ```typescript
 // E2E 1: Admin screen loads all components
@@ -221,9 +213,9 @@ test('row expand shows formatted JSON', async ({ page }) => {
 
 ---
 
-## Agents — Phase 2
+## Agents â€” Phase 2
 
-> 🔀 **PARALLEL** — Agent 7 owns seed SQL + admin page; Agent 4 owns API routes. No dependency between them.
+> ðŸ”€ **PARALLEL** â€” Agent 7 owns seed SQL + admin page; Agent 4 owns API routes. No dependency between them.
 
 | Lane | Agent | Responsibility | Primary Files |
 |---|---|---|---|
@@ -237,11 +229,11 @@ After both complete:
 | **Agent 14: QA** | Run all unit, integration, and E2E tests above |
 | **Agent 17: API Contract Alignment** | Validate `ComponentRegistryEntry` TypeScript type matches Go response struct |
 | **Agent 15: Documentation** | M3 milestone summary + component catalog draft |
-| **Agent 16: Phase Coordinator** | Confirm all 56 queryable, plugin install/remove works — **gate M4** |
+| **Agent 16: Phase Coordinator** | Confirm all 56 queryable, plugin install/remove works â€” **gate M4** |
 
 ---
 
-## ✅ Gate Condition — M3
+## âœ… Gate Condition â€” M3
 
 ```bash
 # Must pass before Phase 3 begins:
@@ -257,4 +249,4 @@ Expected: all 56 components visible; category filter works
 ```
 
 > **Previous phase:** [Phase 1](P1-metadata-foundation.md)
-> **Next phase:** [Phase 3 — View Designer](P3-view-designer.md)
+> **Next phase:** [Phase 3 â€” View Designer](P3-view-designer.md)

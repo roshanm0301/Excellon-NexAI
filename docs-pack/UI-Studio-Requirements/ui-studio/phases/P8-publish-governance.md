@@ -1,4 +1,4 @@
-# Phase 8 — Publish Lifecycle & Governance
+﻿# Phase 8 â€” Publish Lifecycle & Governance
 
 ---
 
@@ -8,10 +8,10 @@
 |---|---|
 | **Milestone** | M9 |
 | **Gate Condition** | Publish safe, rollback works, preview simulates context, semantic diff visible, audit trail complete |
-| **Depends On** | [Phase 3](P3-view-designer.md) (draft/publish API) · [Phase 4](P4-runtime-renderer.md) (runtime cache invalidation) |
-| **Agents** | Agent 13 ‖ Agent 4 (parallel) → Agent 14 ‖ Agent 15 (parallel) → Agent 17 + Agent 16 |
-| **Code Changes** | ✅ PublishPanel · VersionHistoryPanel · PreviewModal · VersionDiffView · publishValidation.ts (41 rules) |
-| **Commit** | `feat: ui-studio Phase 8 — publish lifecycle, rollback, preview, semantic diff, 41 validation rules, audit trail` |
+| **Depends On** | [Phase 3](P3-view-designer.md) (draft/publish API) Â· [Phase 4](P4-runtime-renderer.md) (runtime cache invalidation) |
+| **Agents** | Agent 13 â€– Agent 4 (parallel) â†’ Agent 14 â€– Agent 15 (parallel) â†’ Agent 17 + Agent 16 |
+| **Code Changes** | âœ… PublishPanel Â· VersionHistoryPanel Â· PreviewModal Â· VersionDiffView Â· publishValidation.ts (41 rules) |
+| **Commit** | `feat: ui-studio Phase 8 â€” publish lifecycle, rollback, preview, semantic diff, 41 validation rules, audit trail` |
 
 ---
 
@@ -22,7 +22,7 @@ app/src/react/src/components/studio-v2/PublishPanel.tsx         NEW
 app/src/react/src/components/studio-v2/VersionHistoryPanel.tsx  NEW
 app/src/react/src/components/studio-v2/PreviewModal.tsx         NEW
 app/src/react/src/components/studio-v2/VersionDiffView.tsx      NEW
-app/src/react/src/lib/studio-v2/publishValidation.ts            ← extend existing validation.ts
+app/src/react/src/lib/studio-v2/publishValidation.ts            â† extend existing validation.ts
 ```
 
 ---
@@ -30,16 +30,16 @@ app/src/react/src/lib/studio-v2/publishValidation.ts            ← extend exist
 ## 8.1 Publish Lifecycle Rules
 
 ```
-Draft → [Validate] → [Preview] → Publish → Active
-                         ↑
+Draft â†’ [Validate] â†’ [Preview] â†’ Publish â†’ Active
+                         â†‘
               Rollback from any prior active version
 
 Rules:
 - Only ONE version can be active (is_active=true) per view at a time
 - Publishing: creates immutable new version, deactivates previous
-- Published versions are IMMUTABLE — saving always creates a new draft
+- Published versions are IMMUTABLE â€” saving always creates a new draft
 - Rollback: re-activates target version, deprecates current active
-- Runtime: NEVER loads draft — only is_active=true versions
+- Runtime: NEVER loads draft â€” only is_active=true versions
 - Cache: invalidated immediately on publish or rollback
 ```
 
@@ -76,8 +76,7 @@ export const VALIDATION_RULES = [
   { code: 'V025', message: 'grid_cell_change event on non-editable grid column',  severity: 'warning' },
 
   // --- Actions ---
-  { code: 'V030', message: 'No save action configured — form cannot be submitted',severity: 'warning' },
-  { code: 'V031', message: 'Action references workflow transition not defined',   severity: 'warning' },
+  { code: 'V030', message: 'No save action configured â€” form cannot be submitted',severity: 'warning' },
   { code: 'V032', message: 'action_click event references missing action_key',    severity: 'error'   },
 
   // --- Header-Line specific ---
@@ -86,23 +85,23 @@ export const VALIDATION_RULES = [
   { code: 'V037', message: 'Totals panel expression references unknown line field',severity: 'error'  },
 
   // --- Performance ---
-  { code: 'V040', message: 'View has >100 components — consider splitting',       severity: 'warning' },
+  { code: 'V040', message: 'View has >100 components â€” consider splitting',       severity: 'warning' },
   { code: 'V041', message: 'Multiple eager data sources may cause slow load',     severity: 'warning' },
   { code: 'V042', message: 'Heavy visualization component without lazy-load flag',severity: 'warning' },
 
   // --- Schema drift ---
   { code: 'V050', message: 'Bound entity field was deleted',                      severity: 'error'   },
-  { code: 'V051', message: 'Bound entity field type changed — binding may break', severity: 'warning' },
+  { code: 'V051', message: 'Bound entity field type changed â€” binding may break', severity: 'warning' },
 
   // --- Accessibility ---
   { code: 'A001', message: 'Form field has no accessible label',                  severity: 'warning' },
   { code: 'A002', message: 'Action button has no accessible name',                severity: 'warning' },
   { code: 'A003', message: 'Image component has no alt text binding',             severity: 'warning' },
   { code: 'A004', message: 'Color used as sole visual differentiator',            severity: 'warning' },
-  { code: 'A005', message: 'Tab order not logical — check column_layout ordering',severity: 'warning' },
+  { code: 'A005', message: 'Tab order not logical â€” check column_layout ordering',severity: 'warning' },
 
   // --- Localization ---
-  { code: 'L001', message: 'Label contains hardcoded text — use localization key',severity: 'warning' },
+  { code: 'L001', message: 'Label contains hardcoded text â€” use localization key',severity: 'warning' },
   { code: 'L002', message: 'Currency display has no locale config',               severity: 'warning' },
   { code: 'L003', message: 'Date display has no format config',                   severity: 'warning' },
   { code: 'L004', message: 'Number display has no decimal config',                severity: 'warning' },
@@ -116,7 +115,7 @@ export const VALIDATION_RULES = [
 
 ---
 
-## 8.3 Preview Modal — `PreviewModal.tsx`
+## 8.3 Preview Modal â€” `PreviewModal.tsx`
 
 ```
 Controls:
@@ -132,17 +131,17 @@ Renders:
 
 ---
 
-## 8.4 Semantic Diff — `VersionDiffView.tsx`
+## 8.4 Semantic Diff â€” `VersionDiffView.tsx`
 
 ```
 Compare two version payloads (JSONB blobs):
-  ➕ Added components:    green badge + component details
-  ➖ Removed components:  red badge + component code
-  ✏️  Changed props:       yellow with [before] → [after]
-  ➕ Added events:         green
-  ➖ Removed events:       red
-  ✏️  Changed bindings:    yellow with field before/after
-  ✏️  Metadata changes:    label, surface_type, view_code shown if different
+  âž• Added components:    green badge + component details
+  âž– Removed components:  red badge + component code
+  âœï¸  Changed props:       yellow with [before] â†’ [after]
+  âž• Added events:         green
+  âž– Removed events:       red
+  âœï¸  Changed bindings:    yellow with field before/after
+  âœï¸  Metadata changes:    label, surface_type, view_code shown if different
 ```
 
 ---
@@ -153,7 +152,7 @@ On every designer open:
 1. Call `GET /api/v1/studio/views/:viewKey/sync-status`
 2. Response: `{ broken_bindings: [{ component_key, field_key, reason }] }`
 3. If `broken_bindings.length > 0`: show **"3 bindings need attention"** warning banner
-4. Click banner → Sync Panel shows each broken binding + suggested fix (rebind or remove)
+4. Click banner â†’ Sync Panel shows each broken binding + suggested fix (rebind or remove)
 
 ---
 
@@ -172,7 +171,7 @@ v1  Deprecated   2026-05-20 16:00  (auto on v2 publish)
 
 ## Testing Phase 8
 
-### Unit Tests — `publishValidation.test.ts`
+### Unit Tests â€” `publishValidation.test.ts`
 
 ```typescript
 // 1. V001: page_root with no children fails
@@ -215,7 +214,7 @@ test('V040: view with 101 components returns warning only', () => {
   expect(result.warnings.some(w => w.code === 'V040')).toBe(true)
 })
 
-// 7. V050: schema drift — bound field deleted
+// 7. V050: schema drift â€” bound field deleted
 test('V050: bound field deleted from entity returns error', async () => {
   // mock entity fields API to return fields without 'old_email'
   const result = await validateForPublishAsync({ ...baseView, component_tree: treeBindingOldEmail })
@@ -229,7 +228,7 @@ test('well-formed view passes all 41 validation rules', async () => {
 })
 ```
 
-### API Integration Tests — `PublishLifecycle.integration.test.ts`
+### API Integration Tests â€” `PublishLifecycle.integration.test.ts`
 
 ```typescript
 // 1. Publish creates new active version
@@ -287,7 +286,7 @@ test('diff endpoint returns added/removed/changed components', async () => {
 })
 ```
 
-### E2E Tests — `PublishGovernance.e2e.ts` (Playwright)
+### E2E Tests â€” `PublishGovernance.e2e.ts` (Playwright)
 
 ```typescript
 // E2E 1: Publish flow in designer
@@ -315,7 +314,7 @@ test('preview modal with Clerk role hides salary field', async ({ page }) => {
   await page.click('text=Preview')
   await page.selectOption('[name="preview-role"]', 'Clerk')
   await page.click('text=Preview as Clerk')
-  // In preview iframe — salary field absent from DOM
+  // In preview iframe â€” salary field absent from DOM
   const frame = page.frameLocator('[data-preview-frame]')
   await expect(frame.locator('[data-field="salary"]')).toHaveCount(0)
 })
@@ -331,9 +330,9 @@ test('schema drift banner appears when binding references deleted field', async 
 
 ---
 
-## Agents — Phase 8
+## Agents â€” Phase 8
 
-> 🔀 **PARALLEL** — Agent 13 (UI components) and Agent 4 (backend routes) run simultaneously.
+> ðŸ”€ **PARALLEL** â€” Agent 13 (UI components) and Agent 4 (backend routes) run simultaneously.
 
 | Lane | Agent | Responsibility | Primary Files |
 |---|---|---|---|
@@ -342,7 +341,7 @@ test('schema drift banner appears when binding references deleted field', async 
 
 After A and B complete:
 
-> 🔀 **PARALLEL** — Agent 14 (tests) and Agent 15 (docs) run simultaneously.
+> ðŸ”€ **PARALLEL** â€” Agent 14 (tests) and Agent 15 (docs) run simultaneously.
 
 | Agent | Task |
 |---|---|
@@ -354,21 +353,21 @@ After both complete:
 | Agent | Task |
 |---|---|
 | **Agent 17: API Contract Alignment** | `ValidationResult`, `PublishLog` TypeScript types match Go structs |
-| **Agent 16: Phase Coordinator** | Rollback works, diff UI correct, audit log populated, all 41 validation rules pass — **gate M10** |
+| **Agent 16: Phase Coordinator** | Rollback works, diff UI correct, audit log populated, all 41 validation rules pass â€” **gate M10** |
 
 ---
 
-## ✅ Gate Condition — M9
+## âœ… Gate Condition â€” M9
 
 ```bash
 # 1. Publish lifecycle
-POST /api/v1/studio/views/test_view/publish        → 200, new active version
+POST /api/v1/studio/views/test_view/publish        â†’ 200, new active version
 
-GET  /api/v1/studio/runtime/views/test_view        → returns v2 payload
+GET  /api/v1/studio/runtime/views/test_view        â†’ returns v2 payload
 
-POST /api/v1/studio/views/test_view/rollback/{v1}  → 200
+POST /api/v1/studio/views/test_view/rollback/{v1}  â†’ 200
 
-GET  /api/v1/studio/runtime/views/test_view        → returns v1 payload (rolled back)
+GET  /api/v1/studio/runtime/views/test_view        â†’ returns v1 payload (rolled back)
 
 # 2. Validation blocks bad publish
 POST /api/v1/studio/views/bad_view/publish
@@ -384,5 +383,4 @@ GET  /api/v1/studio/views/test_view/diff/v1/v2
   Expected: JSON with added/removed/changed component keys
 ```
 
-> **Previous phase:** [Phase 7](P7-workflow-rule-ux.md)
-> **Next phase:** [Phase 9 — Role Variants & Permissions](P9-role-variants.md)
+> **Next phase:** [Phase 9 â€” Role Variants & Permissions](P9-role-variants.md)

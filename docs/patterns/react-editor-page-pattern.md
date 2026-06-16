@@ -1,4 +1,4 @@
-# Pattern: React Editor Page
+﻿# Pattern: React Editor Page
 
 > Canonical reference for GitHub Copilot. Read this before writing any new editor/detail page.
 
@@ -8,7 +8,7 @@ Every studio editor page follows the same structure:
 
 - `useParams` + `useSearchParams` to resolve the artifact/record ID
 - `useQuery` to load the record on mount; draft state initialised from it via `useEffect`
-- Local `draft` state — never a global store
+- Local `draft` state â€” never a global store
 - `dirty` flag: `JSON.stringify(draft) !== JSON.stringify(original)`
 - `beforeunload` guard when dirty
 - Debounced auto-save (2 s) via `useRef` timer
@@ -48,7 +48,7 @@ const { data: artifact, isLoading } = useQuery({
   enabled: !!artifactId,
 })
 
-// Initialise draft once — never on every render
+// Initialise draft once â€” never on every render
 useEffect(() => {
   if (artifact && draft === null) {
     setDraft(payloadFromArtifact(artifact))
@@ -150,7 +150,7 @@ const TABS = [
 // In JSX:
 <TabGroup tabs={TABS} active={activeTab} onChange={setActiveTab} />
 
-{/* Tab content — one conditional block per tab */}
+{/* Tab content â€” one conditional block per tab */}
 <div style={{ padding: '24px 0' }}>
   {activeTab === 'fields'     && <FieldsTab ... />}
   {activeTab === 'settings'   && <SettingsTab ... />}
@@ -205,20 +205,19 @@ const TABS = [
 3. Add a conditional block in the tab content area: `{activeTab === 'my-tab' && <MyTab ... />}`
 4. Pass the relevant slice of `draft` as props and call `patchDraft({ myField: value })` on change
 
-Never render all tabs at once — only the active one. This keeps DOM size manageable for large editors.
+Never render all tabs at once â€” only the active one. This keeps DOM size manageable for large editors.
 
 ## What Copilot CAN Replicate
 
-- Additional editor pages for other resource types (rule editors, workflow canvas pages, overlay editors)
 - Following the same state variable names and lifecycle hook sequence
 - Additional tab entries and sub-tab components inside an existing editor
 - The `patchDraft` helper pattern for shallow-merging draft updates
 
 ## What Copilot Must NOT Do
 
-- Do NOT use a global state store (Zustand/Redux) for editor state — `useState` is correct
-- Do NOT call `fetch()` directly — use functions from `studioApi.ts`
+- Do NOT use a global state store (Zustand/Redux) for editor state â€” `useState` is correct
+- Do NOT call `fetch()` directly â€” use functions from `studioApi.ts`
 - Do NOT omit the `beforeunload` guard when `dirty` tracking is present
 - Do NOT skip the `ConfirmDialog` for the Publish action
-- Do NOT mutate `draft` in place — always produce a new object
-- Do NOT read `artifact_version.payload` for runtime display — that is for the editor only; runtime pages read `compiled_artifact`
+- Do NOT mutate `draft` in place â€” always produce a new object
+- Do NOT read `artifact_version.payload` for runtime display â€” that is for the editor only; runtime pages read `compiled_artifact`

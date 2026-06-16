@@ -4,7 +4,6 @@ import { nodeHandlers } from './handlers/nodes'
 import { nlpHandlers } from './handlers/nlp'
 import { viewHandlers } from './handlers/views'
 import { overlayHandlers } from './handlers/overlays'
-import { workflowHandlers } from './handlers/workflowBuilder'
 
 export const worker = setupWorker(
   ...artifactHandlers,
@@ -12,5 +11,4 @@ export const worker = setupWorker(
   ...nlpHandlers,
   ...viewHandlers,
   ...overlayHandlers,
-  ...workflowHandlers,
 )

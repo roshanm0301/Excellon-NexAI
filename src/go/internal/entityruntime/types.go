@@ -3,21 +3,19 @@ package entityruntime
 import (
 	"encoding/json"
 	"time"
-
-	"github.com/excellon/nexai/internal/compiler"
 )
 
-// Stub types for removed rules package
+// Rule evaluation result shape used by entity write policy checks.
 type EvalResultV2 struct {
-	Blocked              bool                        `json:"blocked"`
-	BlockMessage         string                      `json:"block_message,omitempty"`
-	Warnings             []string                    `json:"warnings"`
-	Mutations            map[string]any              `json:"mutations"`
-	RequiredFields       []string                    `json:"required_fields"`
-	FieldBehaviors       []FieldBehavior             `json:"field_behaviors"`
-	ApprovalRequests     []ApprovalRequest           `json:"approval_requests"`
-	ServiceInvocations   []ServiceInvocation         `json:"service_invocations"`
-	ServiceResults       []ServiceInvocationResult   `json:"service_results"`
+	Blocked            bool                      `json:"blocked"`
+	BlockMessage       string                    `json:"block_message,omitempty"`
+	Warnings           []string                  `json:"warnings"`
+	Mutations          map[string]any            `json:"mutations"`
+	RequiredFields     []string                  `json:"required_fields"`
+	FieldBehaviors     []FieldBehavior           `json:"field_behaviors"`
+	ApprovalRequests   []ApprovalRequest         `json:"approval_requests"`
+	ServiceInvocations []ServiceInvocation       `json:"service_invocations"`
+	ServiceResults     []ServiceInvocationResult `json:"service_results"`
 }
 
 type FieldBehavior struct {
@@ -66,7 +64,7 @@ type EntityRecord struct {
 	DeletedAt      *time.Time          `json:"deleted_at,omitempty"`
 	DeletedBy      string              `json:"deleted_by,omitempty"`
 	Payload        json.RawMessage     `json:"payload"`
-	RuleResult     *EvalResultV2 `json:"rule_result,omitempty"`
+	RuleResult     *EvalResultV2     `json:"rule_result,omitempty"`
 }
 
 type CreateEntityRequest struct {
@@ -79,37 +77,6 @@ type UpdateEntityRequest struct {
 	Payload     json.RawMessage `json:"payload"`
 	Status      *string         `json:"status,omitempty"`
 	TriggerType string          `json:"trigger_type,omitempty"`
-}
-
-type TransitionRequest struct {
-	Command  string          `json:"command,omitempty"`
-	ToStatus string          `json:"to_status,omitempty"`
-	Note     string          `json:"note,omitempty"`
-	Payload  json.RawMessage `json:"payload,omitempty"`
-}
-
-type TransitionResponse struct {
-	Record        *EntityRecord                  `json:"record"`
-	Transition    *compiler.RawTransition        `json:"transition,omitempty"`
-	RuleGuards    map[string]*EvalResultV2 `json:"rule_guards,omitempty"`
-	ActionResults []TransitionActionResult       `json:"action_results,omitempty"`
-}
-
-type WorkflowStateResponse struct {
-	EntityID             string                   `json:"entity_id"`
-	EntityType           string                   `json:"entity_type"`
-	CurrentStatus        string                   `json:"current_status"`
-	InitialStatus        string                   `json:"initial_status,omitempty"`
-	Statuses             []compiler.RawStatus     `json:"statuses"`
-	AvailableTransitions []compiler.RawTransition `json:"available_transitions"`
-}
-
-type TransitionActionResult struct {
-	Type    string         `json:"type"`
-	Status  string         `json:"status"`
-	Output  map[string]any `json:"output,omitempty"`
-	Error   string         `json:"error,omitempty"`
-	Skipped bool           `json:"skipped,omitempty"`
 }
 
 type EntityListResponse struct {

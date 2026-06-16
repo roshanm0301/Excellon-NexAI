@@ -1,4 +1,4 @@
-# Skills Specification — UI Studio
+﻿# Skills Specification â€” UI Studio
 
 > **Purpose:** Defines the human expertise required to build UI Studio and the 5 Claude Code skills that accelerate development. Cross-reference with [docs/ui-studio/reference/skills-specification.md](../../ui-studio/reference/skills-specification.md) for implementation details.
 
@@ -18,14 +18,13 @@ These are the business and technical competencies that must be present in the te
 | Reactive UI / event-driven design | Cascading field changes, auto-populate, recalculation | P5 |
 | Editable grid / inline editing | Line item grid with cell editing, add/delete rows | P6 |
 | Pricing and tax UI patterns | Dynamic charge columns, tax display in transaction documents | P6 |
-| Workflow UX | Approval panels, status strips, action routing | P7 |
 | Permission-aware rendering | DOM removal (not CSS) for security, role variants | P4, P9 |
 | Publish lifecycle design | Immutable versioning, rollback, cache invalidation | P8 |
 | Validation rule design | Pre-publish checks, schema drift detection | P8 |
 | Prompt engineering | Build system prompts that produce valid ViewArtifactPayload | P10 |
 | AI product governance | Ensure AI output always lands as draft, never auto-published | P10 |
 | TypeScript type design | Stable types shared across frontend and backend | P1, P9 |
-| Go backend engineering | REST API, PostgreSQL, multi-tenant queries | P1, P4–P10 |
+| Go backend engineering | REST API, PostgreSQL, multi-tenant queries | P1, P4â€“P10 |
 | SQL migration design | Safe up/down migrations, impact on existing rows | P1, P8 |
 | Test automation | Unit (Vitest), integration (testcontainers), E2E (Playwright) | All phases |
 | Performance engineering | Lazy loading, React Query caching, large grid rendering | P4, P6 |
@@ -74,7 +73,7 @@ These skills are Claude Code tools that accelerate repetitive development tasks.
 **Purpose:** Generate `EventDefinition` JSON from plain English.
 
 **Example input:**
-> "When qty changes and qty > 0, recalculate amount as qty × rate"
+> "When qty changes and qty > 0, recalculate amount as qty Ã— rate"
 
 **What it produces:** A complete `EventDefinition` JSON object, validated against the event schema.
 
@@ -116,24 +115,23 @@ These skills are Claude Code tools that accelerate repetitive development tasks.
 The Codex master prompt is the top-level instruction given to any code-generating agent working on UI Studio. It establishes constraints that apply across all phases.
 
 ```
-You are implementing IDMS v3 UI Studio — a governed, metadata-driven view
+You are implementing IDMS v3 UI Studio â€” a governed, metadata-driven view
 and transaction experience builder.
 
 Before writing any code:
 1. Read the current phase specification completely
-2. Inspect the existing codebase — do not rebuild what exists
-3. Follow the phase's New Files list exactly — do not create extra files
+2. Inspect the existing codebase â€” do not rebuild what exists
+3. Follow the phase's New Files list exactly â€” do not create extra files
 
 Ownership rules (never violate):
 - UI Studio OWNS: presentation config, layout, binding, behavior, publish lifecycle
-- UI Studio DOES NOT OWN: entity schema, business validation, workflow transitions,
   approval routing, security/RBAC decisions, print templates
 
 Always:
 - Filter all DB queries by tenant_id
-- Return structured errors — never 500 from bad metadata
-- Hidden fields: remove from DOM — not CSS hidden
-- AI output: always DRAFT — never auto-publish
+- Return structured errors â€” never 500 from bad metadata
+- Hidden fields: remove from DOM â€” not CSS hidden
+- AI output: always DRAFT â€” never auto-publish
 - Runtime: only load is_active=true versions
 
 Commit after every phase. Do not start Phase N+1 before Phase N gate passes.
@@ -147,14 +145,13 @@ Each phase has a specific task prompt. See the corresponding phase file for the 
 
 | Phase | File | Task Focus |
 |---|---|---|
-| P0 | [P0-gap-analysis.md](../phases/P0-gap-analysis.md) | Gap analysis — no code changes |
+| P0 | [P0-gap-analysis.md](../phases/P0-gap-analysis.md) | Gap analysis â€” no code changes |
 | P1 | [P1-metadata-foundation.md](../phases/P1-metadata-foundation.md) | DB schema, API routes, TypeScript types |
 | P2 | [P2-component-registry.md](../phases/P2-component-registry.md) | Typed component registry, 56 + 12 components |
 | P3 | [P3-view-designer.md](../phases/P3-view-designer.md) | Designer canvas, drag-and-drop, inspector |
 | P4 | [P4-runtime-renderer.md](../phases/P4-runtime-renderer.md) | Runtime renderer, binding resolver, permission filter |
 | P5 | [P5-event-engine.md](../phases/P5-event-engine.md) | EventEngine (pure TS), field change, grid cell change |
 | P6 | [P6-header-line-workspace.md](../phases/P6-header-line-workspace.md) | Header-line surface, line grids, totals, action bar |
-| P7 | [P7-workflow-rule-ux.md](../phases/P7-workflow-rule-ux.md) | WorkflowStatusStrip, ApprovalPanel, ValidationSummary |
 | P8 | [P8-publish-governance.md](../phases/P8-publish-governance.md) | Publish lifecycle, 41 validation rules, rollback, diff |
 | P9 | [P9-role-variants.md](../phases/P9-role-variants.md) | Role variants, DOM removal, cascading, P1 features |
 | P10 | [P10-ai-templates.md](../phases/P10-ai-templates.md) | AI generation, template gallery, P2 features |
