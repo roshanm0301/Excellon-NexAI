@@ -190,10 +190,11 @@ export function ViewDesignerListPage() {
         loading={isLoading}
         onRowClick={(row) => navigate(`/studio/views/${row.artifact_id}/edit`)}
         emptyMessage="No views found. Create your first view to get started."
+        data-testid="views-grid"
       />
 
       {/* Create Modal */}
-      <Modal open={creating} onClose={() => { setCreating(false); resetForm() }} title="Create New View">
+      <Modal open={creating} onClose={() => { setCreating(false); resetForm() }} title="Create New View" data-testid="create-view-modal">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '0.5rem 0' }}>
           <div>
             <label style={{ display: 'block', marginBottom: 4, fontWeight: 500, fontSize: '0.875rem' }}>View Label *</label>

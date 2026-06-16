@@ -67,7 +67,7 @@ export function VisibilityRuleBuilder() {
   const currentCondition: ConditionType = visibility?.condition ?? 'always'
 
   return (
-    <div className="pp-section">
+    <div className="pp-section" data-testid="visibility-rule-builder">
       <div className="pp-section__title">
         {visibility ? <EyeOff size={14} style={{ marginRight: 4 }} /> : <Eye size={14} style={{ marginRight: 4 }} />}
         Visibility Rules

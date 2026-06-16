@@ -31,7 +31,7 @@ export function PropertyPanel() {
   }, [selectedKey, node, removeNode])
 
   return (
-    <div className="pp-panel">
+    <div className="pp-panel" data-testid="property-panel">
       {/* Header */}
       <div className="pp-panel__header">
         <div>

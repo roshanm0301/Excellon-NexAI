@@ -66,7 +66,7 @@ export function BindingEditor({ registryEntry }: { registryEntry?: ComponentRegi
   }, [selectedKey, bindings, updateNodeBindings])
 
   return (
-    <div className="pp-section">
+    <div className="pp-section" data-testid="binding-editor">
       <div className="pp-section__title">
         <Link2 size={14} style={{ marginRight: 4 }} />
         Field Bindings

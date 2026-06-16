@@ -9,7 +9,7 @@ interface ComponentTreeProps {
 
 export function ComponentTree({ tree }: ComponentTreeProps) {
   return (
-    <div className="ct-root">
+    <div className="ct-root" data-testid="component-tree">
       <TreeNode node={tree} depth={0} />
     </div>
   )

@@ -70,7 +70,7 @@ export function ComponentPalette() {
   }
 
   return (
-    <div className="cp-panel">
+    <div className="cp-panel" data-testid="component-palette">
       <div className="cp-panel__search">
         <SearchInput
           value={search}

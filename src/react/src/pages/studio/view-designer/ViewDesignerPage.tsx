@@ -128,7 +128,7 @@ export function ViewDesignerPage() {
   return (
     <div className="vd-page">
       {/* ─── Toolbar ─────────────────────────────────────────────────────── */}
-      <header className="vd-toolbar">
+      <header className="vd-toolbar" data-testid="vd-toolbar">
         <div className="vd-toolbar__left">
           <Button variant="ghost" size="sm" onClick={() => navigate('/studio/views')}>
             <ChevronLeft size={16} />
@@ -148,7 +148,7 @@ export function ViewDesignerPage() {
           <Button variant="ghost" size="sm" onClick={redo} disabled={!canRedo()} title="Redo (Ctrl+Y)">
             <Redo2 size={16} />
           </Button>
-          <Button variant="ghost" size="sm" onClick={togglePreview} title="Toggle Preview">
+          <Button variant="ghost" size="sm" onClick={togglePreview} title="Toggle Preview" data-testid="vd-preview-btn">
             <Eye size={16} />
             {previewMode ? 'Edit' : 'Preview'}
           </Button>
@@ -157,6 +157,7 @@ export function ViewDesignerPage() {
             size="sm"
             onClick={handleSave}
             disabled={!isDirty || saveMut.isPending}
+            data-testid="vd-save-btn"
           >
             <Save size={14} />
             {saveMut.isPending ? 'Saving...' : 'Save'}
@@ -166,6 +167,7 @@ export function ViewDesignerPage() {
             onClick={handlePublish}
             disabled={publishMut.isPending || (validationSummary ? !validationSummary.isValid : false)}
             title={validationSummary && !validationSummary.isValid ? `${validationSummary.errorCount} error(s) must be fixed before publishing` : undefined}
+            data-testid="vd-publish-btn"
           >
             <Upload size={14} />
             {publishMut.isPending ? 'Publishing...' : 'Publish'}

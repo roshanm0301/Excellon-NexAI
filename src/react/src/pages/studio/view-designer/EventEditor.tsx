@@ -98,7 +98,7 @@ export function EventEditor({ registryEntry }: { registryEntry?: ComponentRegist
   }, [events, selectedKey, setEvents])
 
   return (
-    <div className="pp-section">
+    <div className="pp-section" data-testid="event-editor">
       <div className="pp-section__title">
         <Zap size={14} style={{ marginRight: 4 }} />
         Event Handlers

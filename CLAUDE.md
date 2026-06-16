@@ -238,6 +238,57 @@ Components live in `src/react/src/design-system/`. When a needed UI pattern does
 
 ---
 
+## Mandatory Testing Standards
+
+These rules are permanent and apply to ALL future development:
+
+### Every feature must have a Playwright integration test
+- Config: `src/react/playwright.integration.config.ts`
+- All tests in `src/react/e2e/integration/**/*.spec.ts`
+- **VITE_MSW must be `false`** — tests call the real Go backend via Vite proxy
+- Run: `make test-e2e` or `cd src/react && npm run e2e:integration`
+
+### Every repo method must have a Go integration test
+- Build tag: `//go:build integration`
+- Tests in `src/go/internal/<package>/repo_integration_test.go`
+- Run: `make test-integration`
+
+### Infrastructure lifecycle
+```bash
+# Start test backend (postgres + Go server on :9080)
+bash scripts/start-test-backend.sh
+
+# Apply DMS seed data
+bash db/seeds/seed_all.sh
+
+# Stop
+bash scripts/stop-test-backend.sh
+```
+
+### Two Playwright configs
+| Config | File | VITE_MSW | Use |
+|--------|------|----------|-----|
+| Smoke | `playwright.config.ts` | `true` | Quick check: page loads |
+| Integration | `playwright.integration.config.ts` | `false` | Full-stack: browser→Go→PostgreSQL |
+
+### Full-stack test wiring
+```
+Chrome (Playwright)
+  └─ http://localhost:5174/Excellon-NexAI/   (Vite dev, VITE_MSW=false)
+       └─ proxy /api → http://localhost:9080
+            └─ Go backend (PORT=9080, NEXAI_AUTH_MODE=local)
+                 └─ PostgreSQL 16 via Docker (host port 5433)
+```
+
+Auth in tests: `NEXAI_AUTH_MODE=local` — dev headers `x-tenant-id / x-user-id / x-role: admin` are trusted.
+
+### DMS domain entities seeded
+Entities seeded in `db/seeds/test_entities.sql`: vehicle, customer, supplier, parts, employee, technician, finance_company, part_category, sale_order, service_order, purchase_order, parts_request.
+
+Views seeded in `db/seeds/test_views.sql`: 14 views across 5 surface types (standard_crud, header_line, dashboard, wizard, split_panel).
+
+---
+
 ## When in Doubt
 
 1. Check `docs/prd/` for the subsystem you're working on
