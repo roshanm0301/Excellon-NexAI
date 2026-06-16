@@ -16,6 +16,7 @@ import {
   removePlugin,
   listEntityTypes,
   getEntityFields,
+  getSyncStatus,
 } from '../config/studioApi'
 import type {
   ViewListParams,
@@ -139,6 +140,17 @@ export function useEntityFields(entityType: string | null | undefined) {
     queryKey: ['entity-fields', entityType],
     queryFn: () => getEntityFields(entityType!),
     enabled: !!entityType,
+    staleTime: 60 * 1000,
+  })
+}
+
+// ─── Sync Status (M7.6) ──────────────────────────────────────────────────────
+
+export function useSyncStatus(viewKey: string | undefined) {
+  return useQuery({
+    queryKey: ['sync-status', viewKey],
+    queryFn: () => getSyncStatus(viewKey!),
+    enabled: !!viewKey,
     staleTime: 60 * 1000,
   })
 }

@@ -4,12 +4,26 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 var viewCodePattern = regexp.MustCompile(`^[a-z][a-z0-9_]{2,49}$`)
 
 // componentCodePattern matches canonical snake_case component codes: [a-z][a-z0-9_]*
 var componentCodePattern = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
+
+// a11yInputCodes are component codes that require a label or aria_label for accessibility.
+var a11yInputCodes = map[string]bool{
+	"text_input":      true,
+	"number_input":    true,
+	"date_picker":     true,
+	"dropdown_select": true,
+	"checkbox":        true,
+	"textarea":        true,
+}
+
+// placeholderPattern matches labels that look like translation placeholders.
+var placeholderPattern = regexp.MustCompile(`(?i)\[TRANSLATE\]|TODO`)
 
 func validateCreateView(req CreateViewRequest) error {
 	if req.ViewLabel == "" {
@@ -47,9 +61,10 @@ type publishPayload struct {
 }
 
 type componentNode struct {
-	ComponentKey  string           `json:"component_key"`
-	ComponentCode string           `json:"component_code"`
-	Children      []*componentNode `json:"children"`
+	ComponentKey  string                 `json:"component_key"`
+	ComponentCode string                 `json:"component_code"`
+	Props         map[string]interface{} `json:"props,omitempty"`
+	Children      []*componentNode       `json:"children"`
 }
 
 const maxPublishDepth = 20
@@ -131,6 +146,29 @@ func validateTree(node *componentNode, result *ValidationResult, seenKeys map[st
 			Message: fmt.Sprintf("component_code %q does not match snake_case pattern [a-z][a-z0-9_]*", node.ComponentCode),
 			Field:   node.ComponentKey,
 		})
+	}
+
+	// V006: accessibility — input components must have label or aria_label
+	if a11yInputCodes[node.ComponentCode] {
+		label, _ := node.Props["label"].(string)
+		ariaLabel, _ := node.Props["aria_label"].(string)
+		if strings.TrimSpace(label) == "" && strings.TrimSpace(ariaLabel) == "" {
+			result.Warnings = append(result.Warnings, ValidationIssue{
+				Code:    "V006",
+				Message: fmt.Sprintf("component %q (%s) is missing props.label or props.aria_label — may fail accessibility checks", node.ComponentKey, node.ComponentCode),
+				Field:   node.ComponentKey,
+			})
+		} else {
+			// V007: label must not contain placeholder text like [TRANSLATE] or TODO
+			combined := label + " " + ariaLabel
+			if placeholderPattern.MatchString(combined) {
+				result.Warnings = append(result.Warnings, ValidationIssue{
+					Code:    "V007",
+					Message: fmt.Sprintf("component %q has an untranslated label placeholder — update props.label before publishing", node.ComponentKey),
+					Field:   node.ComponentKey,
+				})
+			}
+		}
 	}
 
 	// Duplicate key detection (warning — keys must be unique within a tree)

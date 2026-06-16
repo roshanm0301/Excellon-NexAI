@@ -377,6 +377,10 @@ import type {
   RegisterPluginRequest,
   EntityTypeSummary,
   EntityFieldDef,
+  ValidationResult,
+  ViewVariant,
+  DataSourceConfig,
+  ViewPayload,
 } from '../types/viewStudio'
 
 const STUDIO_PREFIX = '/studio'
@@ -404,11 +408,20 @@ export const saveDraft = (viewKey: string, body: SaveDraftRequest) =>
     body: JSON.stringify(body),
   })
 
-export const publishView = (viewKey: string, body?: PublishViewRequest) =>
-  studioFetch<ViewVersion>(`${STUDIO_PREFIX}/views/${viewKey}/publish`, {
+export function publishView(viewKey: string, body?: PublishViewRequest): Promise<ViewVersion>
+export function publishView(viewKey: string, body: PublishViewRequest | undefined, dryRun: true): Promise<ValidationResult>
+export function publishView(viewKey: string, body?: PublishViewRequest, dryRun = false): Promise<ViewVersion | ValidationResult> {
+  if (dryRun) {
+    return studioFetch<ValidationResult>(`${STUDIO_PREFIX}/views/${viewKey}/validate`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    })
+  }
+  return studioFetch<ViewVersion>(`${STUDIO_PREFIX}/views/${viewKey}/publish`, {
     method: 'POST',
     body: JSON.stringify(body ?? {}),
   })
+}
 
 export const rollbackView = (viewKey: string, versionID: string, body?: RollbackViewRequest) =>
   studioFetch<ViewVersion>(`${STUDIO_PREFIX}/views/${viewKey}/rollback/${versionID}`, {
@@ -455,6 +468,57 @@ export const removePlugin = (pluginID: string) =>
   featureFlags.studioPlugins
     ? studioFetch<void>(`${STUDIO_PREFIX}/plugins/${pluginID}`, { method: 'DELETE' })
     : featureDisabled('Studio plugins')
+
+// Governance APIs (M7.1 / M7.2 / M7.3 / M7.6)
+
+export interface ViewExportPackage {
+  version: '1.0'
+  exported_at: string
+  view_meta: {
+    view_label: string
+    surface_type: string
+    primary_entity: string
+    view_code?: string
+  }
+  payload: ViewPayload
+}
+
+export interface SyncStatusResponse {
+  status: 'up_to_date' | 'out_of_sync' | 'unknown'
+  schema_version: string
+  last_checked: string
+  broken_bindings: Array<{ component_key: string; field_key: string; reason: string }>
+}
+
+export const listViewVariants = (viewKey: string) =>
+  studioFetch<{ items: ViewVariant[] }>(`${STUDIO_PREFIX}/views/${viewKey}/variants`)
+
+export const listViewEvents = (viewKey: string) =>
+  studioFetch<{ items: unknown[] }>(`${STUDIO_PREFIX}/views/${viewKey}/events`)
+
+export const listViewDatasources = (viewKey: string) =>
+  studioFetch<{ items: DataSourceConfig[] }>(`${STUDIO_PREFIX}/views/${viewKey}/datasources`)
+
+export const diffViewVersions = (viewKey: string, from?: string, to?: string) => {
+  const qs = new URLSearchParams()
+  if (from) qs.set('from', from)
+  if (to) qs.set('to', to)
+  return studioFetch<{ changes: Array<{ path: string; from: unknown; to: unknown }> }>(
+    `${STUDIO_PREFIX}/views/${viewKey}/diff?${qs.toString()}`,
+  )
+}
+
+export const exportViewAsPackage = (viewKey: string) =>
+  studioFetch<ViewExportPackage>(`${STUDIO_PREFIX}/views/${viewKey}/export`)
+
+export const importViewFromPackage = (pkg: ViewExportPackage) =>
+  studioFetch<View>(`${STUDIO_PREFIX}/views/import`, {
+    method: 'POST',
+    body: JSON.stringify(pkg),
+  })
+
+export const getSyncStatus = (viewKey: string) =>
+  studioFetch<SyncStatusResponse>(`${STUDIO_PREFIX}/views/${viewKey}/sync-status`)
 
 // ── Entity Schema APIs (M3.2) ────────────────────────────────────────────────
 

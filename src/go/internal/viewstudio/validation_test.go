@@ -286,11 +286,281 @@ func TestEntityFieldsHandlerRequiresTenantID(t *testing.T) {
 	}
 }
 
+// ─── V006 / V007 A11y / L10n Tests ──────────────────────────────────────────
+
+func TestV006WarnsMissingLabelOnInputComponent(t *testing.T) {
+	// text_input without label or aria_label should produce V006 warning
+	raw := json.RawMessage(`{
+		"component_tree": {
+			"component_key": "root",
+			"component_code": "page_root",
+			"children": [
+				{
+					"component_key": "inp-1",
+					"component_code": "text_input",
+					"props": {}
+				}
+			]
+		}
+	}`)
+	result, err := ValidatePublish(raw)
+	if err != nil {
+		t.Fatalf("unexpected parse error: %v", err)
+	}
+	if !hasWarningCode(result, "V006") {
+		t.Errorf("expected V006 warning for text_input without label, got warnings=%+v", result.Warnings)
+	}
+}
+
+func TestV006NoWarnWhenLabelPresent(t *testing.T) {
+	raw := json.RawMessage(`{
+		"component_tree": {
+			"component_key": "root",
+			"component_code": "page_root",
+			"children": [
+				{
+					"component_key": "inp-1",
+					"component_code": "text_input",
+					"props": {"label": "First Name"}
+				}
+			]
+		}
+	}`)
+	result, err := ValidatePublish(raw)
+	if err != nil {
+		t.Fatalf("unexpected parse error: %v", err)
+	}
+	if hasWarningCode(result, "V006") {
+		t.Errorf("expected no V006 warning when label is set, got warnings=%+v", result.Warnings)
+	}
+}
+
+func TestV006NoWarnWhenAriaLabelPresent(t *testing.T) {
+	raw := json.RawMessage(`{
+		"component_tree": {
+			"component_key": "root",
+			"component_code": "page_root",
+			"children": [
+				{
+					"component_key": "inp-1",
+					"component_code": "dropdown_select",
+					"props": {"aria_label": "Status filter"}
+				}
+			]
+		}
+	}`)
+	result, err := ValidatePublish(raw)
+	if err != nil {
+		t.Fatalf("unexpected parse error: %v", err)
+	}
+	if hasWarningCode(result, "V006") {
+		t.Errorf("expected no V006 warning when aria_label is set, got warnings=%+v", result.Warnings)
+	}
+}
+
+func TestV006DoesNotApplyToNonInputComponents(t *testing.T) {
+	// button is not in the a11y input set
+	raw := json.RawMessage(`{
+		"component_tree": {
+			"component_key": "root",
+			"component_code": "page_root",
+			"children": [
+				{
+					"component_key": "btn-1",
+					"component_code": "button",
+					"props": {}
+				}
+			]
+		}
+	}`)
+	result, err := ValidatePublish(raw)
+	if err != nil {
+		t.Fatalf("unexpected parse error: %v", err)
+	}
+	if hasWarningCode(result, "V006") {
+		t.Errorf("expected no V006 warning for button component, got warnings=%+v", result.Warnings)
+	}
+}
+
+func TestV007WarnsTODOPlaceholderLabel(t *testing.T) {
+	raw := json.RawMessage(`{
+		"component_tree": {
+			"component_key": "root",
+			"component_code": "page_root",
+			"children": [
+				{
+					"component_key": "inp-1",
+					"component_code": "text_input",
+					"props": {"label": "TODO: translate me"}
+				}
+			]
+		}
+	}`)
+	result, err := ValidatePublish(raw)
+	if err != nil {
+		t.Fatalf("unexpected parse error: %v", err)
+	}
+	if !hasWarningCode(result, "V007") {
+		t.Errorf("expected V007 warning for TODO label, got warnings=%+v", result.Warnings)
+	}
+}
+
+func TestV007WarnsTranslatePlaceholderLabel(t *testing.T) {
+	raw := json.RawMessage(`{
+		"component_tree": {
+			"component_key": "root",
+			"component_code": "page_root",
+			"children": [
+				{
+					"component_key": "inp-1",
+					"component_code": "checkbox",
+					"props": {"label": "[TRANSLATE]"}
+				}
+			]
+		}
+	}`)
+	result, err := ValidatePublish(raw)
+	if err != nil {
+		t.Fatalf("unexpected parse error: %v", err)
+	}
+	if !hasWarningCode(result, "V007") {
+		t.Errorf("expected V007 warning for [TRANSLATE] label, got warnings=%+v", result.Warnings)
+	}
+}
+
+// ─── Governance HTTP Handler Tests ────────────────────────────────────────────
+
+func TestVariantsRouteRequiresTenantID(t *testing.T) {
+	h := NewHandler(nil)
+	r := chi.NewRouter()
+	r.Use(chimw.RequestID)
+	// no DevContext so tenant_id is empty
+	r.Route("/studio", h.RegisterRoutes)
+
+	req := httptest.NewRequest(http.MethodGet, "/studio/views/some-key/variants", nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 without x-tenant-id, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestEventsRouteRequiresTenantID(t *testing.T) {
+	h := NewHandler(nil)
+	r := chi.NewRouter()
+	r.Use(chimw.RequestID)
+	r.Route("/studio", h.RegisterRoutes)
+
+	req := httptest.NewRequest(http.MethodGet, "/studio/views/some-key/events", nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 without x-tenant-id, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestDatasourcesRouteRequiresTenantID(t *testing.T) {
+	h := NewHandler(nil)
+	r := chi.NewRouter()
+	r.Use(chimw.RequestID)
+	r.Route("/studio", h.RegisterRoutes)
+
+	req := httptest.NewRequest(http.MethodGet, "/studio/views/some-key/datasources", nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 without x-tenant-id, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestDiffRouteRequiresTenantID(t *testing.T) {
+	h := NewHandler(nil)
+	r := chi.NewRouter()
+	r.Use(chimw.RequestID)
+	r.Route("/studio", h.RegisterRoutes)
+
+	req := httptest.NewRequest(http.MethodGet, "/studio/views/some-key/diff", nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 without x-tenant-id, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestExportRouteRequiresTenantID(t *testing.T) {
+	h := NewHandler(nil)
+	r := chi.NewRouter()
+	r.Use(chimw.RequestID)
+	r.Route("/studio", h.RegisterRoutes)
+
+	req := httptest.NewRequest(http.MethodGet, "/studio/views/some-key/export", nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 without x-tenant-id, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestSyncStatusRouteRequiresTenantID(t *testing.T) {
+	h := NewHandler(nil)
+	r := chi.NewRouter()
+	r.Use(chimw.RequestID)
+	r.Route("/studio", h.RegisterRoutes)
+
+	req := httptest.NewRequest(http.MethodGet, "/studio/views/some-key/sync-status", nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 without x-tenant-id, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestDiffPayloadsDetectsChanges(t *testing.T) {
+	from := json.RawMessage(`{"label": "Old Label", "count": 1}`)
+	to := json.RawMessage(`{"label": "New Label", "count": 2}`)
+	changes := diffPayloads(from, to, "")
+	if len(changes) == 0 {
+		t.Errorf("expected changes between different payloads, got none")
+	}
+	foundLabel := false
+	for _, c := range changes {
+		if c.Path == "label" {
+			foundLabel = true
+		}
+	}
+	if !foundLabel {
+		t.Errorf("expected 'label' path in changes, got %+v", changes)
+	}
+}
+
+func TestDiffPayloadsIdenticalPayloads(t *testing.T) {
+	raw := json.RawMessage(`{"label": "Same", "count": 1}`)
+	changes := diffPayloads(raw, raw, "")
+	if len(changes) != 0 {
+		t.Errorf("expected no changes for identical payloads, got %+v", changes)
+	}
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 func hasErrorCode(result ValidationResult, code string) bool {
 	for _, e := range result.Errors {
 		if e.Code == code {
+			return true
+		}
+	}
+	return false
+}
+
+func hasWarningCode(result ValidationResult, code string) bool {
+	for _, w := range result.Warnings {
+		if w.Code == code {
 			return true
 		}
 	}

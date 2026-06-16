@@ -6,9 +6,9 @@
  */
 
 import { useState, useCallback } from 'react'
-import { History, RotateCcw, Clock, User } from 'lucide-react'
+import { History, RotateCcw, Clock, User, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button, Spinner } from '../../../design-system'
-import { useViewVersions, useRollbackView } from '../../../hooks/useViewStudio'
+import { useViewVersions, useRollbackView, useSyncStatus } from '../../../hooks/useViewStudio'
 import type { ViewVersion, ComponentNode } from '../../../types/viewStudio'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -24,6 +24,7 @@ interface DiffEntry {
 
 export function VersionHistoryPanel({ viewId }: { viewId: string }) {
   const { data: versions, isLoading } = useViewVersions(viewId)
+  const { data: syncStatus } = useSyncStatus(viewId)
   const rollbackMut = useRollbackView(viewId)
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null)
   const [compareVersion, setCompareVersion] = useState<string | null>(null)
@@ -59,6 +60,19 @@ export function VersionHistoryPanel({ viewId }: { viewId: string }) {
         <History size={14} style={{ marginRight: 4 }} />
         Version History
       </div>
+
+      {/* Sync status indicator */}
+      {syncStatus && (
+        <div className="vh-sync-status" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, fontSize: 12 }}>
+          {syncStatus.status === 'up_to_date'
+            ? <CheckCircle size={12} style={{ color: 'var(--color-success, #16a34a)' }} />
+            : <AlertCircle size={12} style={{ color: 'var(--color-warning, #d97706)' }} />
+          }
+          <span style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+            Schema {syncStatus.status === 'up_to_date' ? 'up to date' : 'out of sync'} · v{syncStatus.schema_version}
+          </span>
+        </div>
+      )}
 
       {sortedVersions.length === 0 && (
         <p className="pp-empty-msg">No published versions yet.</p>

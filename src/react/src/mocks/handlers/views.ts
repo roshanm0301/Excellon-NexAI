@@ -303,6 +303,115 @@ export const viewHandlers = [
   }),
   http.delete('/api/v1/studio/plugins/:id', () => new HttpResponse(null, { status: 204 })),
 
+  // ── Governance routes (M7) ──────────────────────────────────────────────────
+
+  // List variants from payload
+  http.get('/api/v1/studio/views/:key/variants', ({ params }) => {
+    const store = loadViews()
+    const view = store.find(v => v.artifact_id === params.key || v.view_code === params.key)
+    if (!view) return new HttpResponse(null, { status: 404 })
+    const payload = view._draft_payload as Record<string, unknown> | undefined
+    const variants = (payload?.variants as unknown[]) ?? []
+    return HttpResponse.json({ items: variants })
+  }),
+
+  // List events from payload
+  http.get('/api/v1/studio/views/:key/events', ({ params }) => {
+    const store = loadViews()
+    const view = store.find(v => v.artifact_id === params.key || v.view_code === params.key)
+    if (!view) return new HttpResponse(null, { status: 404 })
+    const payload = view._draft_payload as Record<string, unknown> | undefined
+    const events = (payload?.events as unknown[]) ?? []
+    return HttpResponse.json({ items: events })
+  }),
+
+  // List datasources from payload
+  http.get('/api/v1/studio/views/:key/datasources', ({ params }) => {
+    const store = loadViews()
+    const view = store.find(v => v.artifact_id === params.key || v.view_code === params.key)
+    if (!view) return new HttpResponse(null, { status: 404 })
+    const payload = view._draft_payload as Record<string, unknown> | undefined
+    const datasources = (payload?.datasources as unknown[]) ?? (payload?.data_sources as unknown[]) ?? []
+    return HttpResponse.json({ items: datasources })
+  }),
+
+  // Diff versions
+  http.get('/api/v1/studio/views/:key/diff', ({ params }) => {
+    const store = loadViews()
+    const view = store.find(v => v.artifact_id === params.key || v.view_code === params.key)
+    if (!view) return new HttpResponse(null, { status: 404 })
+    // Return empty diff by default in mock
+    return HttpResponse.json({ changes: [] })
+  }),
+
+  // Export view
+  http.get('/api/v1/studio/views/:key/export', ({ params }) => {
+    const store = loadViews()
+    const view = store.find(v => v.artifact_id === params.key || v.view_code === params.key)
+    if (!view) return new HttpResponse(null, { status: 404 })
+    const pkg = {
+      version: '1.0',
+      exported_at: now(),
+      view_meta: {
+        view_label: view.view_label,
+        surface_type: view.surface_type,
+        primary_entity: view.primary_entity,
+        view_code: view.view_code,
+      },
+      payload: view._draft_payload ?? {},
+    }
+    return HttpResponse.json(pkg, {
+      headers: { 'Content-Disposition': `attachment; filename="view-${params.key}.json"` },
+    })
+  }),
+
+  // Import view
+  http.post('/api/v1/studio/views/import', async ({ request }) => {
+    const store = loadViews()
+    const body = await request.json() as Record<string, unknown>
+    const meta = body.view_meta as Record<string, unknown> | undefined
+    const newView: ViewRecord = {
+      artifact_id: randomId(),
+      artifact_name: String(meta?.view_label ?? 'Imported View'),
+      artifact_type: 'view',
+      tenant_id: '00000000-0000-0000-0000-000000000001',
+      surface_type: String(meta?.surface_type ?? 'standard_crud'),
+      primary_entity: String(meta?.primary_entity ?? ''),
+      view_code: meta?.view_code ? String(meta.view_code) : undefined,
+      view_label: String(meta?.view_label ?? 'Imported View') + ' (Imported)',
+      is_draft: true,
+      is_active: false,
+      created_at: now(),
+      updated_at: now(),
+      created_by: '00000000-0000-0000-0000-000000000001',
+      revision: 1,
+      _draft_payload: (body.payload as Record<string, unknown>) ?? {},
+      _versions: [],
+    }
+    store.push(newView)
+    viewStore.length = 0; store.forEach(v => viewStore.push(v))
+    saveViews(store)
+    return HttpResponse.json(toView(newView), { status: 201 })
+  }),
+
+  // Sync status
+  http.get('/api/v1/studio/views/:key/sync-status', ({ params }) => {
+    const store = loadViews()
+    const view = store.find(v => v.artifact_id === params.key || v.view_code === params.key)
+    if (!view) return new HttpResponse(null, { status: 404 })
+    return HttpResponse.json({
+      status: 'up_to_date',
+      schema_version: '1.0.0',
+      last_checked: new Date().toISOString(),
+      broken_bindings: [],
+    })
+  }),
+
+  // Validate (dry-run) — already in MSW for publish, add validate route
+  http.post('/api/v1/studio/views/:key/validate', () => {
+    return HttpResponse.json({ errors: [], warnings: [] })
+  }),
+
   // Entity Schema (M3.2) — mock compiled entity types for the field picker
   http.get('/api/v1/studio/entities', () => {
     return HttpResponse.json({
