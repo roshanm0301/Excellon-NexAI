@@ -125,7 +125,7 @@ test.describe('Property panel — component selection', () => {
     await expect(panel).toBeVisible()
 
     // Panel should show component label/code
-    await expect(panel.locator('.pp-panel__title, .pp-panel__code')).toBeVisible()
+    await expect(panel.locator('.pp-panel__title, .pp-panel__code').first()).toBeVisible()
   })
 
   test('property panel shows Properties tab active by default', async ({ page }) => {

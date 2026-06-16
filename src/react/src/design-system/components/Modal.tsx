@@ -9,9 +9,10 @@ interface ModalProps {
   children: ReactNode
   footer?: ReactNode
   size?: 'sm' | 'md' | 'lg'
+  'data-testid'?: string
 }
 
-export function Modal({ open, onClose, title, children, footer, size = 'md' }: ModalProps) {
+export function Modal({ open, onClose, title, children, footer, size = 'md', 'data-testid': dataTestId }: ModalProps) {
   useEffect(() => {
     if (!open) return
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -26,7 +27,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'md' }: M
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div className="ex-scrim" onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'var(--bg-overlay)' }} />
-      <div style={{
+      <div data-testid={dataTestId} style={{
         position: 'relative', zIndex: 101, background: 'var(--bg-primary)',
         borderRadius: 'var(--radius-2xl)', boxShadow: 'var(--shadow-3xl)',
         width: widths[size], maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100vh - 64px)',

@@ -27,6 +27,7 @@ export interface VirtualGridProps<T> {
   selectedIds?: string[]
   onSelectionChange?: (ids: string[]) => void
   getRowId?: (row: T) => string
+  'data-testid'?: string
 }
 
 const ROW_HEIGHT = 48
@@ -43,6 +44,7 @@ export function VirtualGrid<T>({
   selectedIds = [],
   onSelectionChange,
   getRowId,
+  'data-testid': dataTestId,
 }: VirtualGridProps<T>) {
   const [scrollTop, setScrollTop] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -54,7 +56,7 @@ export function VirtualGrid<T>({
 
   if (loading) {
     return (
-      <div className="ex-table-wrap">
+      <div className="ex-table-wrap" data-testid={dataTestId}>
         <table className="ex-table" style={{ width: '100%', tableLayout: 'fixed' }}>
           <thead>
             <tr>
@@ -83,7 +85,7 @@ export function VirtualGrid<T>({
 
   if (data.length === 0) {
     return (
-      <div className="ex-table-wrap">
+      <div className="ex-table-wrap" data-testid={dataTestId}>
         <EmptyState title={emptyMessage} />
       </div>
     )
@@ -116,7 +118,7 @@ export function VirtualGrid<T>({
   }
 
   return (
-    <div className="ex-table-wrap">
+    <div className="ex-table-wrap" data-testid={dataTestId}>
       <div
         ref={containerRef}
         onScroll={handleScroll}

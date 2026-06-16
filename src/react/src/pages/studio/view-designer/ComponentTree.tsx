@@ -88,15 +88,17 @@ function TreeNode({ node, depth }: TreeNodeProps) {
   return (
     <div
       className={classNames}
-      onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
-      data-component-key={node.component_key}
       style={{ marginLeft: depth > 0 ? '0.25rem' : 0 }}
     >
-      <div className="ct-node__header">
+      <div
+        className="ct-node__header"
+        onClick={handleClick}
+        data-component-key={node.component_key}
+      >
         {depth > 0 && <GripVertical size={12} style={{ opacity: 0.4, cursor: 'grab' }} />}
         <span>{node.label || node.component_code}</span>
         <span className="ct-node__code">{node.component_code}</span>

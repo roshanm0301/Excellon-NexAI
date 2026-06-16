@@ -220,6 +220,11 @@ func (r *Repo) GetViewWithPayload(ctx context.Context, tenantID, artifactID stri
 	if err != nil {
 		return nil, nil, fmt.Errorf("viewstudio: get latest version: %w", err)
 	}
+	// Populate version-level flags on the header view struct
+	v.IsDraft = ver.IsDraft
+	v.IsActive = ver.IsActive
+	v.LatestVersionID = ver.VersionID
+	v.LatestVersionNo = ver.VersionNo
 	return v, &ver, nil
 }
 

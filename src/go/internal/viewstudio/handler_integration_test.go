@@ -133,7 +133,6 @@ func TestHTTP_Integ_CreateView(t *testing.T) {
 		ViewLabel:     "HTTP Integration View",
 		SurfaceType:   "standard_crud",
 		PrimaryEntity: "account",
-		ViewCode:      "account_list",
 	}
 	b, _ := json.Marshal(reqBody)
 	hdrs := devHeaders(httpTestTenantID, httpTestUserID, "admin")

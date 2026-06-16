@@ -158,23 +158,27 @@ func validateTree(node *componentNode, result *ValidationResult, seenKeys map[st
 				Message: fmt.Sprintf("component %q (%s) is missing props.label or props.aria_label — may fail accessibility checks", node.ComponentKey, node.ComponentCode),
 				Field:   node.ComponentKey,
 			})
-		} else {
-			// V007: label must not contain placeholder text like [TRANSLATE] or TODO
-			combined := label + " " + ariaLabel
-			if placeholderPattern.MatchString(combined) {
-				result.Warnings = append(result.Warnings, ValidationIssue{
-					Code:    "V007",
-					Message: fmt.Sprintf("component %q has an untranslated label placeholder — update props.label before publishing", node.ComponentKey),
-					Field:   node.ComponentKey,
-				})
-			}
 		}
 	}
 
-	// Duplicate key detection (warning — keys must be unique within a tree)
+	// V007: any component with a label prop must not contain placeholder text
+	if node.Props != nil {
+		label, _ := node.Props["label"].(string)
+		ariaLabel, _ := node.Props["aria_label"].(string)
+		combined := label + " " + ariaLabel
+		if strings.TrimSpace(combined) != "" && placeholderPattern.MatchString(combined) {
+			result.Warnings = append(result.Warnings, ValidationIssue{
+				Code:    "V007",
+				Message: fmt.Sprintf("component %q has an untranslated label placeholder — update props.label before publishing", node.ComponentKey),
+				Field:   node.ComponentKey,
+			})
+		}
+	}
+
+	// V003: duplicate component_key is a structural error — keys must be unique
 	if node.ComponentKey != "" {
 		if seenKeys[node.ComponentKey] {
-			result.Warnings = append(result.Warnings, ValidationIssue{
+			result.Errors = append(result.Errors, ValidationIssue{
 				Code:    "V003",
 				Message: fmt.Sprintf("duplicate component_key %q found in tree", node.ComponentKey),
 				Field:   node.ComponentKey,
