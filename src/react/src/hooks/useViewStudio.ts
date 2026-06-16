@@ -14,6 +14,8 @@ import {
   listPlugins,
   registerPlugin,
   removePlugin,
+  listEntityTypes,
+  getEntityFields,
 } from '../config/studioApi'
 import type {
   ViewListParams,
@@ -119,6 +121,25 @@ export function useArchiveView() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['views'] })
     },
+  })
+}
+
+// ─── Entity Schema ───────────────────────────────────────────────────────────
+
+export function useEntityTypes() {
+  return useQuery({
+    queryKey: ['entity-types'],
+    queryFn: () => listEntityTypes(),
+    staleTime: 60 * 1000,
+  })
+}
+
+export function useEntityFields(entityType: string | null | undefined) {
+  return useQuery({
+    queryKey: ['entity-fields', entityType],
+    queryFn: () => getEntityFields(entityType!),
+    enabled: !!entityType,
+    staleTime: 60 * 1000,
   })
 }
 

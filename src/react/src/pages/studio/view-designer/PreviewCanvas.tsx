@@ -1,32 +1,30 @@
 /**
  * PreviewCanvas — Live preview renderer for the View Designer
  *
- * Recursively renders the component tree using the ComponentRenderMap
- * to produce a WYSIWYG preview of the configured view.
+ * Recursively renders the component tree using the ComponentRenderMap.
+ * Applies shared runtime rules: visibility (role_in, field_equals) and
+ * permission DOM removal (__permissions.hidden_rule).
  */
 
 import { useMemo } from 'react'
 import { useCanvasStore } from './useCanvasStore'
 import { getRenderer } from './ComponentRenderMap'
-import type { ComponentNode } from '../../../types/viewStudio'
-
-// Stub type for removed rule runtime
-type RuntimeRuleState = Record<string, unknown> | undefined
-
-// Stub function - rule runtime removed, just return tree as-is
-function applyRuleStateToComponentTree(tree: ComponentNode, _ruleState?: RuntimeRuleState): ComponentNode {
-  return tree
-}
+import { applyRuntimeContext } from '../../../lib/viewRuntime'
+import type { ComponentNode, VisibilityRule } from '../../../types/viewStudio'
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function PreviewCanvas() {
   const { payload, selectedKey } = useCanvasStore()
   const tree = payload?.component_tree
-  const runtimeRuleState = payload?.meta?.runtime_rule_state as RuntimeRuleState | undefined
+
+  // Preview uses a neutral context (no role, no field values).
+  // Visibility rules that depend on role or field values are shown with a
+  // dimmed indicator rather than hidden, because the designer needs to see all
+  // nodes regardless of runtime context.
   const runtimeTree = useMemo(
-    () => tree ? applyRuleStateToComponentTree(tree, runtimeRuleState) : null,
-    [tree, runtimeRuleState],
+    () => tree ? applyRuntimeContext(tree, {}) : null,
+    [tree],
   )
 
   if (!runtimeTree) {
@@ -52,17 +50,16 @@ function RenderNode({ node, selectedKey }: { node: ComponentNode; selectedKey: s
   const Renderer = useMemo(() => getRenderer(node.component_code), [node.component_code])
   const isSelected = node.component_key === selectedKey
 
+  // Nodes returned by applyRuntimeContext have already had hidden/permission
+  // nodes removed. The __runtime_hidden flag is the legacy path kept for
+  // backwards compatibility with payloads that pre-date the shared runtime.
   if (node.props?.__runtime_hidden === true) {
     return null
   }
 
-  // Check visibility (skip hidden nodes in preview)
-  if (node.visibility) {
-    if (node.visibility.condition === 'role_in') {
-      // In preview, show with indicator
-    }
-    // For expression/field_equals, we show in preview with dimming
-  }
+  // Visibility rule indicator for preview (role_in / field_equals nodes are
+  // visible in the canvas but dimmed so the designer can select and configure them).
+  const hasConditionalVisibility = !!(node.visibility as VisibilityRule | undefined)?.condition
 
   const children = (node.children ?? []).map(child => (
     <RenderNode key={child.component_key} node={child} selectedKey={selectedKey} />
@@ -70,7 +67,12 @@ function RenderNode({ node, selectedKey }: { node: ComponentNode; selectedKey: s
 
   return (
     <div
-      className={`prev-node ${isSelected ? 'prev-node--selected' : ''}`}
+      className={[
+        'prev-node',
+        isSelected ? 'prev-node--selected' : '',
+        hasConditionalVisibility ? 'prev-node--conditional' : '',
+        node.props?.__read_only ? 'prev-node--read-only' : '',
+      ].filter(Boolean).join(' ')}
       data-component-key={node.component_key}
     >
       <Renderer

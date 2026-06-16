@@ -375,6 +375,8 @@ import type {
   ViewListParams,
   Plugin,
   RegisterPluginRequest,
+  EntityTypeSummary,
+  EntityFieldDef,
 } from '../types/viewStudio'
 
 const STUDIO_PREFIX = '/studio'
@@ -453,5 +455,13 @@ export const removePlugin = (pluginID: string) =>
   featureFlags.studioPlugins
     ? studioFetch<void>(`${STUDIO_PREFIX}/plugins/${pluginID}`, { method: 'DELETE' })
     : featureDisabled('Studio plugins')
+
+// ── Entity Schema APIs (M3.2) ────────────────────────────────────────────────
+
+export const listEntityTypes = () =>
+  studioFetch<{ items: EntityTypeSummary[] }>(`${STUDIO_PREFIX}/entities`)
+
+export const getEntityFields = (entityType: string) =>
+  studioFetch<{ items: EntityFieldDef[] }>(`${STUDIO_PREFIX}/entities/${encodeURIComponent(entityType)}/fields`)
 
 

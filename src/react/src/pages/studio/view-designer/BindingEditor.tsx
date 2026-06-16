@@ -10,10 +10,9 @@
 
 import { useState, useCallback } from 'react'
 import { Plus, Trash2, Link2 } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
 import { Button } from '../../../design-system'
 import { useCanvasStore } from './useCanvasStore'
-import { listArtifacts } from '../../../config/studioApi'
+import { useEntityFields } from '../../../hooks/useViewStudio'
 import type { FieldBinding, ComponentRegistryEntry } from '../../../types/viewStudio'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -30,22 +29,14 @@ const SOURCE_OPTIONS: { value: BindingSource; label: string }[] = [
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function BindingEditor({ registryEntry }: { registryEntry?: ComponentRegistryEntry | null }) {
-  const { selectedKey, getNode, payload } = useCanvasStore()
+  const { selectedKey, getNode, primaryEntity } = useCanvasStore()
   const updateNodeBindings = useCanvasStore(s => s.updateNodeBindings)
   const node = selectedKey ? getNode(selectedKey) : null
 
   const [addingProp, setAddingProp] = useState<string | null>(null)
 
-  const primaryEntity = (payload as { primaryEntity?: string } | undefined)?.primaryEntity
-  const { data: artifactData } = useQuery({
-    queryKey: ['artifacts'],
-    queryFn: () => listArtifacts({}),
-    enabled: !!primaryEntity,
-  })
-  const entityArtifact = artifactData?.items?.find(
-    (a: { entity_type: string }) => a.entity_type?.toLowerCase() === primaryEntity?.toLowerCase()
-  )
-  const entityFields: string[] = (entityArtifact as { payload?: { fields?: Array<{ name: string }> } } | undefined)?.payload?.fields?.map((f: { name: string }) => f.name) ?? []
+  const { data: fieldsData } = useEntityFields(primaryEntity)
+  const entityFields = fieldsData?.items?.map(f => f.field_key) ?? []
 
   if (!node) return null
 

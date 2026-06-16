@@ -7,6 +7,7 @@ export interface CanvasState {
   // Current view data
   viewId: string | null
   viewCode: string | null
+  primaryEntity: string | null
   isDirty: boolean
   payload: ViewPayload | null
 
@@ -25,7 +26,7 @@ export interface CanvasState {
   historyIndex: number
 
   // Actions
-  setView: (viewId: string, viewCode: string | null, payload: ViewPayload) => void
+  setView: (viewId: string, viewCode: string | null, payload: ViewPayload, primaryEntity?: string | null) => void
   reset: () => void
   select: (key: string | null) => void
   hover: (key: string | null) => void
@@ -127,6 +128,7 @@ const MAX_HISTORY = 50
 export const useCanvasStore = create<CanvasState>((set, get) => ({
   viewId: null,
   viewCode: null,
+  primaryEntity: null,
   isDirty: false,
   payload: null,
   selectedKey: null,
@@ -138,9 +140,10 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   history: [],
   historyIndex: -1,
 
-  setView: (viewId, viewCode, payload) => set({
+  setView: (viewId, viewCode, payload, primaryEntity = null) => set({
     viewId,
     viewCode,
+    primaryEntity: primaryEntity ?? null,
     payload,
     isDirty: false,
     selectedKey: null,
@@ -152,6 +155,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   reset: () => set({
     viewId: null,
     viewCode: null,
+    primaryEntity: null,
     isDirty: false,
     payload: null,
     selectedKey: null,

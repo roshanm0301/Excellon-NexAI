@@ -293,4 +293,50 @@ export const viewHandlers = [
     return HttpResponse.json({ id: randomId(), ...(body as object), created_at: now() }, { status: 201 })
   }),
   http.delete('/api/v1/studio/plugins/:id', () => new HttpResponse(null, { status: 204 })),
+
+  // Entity Schema (M3.2) — mock compiled entity types for the field picker
+  http.get('/api/v1/studio/entities', () => {
+    return HttpResponse.json({
+      items: [
+        { entity_type: 'customer', display_name: 'Customer' },
+        { entity_type: 'order', display_name: 'Order' },
+        { entity_type: 'product', display_name: 'Product' },
+        { entity_type: 'invoice', display_name: 'Invoice' },
+      ],
+    })
+  }),
+
+  http.get('/api/v1/studio/entities/:entityType/fields', ({ params }) => {
+    const ENTITY_FIELDS: Record<string, Array<{ field_key: string; label: string; field_type: string; required: boolean; read_only: boolean; is_relation: boolean }>> = {
+      customer: [
+        { field_key: 'id', label: 'ID', field_type: 'uuid', required: true, read_only: true, is_relation: false },
+        { field_key: 'name', label: 'Name', field_type: 'text', required: true, read_only: false, is_relation: false },
+        { field_key: 'email', label: 'Email', field_type: 'email', required: false, read_only: false, is_relation: false },
+        { field_key: 'phone', label: 'Phone', field_type: 'text', required: false, read_only: false, is_relation: false },
+        { field_key: 'created_at', label: 'Created At', field_type: 'datetime', required: false, read_only: true, is_relation: false },
+      ],
+      order: [
+        { field_key: 'id', label: 'ID', field_type: 'uuid', required: true, read_only: true, is_relation: false },
+        { field_key: 'order_number', label: 'Order Number', field_type: 'text', required: true, read_only: true, is_relation: false },
+        { field_key: 'status', label: 'Status', field_type: 'enum', required: true, read_only: false, is_relation: false },
+        { field_key: 'total_amount', label: 'Total Amount', field_type: 'decimal', required: false, read_only: true, is_relation: false },
+        { field_key: 'customer_id', label: 'Customer', field_type: 'relation', required: true, read_only: false, is_relation: true },
+      ],
+      product: [
+        { field_key: 'id', label: 'ID', field_type: 'uuid', required: true, read_only: true, is_relation: false },
+        { field_key: 'name', label: 'Product Name', field_type: 'text', required: true, read_only: false, is_relation: false },
+        { field_key: 'sku', label: 'SKU', field_type: 'text', required: true, read_only: false, is_relation: false },
+        { field_key: 'price', label: 'Price', field_type: 'decimal', required: true, read_only: false, is_relation: false },
+        { field_key: 'stock_qty', label: 'Stock Qty', field_type: 'integer', required: false, read_only: false, is_relation: false },
+      ],
+      invoice: [
+        { field_key: 'id', label: 'ID', field_type: 'uuid', required: true, read_only: true, is_relation: false },
+        { field_key: 'invoice_number', label: 'Invoice Number', field_type: 'text', required: true, read_only: true, is_relation: false },
+        { field_key: 'due_date', label: 'Due Date', field_type: 'date', required: true, read_only: false, is_relation: false },
+        { field_key: 'amount_due', label: 'Amount Due', field_type: 'decimal', required: false, read_only: true, is_relation: false },
+      ],
+    }
+    const fields = ENTITY_FIELDS[params.entityType as string] ?? []
+    return HttpResponse.json({ items: fields })
+  }),
 ]
