@@ -29,6 +29,11 @@ Thumbs.db
 # Logs
 *.log
 
+# Test backend artifacts
+.test-server
+.test-server.log
+.test-backend.pid
+
 # Test coverage
 coverage.out
 coverage.html
