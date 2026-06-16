@@ -46,6 +46,7 @@ export interface View {
   created_at: string;
   updated_at: string;
   created_by: string;
+  revision: number;
   latest_version_id?: string;
   latest_version_no?: number;
   is_draft: boolean;
@@ -61,6 +62,7 @@ export interface ViewVersion {
   is_draft: boolean;
   created_at: string;
   created_by: string;
+  revision: number;
   published_at?: string;
   published_by?: string;
 }

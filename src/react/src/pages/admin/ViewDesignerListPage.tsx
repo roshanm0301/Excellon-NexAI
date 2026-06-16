@@ -56,7 +56,7 @@ export function ViewDesignerListPage() {
     {
       key: 'view_label',
       label: 'View',
-      width: 250,
+      // No fixed width - this column will flex to fill remaining space
       render: (row) => (
         <div>
           <div style={{ fontWeight: 500 }}>{row.view_label || row.artifact_name}</div>

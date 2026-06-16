@@ -22,6 +22,7 @@ import { ValidationRuleEditor } from './ValidationRuleEditor'
 import { DashboardLayoutEditor } from './DashboardLayoutEditor'
 import { WizardStepEditor } from './WizardStepEditor'
 import { PluginManagerPanel } from './PluginManagerPanel'
+import { featureFlags } from '../../../config/featureFlags'
 import './PanelStyles.css'
 
 export type DrawerTab = 'datasources' | 'versions' | 'import-export' | 'permissions' | 'validation' | 'surface' | 'plugins'
@@ -55,7 +56,10 @@ export function ViewSettingsDrawer({
   onClose,
   initialTab = 'datasources',
 }: DrawerProps) {
-  const [activeTab, setActiveTab] = useState<DrawerTab>(initialTab)
+  const visibleTabs = featureFlags.studioPlugins ? TABS : TABS.filter(tab => tab.value !== 'plugins')
+  const [activeTab, setActiveTab] = useState<DrawerTab>(
+    initialTab === 'plugins' && !featureFlags.studioPlugins ? 'datasources' : initialTab,
+  )
 
   const getSurfaceEditor = () => {
     if (surfaceType === 'dashboard') return <DashboardLayoutEditor />
@@ -83,7 +87,7 @@ export function ViewSettingsDrawer({
 
         {/* Tab bar */}
         <div className="vsd-drawer__tabs">
-          {TABS.map(tab => (
+          {visibleTabs.map(tab => (
             <button
               key={tab.value}
               className={`vsd-tab ${activeTab === tab.value ? 'vsd-tab--active' : ''}`}

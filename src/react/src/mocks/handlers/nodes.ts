@@ -52,6 +52,21 @@ export const nodeHandlers = [
     return HttpResponse.json({ items: buildTree(nodeStore) })
   }),
 
+  http.post('/api/v1/admin/nodes', async ({ request }) => {
+    const body = await request.json() as Omit<NodeTreeItem, 'id' | 'children'>
+    const newNode: NodeTreeItem = {
+      id: randomId(),
+      name: body.name,
+      node_type: body.node_type,
+      parent_id: body.parent_id,
+      metadata: body.metadata ?? {},
+      children: [],
+    }
+    nodeStore.push(newNode)
+    saveNodes(nodeStore)
+    return HttpResponse.json(newNode, { status: 201 })
+  }),
+
   http.post('/api/v1/nodes', async ({ request }) => {
     const body = await request.json() as Omit<NodeTreeItem, 'id' | 'children'>
     const newNode: NodeTreeItem = {

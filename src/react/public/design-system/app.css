@@ -146,7 +146,7 @@ body[data-theme="bajaj"] {
 .ex-prof-chev { color: var(--fg-quaternary); font-size: 14px; }
 
 /* ============ Content ============ */
-.ex-content { padding: 32px 40px 64px; max-width: 1440px; width: 100%; align-self: center; }
+.ex-content { padding: 32px 40px 64px; max-width: 1840px; width: 100%; align-self: center; }
 
 /* ============ Page header ============ */
 .ex-page-header { margin-bottom: 24px; }

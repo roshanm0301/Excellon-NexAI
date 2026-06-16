@@ -14,6 +14,7 @@ export interface ViewSeed {
   created_at: string
   updated_at: string
   created_by: string
+  revision: number
   latest_version_id?: string
   latest_version_no?: number
   is_draft: boolean
@@ -28,6 +29,7 @@ export interface ViewSeed {
     is_draft: boolean
     created_at: string
     created_by: string
+    revision: number
     published_at?: string
     published_by?: string
   }>
@@ -370,6 +372,7 @@ function makeView(
     created_at: TS,
     updated_at: TS,
     created_by: TENANT,
+    revision: 1,
     latest_version_id: versionId,
     latest_version_no: 1,
     is_draft: false,
@@ -385,6 +388,7 @@ function makeView(
         is_draft: false,
         created_at: TS,
         created_by: TENANT,
+        revision: 1,
         published_at: TS,
         published_by: TENANT,
       },

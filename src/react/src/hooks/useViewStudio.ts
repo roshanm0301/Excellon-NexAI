@@ -57,11 +57,11 @@ export function useRuntimeView(viewKey: string | undefined) {
   })
 }
 
-export function useRuntimeViewByCode(viewCode: string | undefined) {
+export function useRuntimeViewByCode(viewCode: string | undefined, entity: string | undefined, surface: string | undefined) {
   return useQuery({
-    queryKey: ['runtime-view-code', viewCode],
-    queryFn: () => getRuntimeViewByCode(viewCode!),
-    enabled: !!viewCode,
+    queryKey: ['runtime-view-code', viewCode, entity, surface],
+    queryFn: () => getRuntimeViewByCode(viewCode!, entity!, surface!),
+    enabled: !!viewCode && !!entity && !!surface,
   })
 }
 

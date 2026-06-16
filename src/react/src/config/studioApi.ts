@@ -1,4 +1,7 @@
-﻿const BASE_URL = import.meta.env.VITE_API_URL ?? '/api/v1'
+import { featureFlags } from './featureFlags'
+
+const BASE_URL = import.meta.env.VITE_API_URL ?? '/api/v1'
+const AUTH_TOKEN = import.meta.env.VITE_AUTH_TOKEN
 
 // Dev-mode headers â€” no auth in initial build
 const DEV_HEADERS: Record<string, string> = {
@@ -25,7 +28,8 @@ export async function studioFetch<T>(
   const url = `${BASE_URL}${path}`
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...DEV_HEADERS,
+    ...(featureFlags.devAuthHeaders ? DEV_HEADERS : {}),
+    ...(AUTH_TOKEN ? { Authorization: `Bearer ${AUTH_TOKEN}` } : {}),
     ...((options.headers as Record<string, string>) ?? {}),
   }
 
@@ -194,14 +198,63 @@ export interface OverlayDefinition {
   updated_at: string
 }
 
-export const listOverlays = (params?: { entity_type?: string; layer?: string }) =>
-  studioFetch<{ items: OverlayDefinition[] }>(`/overlays?${new URLSearchParams(params as Record<string, string>).toString()}`)
+interface OverlayApiRecord {
+  id: string
+  tenant_id: string
+  artifact_type: string
+  artifact_key: string
+  layer: OverlayDefinition['layer']
+  scope_ref: string
+  delta_json: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+function toOverlayDefinition(record: OverlayApiRecord): OverlayDefinition {
+  return {
+    id: record.id,
+    tenant_id: record.tenant_id,
+    entity_type: record.artifact_key || record.artifact_type,
+    layer: record.layer,
+    scope_key: record.scope_ref,
+    delta: record.delta_json ?? {},
+    created_at: record.created_at,
+    updated_at: record.updated_at,
+  }
+}
+
+function featureDisabled(feature: string): Promise<never> {
+  return Promise.reject(new ApiError(404, `${feature} is disabled`, {
+    error: {
+      code: 'FEATURE_DISABLED',
+      message: `${feature} is disabled`,
+    },
+  }))
+}
+
+export const listOverlays = (params?: { entity_type?: string; layer?: string }) => {
+  const qs = new URLSearchParams()
+  if (params?.entity_type) qs.set('artifact_type', params.entity_type)
+  if (params?.layer) qs.set('layer', params.layer)
+  return studioFetch<OverlayApiRecord[]>(`/admin/overlay-deltas?${qs.toString()}`).then(items => ({
+    items: items.map(toOverlayDefinition),
+  }))
+}
 
 export const createOverlay = (body: Omit<OverlayDefinition, 'id' | 'tenant_id' | 'created_at' | 'updated_at'>) =>
-  studioFetch<OverlayDefinition>('/overlays', { method: 'POST', body: JSON.stringify(body) })
+  studioFetch<OverlayApiRecord>('/admin/overlay-deltas', {
+    method: 'POST',
+    body: JSON.stringify({
+      artifact_type: 'entity_schema',
+      artifact_key: body.entity_type,
+      layer: body.layer,
+      scope_ref: body.scope_key,
+      delta_json: body.delta,
+    }),
+  }).then(toOverlayDefinition)
 
 export const deleteOverlay = (id: string) =>
-  studioFetch<void>(`/overlays/${id}`, { method: 'DELETE' })
+  studioFetch<void>(`/admin/overlay-deltas/${id}`, { method: 'DELETE' })
 
 // â”€â”€ Node Tree API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -215,10 +268,10 @@ export interface NodeTreeItem {
 }
 
 export const listNodes = () =>
-  studioFetch<{ items: NodeTreeItem[] }>('/nodes')
+  studioFetch<{ items: NodeTreeItem[] }>('/admin/nodes')
 
 export const createNode = (body: Omit<NodeTreeItem, 'id' | 'children'>) =>
-  studioFetch<NodeTreeItem>('/nodes', { method: 'POST', body: JSON.stringify(body) })
+  studioFetch<NodeTreeItem>('/admin/nodes', { method: 'POST', body: JSON.stringify(body) })
 
 // â”€â”€ Index Queue API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -233,13 +286,13 @@ export interface IndexQueueItem {
 }
 
 export const listIndexQueue = (entityKey: string) =>
-  studioFetch<{ items: IndexQueueItem[] }>(`/indexes/queue?entity_type=${entityKey}`)
+  studioFetch<IndexQueueItem[]>(`/admin/indexes?entity_key=${entityKey}`).then(items => ({ items }))
 
 export const applyIndex = (id: string) =>
-  studioFetch<IndexQueueItem>(`/indexes/queue/${id}/apply`, { method: 'POST' })
+  studioFetch<IndexQueueItem>(`/admin/indexes/${id}/apply`, { method: 'POST' })
 
 export const discardIndex = (id: string) =>
-  studioFetch<IndexQueueItem>(`/indexes/queue/${id}/discard`, { method: 'POST' })
+  studioFetch<IndexQueueItem>(`/admin/indexes/${id}/discard`, { method: 'POST' })
 
 // â”€â”€ Expression API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -278,10 +331,12 @@ export interface NLPChatResponse {
 }
 
 export const nlpChat = (message: string, context: Record<string, unknown>) =>
-  studioFetch<NLPChatResponse>('/nlp/chat', {
-    method: 'POST',
-    body: JSON.stringify({ message, context }),
-  })
+  featureFlags.aiAssistant
+    ? studioFetch<NLPChatResponse>('/nlp/chat', {
+        method: 'POST',
+        body: JSON.stringify({ message, context }),
+      })
+    : featureDisabled('AI Assistant')
 
 export interface NLPImportedField {
   name: string
@@ -295,10 +350,12 @@ export interface NLPImportResponse {
 }
 
 export const nlpImport = (text: string) =>
-  studioFetch<NLPImportResponse>('/nlp/import', {
-    method: 'POST',
-    body: JSON.stringify({ text }),
-  })
+  featureFlags.aiAssistant
+    ? studioFetch<NLPImportResponse>('/nlp/import', {
+        method: 'POST',
+        body: JSON.stringify({ text }),
+      })
+    : featureDisabled('AI Assistant')
 
 
 // â”€â”€ View Studio API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -367,8 +424,8 @@ export const listViewVersions = (viewKey: string) =>
 export const getRuntimeView = (viewKey: string) =>
   studioFetch<ViewVersion>(`${STUDIO_PREFIX}/runtime/views/${viewKey}`)
 
-export const getRuntimeViewByCode = (viewCode: string) =>
-  studioFetch<ViewVersion>(`${STUDIO_PREFIX}/runtime/views/by-code/${viewCode}`)
+export const getRuntimeViewByCode = (viewCode: string, entity: string, surface: string) =>
+  studioFetch<ViewVersion>(`${STUDIO_PREFIX}/runtime/views/by-code/${viewCode}?${new URLSearchParams({ entity, surface }).toString()}`)
 
 // Component Registry
 export const listComponentRegistry = (params?: ComponentListParams) => {
@@ -383,12 +440,18 @@ export const getComponentEntry = (code: string) =>
 
 // Plugins
 export const listPlugins = () =>
-  studioFetch<Plugin[]>(`${STUDIO_PREFIX}/plugins`)
+  featureFlags.studioPlugins
+    ? studioFetch<Plugin[]>(`${STUDIO_PREFIX}/plugins`)
+    : Promise.resolve([])
 
 export const registerPlugin = (body: RegisterPluginRequest) =>
-  studioFetch<Plugin>(`${STUDIO_PREFIX}/plugins`, { method: 'POST', body: JSON.stringify(body) })
+  featureFlags.studioPlugins
+    ? studioFetch<Plugin>(`${STUDIO_PREFIX}/plugins`, { method: 'POST', body: JSON.stringify(body) })
+    : featureDisabled('Studio plugins')
 
 export const removePlugin = (pluginID: string) =>
-  studioFetch<void>(`${STUDIO_PREFIX}/plugins/${pluginID}`, { method: 'DELETE' })
+  featureFlags.studioPlugins
+    ? studioFetch<void>(`${STUDIO_PREFIX}/plugins/${pluginID}`, { method: 'DELETE' })
+    : featureDisabled('Studio plugins')
 
 

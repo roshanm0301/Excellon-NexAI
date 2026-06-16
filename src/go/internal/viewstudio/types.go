@@ -35,19 +35,20 @@ func (s SurfaceType) Valid() bool {
 // ─── View (extended artifact_header + artifact_version) ──────────────────────
 
 type View struct {
-	ArtifactID    string     `json:"artifact_id"`
-	ArtifactName  string     `json:"artifact_name"`
-	ArtifactType  string     `json:"artifact_type"`
-	TenantID      string     `json:"tenant_id"`
-	NodeID        string     `json:"node_id,omitempty"`
-	SurfaceType   string     `json:"surface_type,omitempty"`
-	PrimaryEntity string     `json:"primary_entity,omitempty"`
-	ViewCode      string     `json:"view_code,omitempty"`
-	ViewLabel     string     `json:"view_label,omitempty"`
-	ViewCategory  string     `json:"view_category,omitempty"`
-	CreatedAt     time.Time  `json:"created_at"`
-	UpdatedAt     time.Time  `json:"updated_at"`
-	CreatedBy     string     `json:"created_by"`
+	ArtifactID    string    `json:"artifact_id"`
+	ArtifactName  string    `json:"artifact_name"`
+	ArtifactType  string    `json:"artifact_type"`
+	TenantID      string    `json:"tenant_id"`
+	NodeID        string    `json:"node_id,omitempty"`
+	SurfaceType   string    `json:"surface_type,omitempty"`
+	PrimaryEntity string    `json:"primary_entity,omitempty"`
+	ViewCode      string    `json:"view_code,omitempty"`
+	ViewLabel     string    `json:"view_label,omitempty"`
+	ViewCategory  string    `json:"view_category,omitempty"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	CreatedBy     string    `json:"created_by"`
+	Revision      int64     `json:"revision"`
 	// Latest version info (denormalised for convenience)
 	LatestVersionID string `json:"latest_version_id,omitempty"`
 	LatestVersionNo int    `json:"latest_version_no,omitempty"`
@@ -64,6 +65,7 @@ type ViewVersion struct {
 	IsDraft     bool            `json:"is_draft"`
 	CreatedAt   time.Time       `json:"created_at"`
 	CreatedBy   string          `json:"created_by"`
+	Revision    int64           `json:"revision"`
 	PublishedAt *time.Time      `json:"published_at,omitempty"`
 	PublishedBy string          `json:"published_by,omitempty"`
 }
@@ -117,29 +119,29 @@ type PublishLogEntry struct {
 // ─── Component Registry ──────────────────────────────────────────────────────
 
 type ComponentEntry struct {
-	ComponentCode     string          `json:"component_code"`
-	ComponentName     string          `json:"component_name"`
-	Category          string          `json:"category"`
-	Version           string          `json:"version"`
-	Source            string          `json:"source"`
-	PluginID          *string         `json:"plugin_id,omitempty"`
-	SupportedSurfaces json.RawMessage `json:"supported_surfaces"`
-	SupportedBindings json.RawMessage `json:"supported_bindings"`
-	IsContainer       bool            `json:"is_container"`
-	AllowedParents    json.RawMessage `json:"allowed_parents"`
-	AllowedChildren   json.RawMessage `json:"allowed_children"`
-	ConfigSchema      json.RawMessage `json:"config_schema"`
-	DefaultProps      json.RawMessage `json:"default_props"`
-	EventSupport      json.RawMessage `json:"event_support"`
+	ComponentCode      string          `json:"component_code"`
+	ComponentName      string          `json:"component_name"`
+	Category           string          `json:"category"`
+	Version            string          `json:"version"`
+	Source             string          `json:"source"`
+	PluginID           *string         `json:"plugin_id,omitempty"`
+	SupportedSurfaces  json.RawMessage `json:"supported_surfaces"`
+	SupportedBindings  json.RawMessage `json:"supported_bindings"`
+	IsContainer        bool            `json:"is_container"`
+	AllowedParents     json.RawMessage `json:"allowed_parents"`
+	AllowedChildren    json.RawMessage `json:"allowed_children"`
+	ConfigSchema       json.RawMessage `json:"config_schema"`
+	DefaultProps       json.RawMessage `json:"default_props"`
+	EventSupport       json.RawMessage `json:"event_support"`
 	PermissionBehavior json.RawMessage `json:"permission_behavior"`
-	RuntimeRenderer   string          `json:"runtime_renderer"`
-	DesignerPanel     string          `json:"designer_panel"`
-	PreviewSupport    bool            `json:"preview_support"`
-	ValidationRules   json.RawMessage `json:"validation_rules"`
-	DeprecatedAt      *time.Time      `json:"deprecated_at,omitempty"`
-	SuccessorCode     *string         `json:"successor_code,omitempty"`
-	IsActive          bool            `json:"is_active"`
-	CreatedAt         time.Time       `json:"created_at"`
+	RuntimeRenderer    string          `json:"runtime_renderer"`
+	DesignerPanel      string          `json:"designer_panel"`
+	PreviewSupport     bool            `json:"preview_support"`
+	ValidationRules    json.RawMessage `json:"validation_rules"`
+	DeprecatedAt       *time.Time      `json:"deprecated_at,omitempty"`
+	SuccessorCode      *string         `json:"successor_code,omitempty"`
+	IsActive           bool            `json:"is_active"`
+	CreatedAt          time.Time       `json:"created_at"`
 }
 
 // ─── Plugin ──────────────────────────────────────────────────────────────────
