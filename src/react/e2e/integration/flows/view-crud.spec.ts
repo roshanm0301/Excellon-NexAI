@@ -6,7 +6,6 @@
  */
 
 import { test, expect } from '@playwright/test'
-import { createView, deleteView } from '../helpers/api'
 import { SEL } from '../helpers/selectors'
 
 const DEV_HEADERS = {
@@ -90,11 +89,11 @@ test.describe('View CRUD flows', () => {
     // Should navigate to designer after creation
     await expect(page).toHaveURL(/studio\/views\/.+\/edit/)
 
-    // Cleanup: extract viewId from URL and delete
+    // Cleanup: extract viewId from URL and delete via API
     const url = page.url()
     const match = url.match(/studio\/views\/([^/]+)\/edit/)
     if (match?.[1]) {
-      await deleteView(request, match[1])
+      await request.delete(`/api/v1/studio/views/${match[1]}`, { headers: DEV_HEADERS })
     }
   })
 
@@ -121,23 +120,31 @@ test.describe('View CRUD flows', () => {
     }
   })
 
-  test('archive view via row action', async ({ request }) => {
+  test('archive view via API', async ({ request }) => {
     // Create a view to archive
-    const view = await createView(request, {
-      name: 'Archive Test ' + Date.now(),
-      surface_type: 'standard_crud',
-    })
-    expect(view).toBeDefined()
-
-    // Verify it was created
-    const getRes = await request.get(`/api/v1/studio/views/${view.id}`, {
+    const createRes = await request.post('/api/v1/studio/views', {
+      data: {
+        view_label: 'Archive Test ' + Date.now(),
+        surface_type: 'standard_crud',
+        primary_entity: 'vehicle',
+      },
       headers: DEV_HEADERS,
     })
-    // Either 200 (found) is acceptable
-    expect([200, 404]).toContain(getRes.status())
+    expect(createRes.ok()).toBeTruthy()
+    const view = await createRes.json()
+    expect(view).toHaveProperty('artifact_id')
+
+    // Verify it was created
+    const getRes = await request.get(`/api/v1/studio/views/${view.artifact_id}`, {
+      headers: DEV_HEADERS,
+    })
+    expect(getRes.status()).toBe(200)
 
     // Delete it
-    await deleteView(request, view.id)
+    const deleteRes = await request.delete(`/api/v1/studio/views/${view.artifact_id}`, {
+      headers: DEV_HEADERS,
+    })
+    expect(deleteRes.ok()).toBeTruthy()
   })
 
   test('GET /studio/views API returns items array', async ({ request }) => {

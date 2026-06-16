@@ -5,7 +5,7 @@
  * Tests draft save, publish, version listing, and rollback APIs.
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect, type APIRequestContext } from '@playwright/test'
 
 const DEV_HEADERS = {
   'x-tenant-id': '00000000-0000-0000-0000-000000000001',
@@ -16,7 +16,7 @@ const DEV_HEADERS = {
 
 const BASE = '/api/v1/studio'
 
-async function createTestView(request: Parameters<typeof test>[1] extends (args: infer A) => unknown ? never : any, label: string) {
+async function createTestView(request: APIRequestContext, label: string) {
   const res = await request.post(`${BASE}/views`, {
     data: {
       view_label: label,
@@ -29,7 +29,7 @@ async function createTestView(request: Parameters<typeof test>[1] extends (args:
   return res.json() as Promise<{ artifact_id: string; revision: number }>
 }
 
-async function deleteTestView(request: any, artifactId: string) {
+async function deleteTestView(request: APIRequestContext, artifactId: string) {
   await request.delete(`${BASE}/views/${artifactId}`, { headers: DEV_HEADERS })
 }
 
