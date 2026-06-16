@@ -391,6 +391,7 @@ export const listViews = (params?: ViewListParams) => {
   if (params?.surface) qs.set('surface', params.surface)
   if (params?.entity) qs.set('entity', params.entity)
   if (params?.status) qs.set('status', params.status)
+  if (params?.search) qs.set('search', params.search)
   if (params?.limit) qs.set('limit', String(params.limit))
   if (params?.offset) qs.set('offset', String(params.offset))
   return studioFetch<ViewListResponse>(`${STUDIO_PREFIX}/views?${qs.toString()}`)

@@ -101,23 +101,22 @@ test.describe('View CRUD flows', () => {
     await page.goto('studio/views')
     await expect(page.locator(SEL.viewsGrid)).toBeVisible()
 
-    // Look for Vehicle Master first (seeded)
+    // Search for Vehicle Master (seeded view) — needed because VirtualGrid only renders visible rows
+    const searchInput = page.locator(SEL.searchInput)
+    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput.fill('Vehicle Master')
+      await page.waitForTimeout(300)
+    }
+
     const vehicleRow = page.locator(SEL.viewsGrid).getByText('Vehicle Master', { exact: false })
-    if (await vehicleRow.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await vehicleRow.click()
-      await expect(page).toHaveURL(/studio\/views\/.+\/edit/)
-      await expect(page.locator(SEL.vdToolbar)).toBeVisible()
+    if (!await vehicleRow.isVisible({ timeout: 5000 }).catch(() => false)) {
+      test.skip(true, 'No seeded views found in grid — run db/seeds/seed_all.sh first')
       return
     }
 
-    // Fallback: click first row if any items exist
-    const firstCell = page.locator(SEL.viewsGrid).locator('[data-component-key], .vg-cell, .vg-row').first()
-    if (await firstCell.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await firstCell.click()
-      await expect(page).toHaveURL(/studio\/views\/.+\/edit/)
-    } else {
-      test.skip(true, 'No views found in grid — run db/seeds/seed_all.sh first')
-    }
+    await vehicleRow.click()
+    await expect(page).toHaveURL(/studio\/views\/.+\/edit/)
+    await expect(page.locator(SEL.vdToolbar)).toBeVisible()
   })
 
   test('archive view via API', async ({ request }) => {

@@ -85,10 +85,11 @@ func (h *Handler) listViews(w http.ResponseWriter, r *http.Request) {
 	surface := r.URL.Query().Get("surface")
 	entity := r.URL.Query().Get("entity")
 	status := r.URL.Query().Get("status")
+	search := r.URL.Query().Get("search")
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 
-	views, total, err := h.repo.ListViews(r.Context(), tenantID, surface, entity, status, limit, offset)
+	views, total, err := h.repo.ListViews(r.Context(), tenantID, surface, entity, status, search, limit, offset)
 	if err != nil {
 		slog.Error("viewstudio: list views", "error", err)
 		writeError(w, r, http.StatusInternalServerError, "failed to list views")

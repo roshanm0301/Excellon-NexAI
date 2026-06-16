@@ -22,6 +22,13 @@ test.describe('Header-Line surface — Seeded DMS views', () => {
     await page.goto('studio/views')
     await expect(page.locator(SEL.viewsGrid)).toBeVisible()
 
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput1 = page.locator(SEL.searchInput)
+    if (await searchInput1.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput1.fill('Sale Order Editor')
+      await page.waitForTimeout(300)
+    }
+
     const view = page.locator(SEL.viewsGrid).getByText('Sale Order Editor', { exact: false })
     if (!await view.isVisible({ timeout: 5000 }).catch(() => false)) {
       test.skip(true, 'Sale Order Editor seed view not found — run db/seeds/seed_all.sh first')
@@ -35,6 +42,14 @@ test.describe('Header-Line surface — Seeded DMS views', () => {
 
   test('Sale Order Editor designer shows component tree', async ({ page }) => {
     await page.goto('studio/views')
+    await expect(page.locator(SEL.viewsGrid)).toBeVisible()
+
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput = page.locator(SEL.searchInput)
+    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput.fill('Sale Order Editor')
+      await page.waitForTimeout(300)
+    }
 
     const view = page.locator(SEL.viewsGrid).getByText('Sale Order Editor', { exact: false })
     if (!await view.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -48,6 +63,14 @@ test.describe('Header-Line surface — Seeded DMS views', () => {
 
   test('Service Order Editor view loads in designer', async ({ page }) => {
     await page.goto('studio/views')
+    await expect(page.locator(SEL.viewsGrid)).toBeVisible()
+
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput = page.locator(SEL.searchInput)
+    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput.fill('Service Order Editor')
+      await page.waitForTimeout(300)
+    }
 
     const view = page.locator(SEL.viewsGrid).getByText('Service Order Editor', { exact: false })
     if (!await view.isVisible({ timeout: 5000 }).catch(() => false)) {

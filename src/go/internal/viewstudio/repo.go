@@ -99,8 +99,8 @@ func (r *Repo) CreateView(ctx context.Context, tenantID, userID string, req Crea
 	}, nil
 }
 
-func (r *Repo) ListViews(ctx context.Context, tenantID, surface, entity, status string, limit, offset int) ([]View, int, error) {
-	if limit <= 0 || limit > 100 {
+func (r *Repo) ListViews(ctx context.Context, tenantID, surface, entity, status, search string, limit, offset int) ([]View, int, error) {
+	if limit <= 0 || limit > 200 {
 		limit = 50
 	}
 
@@ -122,6 +122,11 @@ func (r *Repo) ListViews(ctx context.Context, tenantID, surface, entity, status 
 		baseWhere += ` AND EXISTS (SELECT 1 FROM artifact_version v WHERE v.artifact_id = h.artifact_id AND v.is_active = true)`
 	} else if status == "draft" {
 		baseWhere += ` AND NOT EXISTS (SELECT 1 FROM artifact_version v WHERE v.artifact_id = h.artifact_id AND v.is_active = true)`
+	}
+	if search != "" {
+		baseWhere += fmt.Sprintf(` AND (h.view_label ILIKE $%d OR h.view_code ILIKE $%d OR h.primary_entity ILIKE $%d)`, argN, argN, argN)
+		args = append(args, "%"+search+"%")
+		argN++
 	}
 
 	// Count

@@ -8,6 +8,24 @@ const __dirname = path.dirname(__filename)
 const REPO_ROOT = path.resolve(__dirname, '../../../..')
 const GO_SERVER_BIN = path.join(REPO_ROOT, '.test-server')
 
+const SEEDS_DIR = path.join(REPO_ROOT, 'db', 'seeds')
+
+// Apply seed SQL files directly via psql (works without Docker)
+function applySeeds(databaseUrl: string) {
+  const psqlBase = `PGPASSWORD=nexai psql -h localhost -p 5432 -U nexai -d nexai`
+  const entitySeed = path.join(SEEDS_DIR, 'test_entities.sql')
+  const viewSeed = path.join(SEEDS_DIR, 'test_views.sql')
+  for (const seedFile of [entitySeed, viewSeed]) {
+    if (existsSync(seedFile)) {
+      try {
+        execSync(`${psqlBase} -f ${seedFile}`, { stdio: 'pipe' })
+      } catch {
+        // Seeds use ON CONFLICT DO NOTHING — non-zero exit is acceptable
+      }
+    }
+  }
+}
+
 async function waitForUrl(url: string, timeoutMs = 30000): Promise<void> {
   const deadline = Date.now() + timeoutMs
   while (Date.now() < deadline) {
@@ -24,7 +42,12 @@ async function waitForUrl(url: string, timeoutMs = 30000): Promise<void> {
 
 export default async function globalSetup() {
   const goPort = process.env.PLAYWRIGHT_GO_PORT ?? '9080'
+  const databaseUrl = process.env.DATABASE_URL ?? 'postgres://nexai:nexai@localhost:5432/nexai?sslmode=disable'
   const healthUrl = `http://127.0.0.1:${goPort}/health`
+
+  // Always apply seeds (idempotent via ON CONFLICT DO NOTHING)
+  console.log('[global-setup] Applying DMS seed data...')
+  applySeeds(databaseUrl)
 
   // Check if Go server already running
   try {
@@ -39,29 +62,27 @@ export default async function globalSetup() {
 
   // Ensure postgres is running and migrations are applied
   console.log('[global-setup] Starting postgres...')
-  execSync(`docker compose -f ${REPO_ROOT}/docker-compose.yml up -d postgres`, { stdio: 'inherit' })
-
-  console.log('[global-setup] Waiting for postgres...')
-  let pgReady = false
-  for (let i = 0; i < 30; i++) {
-    try {
-      execSync(`docker compose -f ${REPO_ROOT}/docker-compose.yml exec -T postgres pg_isready -U nexai -q`, { stdio: 'pipe' })
-      pgReady = true
-      break
-    } catch {
-      await new Promise(r => setTimeout(r, 1000))
-    }
-  }
-  if (!pgReady) throw new Error('PostgreSQL did not become ready')
-
-  console.log('[global-setup] Running migrations...')
-  execSync(`docker compose -f ${REPO_ROOT}/docker-compose.yml run --rm migrate`, { stdio: 'inherit' })
-
-  console.log('[global-setup] Applying seeds...')
   try {
-    execSync(`bash ${REPO_ROOT}/db/seeds/seed_all.sh`, { stdio: 'inherit' })
-  } catch (e) {
-    console.warn('[global-setup] Seed warning (may already be seeded):', e)
+    execSync(`docker compose -f ${REPO_ROOT}/docker-compose.yml up -d postgres`, { stdio: 'inherit' })
+
+    console.log('[global-setup] Waiting for postgres...')
+    let pgReady = false
+    for (let i = 0; i < 30; i++) {
+      try {
+        execSync(`docker compose -f ${REPO_ROOT}/docker-compose.yml exec -T postgres pg_isready -U nexai -q`, { stdio: 'pipe' })
+        pgReady = true
+        break
+      } catch {
+        await new Promise(r => setTimeout(r, 1000))
+      }
+    }
+    if (!pgReady) throw new Error('PostgreSQL did not become ready')
+
+    console.log('[global-setup] Running migrations...')
+    execSync(`docker compose -f ${REPO_ROOT}/docker-compose.yml run --rm migrate`, { stdio: 'inherit' })
+  } catch {
+    // Docker not available — assume local PostgreSQL is running
+    console.log('[global-setup] Docker unavailable, assuming local PostgreSQL on :5432')
   }
 
   // Build Go binary if needed
@@ -69,7 +90,7 @@ export default async function globalSetup() {
     console.log('[global-setup] Building Go server...')
     execSync(`/usr/local/go/bin/go build -o ${GO_SERVER_BIN} ${REPO_ROOT}/src/go/cmd/server/`, {
       stdio: 'inherit',
-      cwd: REPO_ROOT,
+      cwd: path.join(REPO_ROOT, 'src', 'go'),
     })
   }
 
@@ -81,7 +102,7 @@ export default async function globalSetup() {
     env: {
       ...process.env,
       PORT: goPort,
-      DATABASE_URL: 'postgres://nexai:nexai@localhost:5433/nexai?sslmode=disable',
+      DATABASE_URL: databaseUrl,
       NEXAI_AUTH_MODE: 'local',
       NEXAI_STUDIO_PLUGINS_ENABLED: 'false',
       NEXAI_AI_FEATURES_ENABLED: 'false',

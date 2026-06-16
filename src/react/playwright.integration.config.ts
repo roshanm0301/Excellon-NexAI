@@ -15,6 +15,7 @@ export default defineConfig({
     timeout: 15_000,
   },
   fullyParallel: false,
+  workers: 1,
   reporter: [
     ['list'],
     ['html', { outputFolder: 'playwright-report-integration', open: 'never' }],

@@ -22,6 +22,13 @@ test.describe('Standard CRUD surface — Seeded DMS views', () => {
     await page.goto('studio/views')
     await expect(page.locator(SEL.viewsGrid)).toBeVisible()
 
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput1 = page.locator(SEL.searchInput)
+    if (await searchInput1.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput1.fill('Vehicle Master')
+      await page.waitForTimeout(300)
+    }
+
     const vehicleView = page.locator(SEL.viewsGrid).getByText('Vehicle Master', { exact: false })
     if (!await vehicleView.isVisible({ timeout: 5000 }).catch(() => false)) {
       test.skip(true, 'Vehicle Master seed view not found — run db/seeds/seed_all.sh first')
@@ -36,6 +43,13 @@ test.describe('Standard CRUD surface — Seeded DMS views', () => {
   test('Vehicle Master designer shows component tree and palette', async ({ page }) => {
     await page.goto('studio/views')
     await expect(page.locator(SEL.viewsGrid)).toBeVisible()
+
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput = page.locator(SEL.searchInput)
+    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput.fill('Vehicle Master')
+      await page.waitForTimeout(300)
+    }
 
     const vehicleView = page.locator(SEL.viewsGrid).getByText('Vehicle Master', { exact: false })
     if (!await vehicleView.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -52,6 +66,14 @@ test.describe('Standard CRUD surface — Seeded DMS views', () => {
 
   test('Vehicle Master toolbar has save and publish buttons', async ({ page }) => {
     await page.goto('studio/views')
+    await expect(page.locator(SEL.viewsGrid)).toBeVisible()
+
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput = page.locator(SEL.searchInput)
+    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput.fill('Vehicle Master')
+      await page.waitForTimeout(300)
+    }
 
     const vehicleView = page.locator(SEL.viewsGrid).getByText('Vehicle Master', { exact: false })
     if (!await vehicleView.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -66,6 +88,14 @@ test.describe('Standard CRUD surface — Seeded DMS views', () => {
 
   test('Customer Master view loads in designer', async ({ page }) => {
     await page.goto('studio/views')
+    await expect(page.locator(SEL.viewsGrid)).toBeVisible()
+
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput = page.locator(SEL.searchInput)
+    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput.fill('Customer Master')
+      await page.waitForTimeout(300)
+    }
 
     const view = page.locator(SEL.viewsGrid).getByText('Customer Master', { exact: false })
     if (!await view.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -79,6 +109,14 @@ test.describe('Standard CRUD surface — Seeded DMS views', () => {
 
   test('Parts Inventory view loads in designer', async ({ page }) => {
     await page.goto('studio/views')
+    await expect(page.locator(SEL.viewsGrid)).toBeVisible()
+
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput = page.locator(SEL.searchInput)
+    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput.fill('Parts Inventory')
+      await page.waitForTimeout(300)
+    }
 
     const view = page.locator(SEL.viewsGrid).getByText('Parts Inventory', { exact: false })
     if (!await view.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -92,6 +130,14 @@ test.describe('Standard CRUD surface — Seeded DMS views', () => {
 
   test('designer back button navigates to list', async ({ page }) => {
     await page.goto('studio/views')
+    await expect(page.locator(SEL.viewsGrid)).toBeVisible()
+
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput = page.locator(SEL.searchInput)
+    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput.fill('Vehicle Master')
+      await page.waitForTimeout(300)
+    }
 
     const firstView = page.locator(SEL.viewsGrid).getByText('Vehicle Master', { exact: false })
     if (!await firstView.isVisible({ timeout: 5000 }).catch(() => false)) {

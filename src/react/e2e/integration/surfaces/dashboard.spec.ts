@@ -22,6 +22,13 @@ test.describe('Dashboard surface — Seeded DMS views', () => {
     await page.goto('studio/views')
     await expect(page.locator(SEL.viewsGrid)).toBeVisible()
 
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput1 = page.locator(SEL.searchInput)
+    if (await searchInput1.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput1.fill('Sales Dashboard')
+      await page.waitForTimeout(300)
+    }
+
     const view = page.locator(SEL.viewsGrid).getByText('Sales Dashboard', { exact: false })
     if (!await view.isVisible({ timeout: 5000 }).catch(() => false)) {
       test.skip(true, 'Sales Dashboard seed view not found — run db/seeds/seed_all.sh first')
@@ -35,6 +42,14 @@ test.describe('Dashboard surface — Seeded DMS views', () => {
 
   test('Sales Dashboard designer shows palette', async ({ page }) => {
     await page.goto('studio/views')
+    await expect(page.locator(SEL.viewsGrid)).toBeVisible()
+
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput = page.locator(SEL.searchInput)
+    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput.fill('Sales Dashboard')
+      await page.waitForTimeout(300)
+    }
 
     const view = page.locator(SEL.viewsGrid).getByText('Sales Dashboard', { exact: false })
     if (!await view.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -48,6 +63,14 @@ test.describe('Dashboard surface — Seeded DMS views', () => {
 
   test('Service Dashboard view loads in designer', async ({ page }) => {
     await page.goto('studio/views')
+    await expect(page.locator(SEL.viewsGrid)).toBeVisible()
+
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput = page.locator(SEL.searchInput)
+    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput.fill('Service Dashboard')
+      await page.waitForTimeout(300)
+    }
 
     const view = page.locator(SEL.viewsGrid).getByText('Service Dashboard', { exact: false })
     if (!await view.isVisible({ timeout: 5000 }).catch(() => false)) {

@@ -5,7 +5,7 @@ export const SEL = {
   viewsGrid: '[data-testid="views-grid"]',
   createViewModal: '[data-testid="create-view-modal"]',
   newViewBtn: 'button:has-text("New View")',
-  searchInput: 'input[placeholder*="Search"]',
+  searchInput: 'input[placeholder*="Search views"]',
 
   // ViewDesignerPage
   vdToolbar: '[data-testid="vd-toolbar"]',

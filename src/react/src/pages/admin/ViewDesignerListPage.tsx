@@ -42,15 +42,12 @@ export function ViewDesignerListPage() {
   const { data, isLoading } = useViews({
     surface: surfaceFilter as SurfaceType | undefined,
     status: statusFilter as 'draft' | 'published' | undefined,
+    search: search || undefined,
   })
   const archiveMut = useArchiveView()
   const createMut = useCreateView()
 
-  const filtered = (data?.items ?? []).filter(v =>
-    (v.view_label ?? v.artifact_name).toLowerCase().includes(search.toLowerCase()) ||
-    (v.primary_entity ?? '').toLowerCase().includes(search.toLowerCase()) ||
-    (v.view_code ?? '').toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = data?.items ?? []
 
   const columns: VirtualGridColumn<View>[] = [
     {

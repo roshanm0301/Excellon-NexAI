@@ -305,7 +305,7 @@ func TestInteg_ListViews(t *testing.T) {
 	})
 
 	// List all — both should appear
-	all, total, err := repo.ListViews(ctx, tid, "", "", "", 50, 0)
+	all, total, err := repo.ListViews(ctx, tid, "", "", "", "", 50, 0)
 	if err != nil {
 		t.Fatalf("ListViews all: %v", err)
 	}
@@ -315,7 +315,7 @@ func TestInteg_ListViews(t *testing.T) {
 	_ = all
 
 	// Filter by surface=dashboard — only viewA
-	dashboardViews, dashTotal, err := repo.ListViews(ctx, tid, "dashboard", "", "", 50, 0)
+	dashboardViews, dashTotal, err := repo.ListViews(ctx, tid, "dashboard", "", "", "", 50, 0)
 	if err != nil {
 		t.Fatalf("ListViews dashboard: %v", err)
 	}
@@ -329,7 +329,7 @@ func TestInteg_ListViews(t *testing.T) {
 	}
 
 	// Filter by surface=kanban — only viewB
-	kanbanViews, kanbanTotal, err := repo.ListViews(ctx, tid, "kanban", "", "", 50, 0)
+	kanbanViews, kanbanTotal, err := repo.ListViews(ctx, tid, "kanban", "", "", "", 50, 0)
 	if err != nil {
 		t.Fatalf("ListViews kanban: %v", err)
 	}

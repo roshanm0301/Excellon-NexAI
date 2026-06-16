@@ -24,6 +24,13 @@ test.describe('Split View surface — Seeded DMS views', () => {
     await page.goto('studio/views')
     await expect(page.locator(SEL.viewsGrid)).toBeVisible()
 
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput1 = page.locator(SEL.searchInput)
+    if (await searchInput1.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput1.fill('Customer 360')
+      await page.waitForTimeout(300)
+    }
+
     const view = page.locator(SEL.viewsGrid).getByText('Customer 360', { exact: false })
     if (!await view.isVisible({ timeout: 5000 }).catch(() => false)) {
       test.skip(true, 'Customer 360 seed view not found — run db/seeds/seed_all.sh first')
@@ -37,6 +44,14 @@ test.describe('Split View surface — Seeded DMS views', () => {
 
   test('Customer 360 designer shows component tree and palette', async ({ page }) => {
     await page.goto('studio/views')
+    await expect(page.locator(SEL.viewsGrid)).toBeVisible()
+
+    // Fill search to filter grid to this view (VirtualGrid only renders visible rows)
+    const searchInput = page.locator(SEL.searchInput)
+    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput.fill('Customer 360')
+      await page.waitForTimeout(300)
+    }
 
     const view = page.locator(SEL.viewsGrid).getByText('Customer 360', { exact: false })
     if (!await view.isVisible({ timeout: 5000 }).catch(() => false)) {

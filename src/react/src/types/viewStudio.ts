@@ -351,6 +351,7 @@ export interface ViewListParams {
   surface?: SurfaceType;
   entity?: string;
   status?: 'draft' | 'published' | 'all';
+  search?: string;
   limit?: number;
   offset?: number;
 }
