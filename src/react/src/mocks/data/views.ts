@@ -47,13 +47,13 @@ function inp(key: string, code: string, entity: string, fieldKey: string, label:
   return { component_key: key, component_code: code, props: { label, ...extra }, bindings: { value: fld(entity, fieldKey) } }
 }
 function vrow(key: string, children: unknown[]) {
-  return { component_key: key, component_code: 'Row', children }
+  return { component_key: key, component_code: 'grid_row', children }
 }
 function vcol(key: string, children: unknown[]) {
-  return { component_key: key, component_code: 'Column', children }
+  return { component_key: key, component_code: 'grid_column', children }
 }
 function vsec(key: string, title: string, children: unknown[]) {
-  return { component_key: key, component_code: 'Section', props: { title }, children }
+  return { component_key: key, component_code: 'section', props: { title }, children }
 }
 
 // ── view payloads ──────────────────────────────────────────────────────────────
@@ -62,12 +62,12 @@ const saleOrdersPayload: Record<string, unknown> = {
   meta: { description: 'Sale Order list with search, filters, and actions', default_mode: 'view' },
   datasources: [{ source_key: 'so_list', base_entity: 'sale_order', pagination: { page_size: 25 }, sort: [{ field: 'documentDate', direction: 'desc' }] }],
   component_tree: {
-    component_key: 'root', component_code: 'PageRoot',
+    component_key: 'root', component_code: 'page_root',
     children: [
-      { component_key: 'tb', component_code: 'Toolbar', children: [
-        { component_key: 'btn-new-so', component_code: 'Button', props: { variant: 'primary' }, bindings: { label: sta('New Sale Order') } },
+      { component_key: 'tb', component_code: 'toolbar', children: [
+        { component_key: 'btn-new-so', component_code: 'button', props: { variant: 'primary' }, bindings: { label: sta('New Sale Order') } },
       ]},
-      { component_key: 'fp-so', component_code: 'FilterPanel', bindings: { filters: sta([
+      { component_key: 'fp-so', component_code: 'filter_panel', bindings: { filters: sta([
         { field: 'documentDate', operator: 'gte', label: 'From Date', type: 'date' },
         { field: 'documentDate', operator: 'lte', label: 'To Date', type: 'date' },
         { field: 'status', label: 'Status', type: 'enum' },
@@ -75,7 +75,7 @@ const saleOrdersPayload: Record<string, unknown> = {
         { field: 'branch', label: 'Branch', type: 'text' },
         { field: 'paymentMode', label: 'Payment Mode', type: 'enum' },
       ]) }},
-      { component_key: 'dt-so', component_code: 'DataTable',
+      { component_key: 'dt-so', component_code: 'data_table',
         props: { columns: [
           { key: 'documentNumber', label: 'SO Number', sortable: true, width: 140 },
           { key: 'documentDate', label: 'Date', sortable: true, width: 110, type: 'date' },
@@ -99,91 +99,91 @@ const saleOrderEditorPayload: Record<string, unknown> = {
     { source_key: 'sol_list', base_entity: 'sale_order_line', pagination: { page_size: 50 } },
   ],
   component_tree: {
-    component_key: 'root', component_code: 'PageRoot',
+    component_key: 'root', component_code: 'page_root',
     children: [
-      { component_key: 'tb-so', component_code: 'Toolbar', children: [
-        { component_key: 'btn-save', component_code: 'Button', props: { variant: 'primary' }, bindings: { label: sta('Save Draft') } },
-        { component_key: 'btn-submit', component_code: 'Button', props: { variant: 'secondary' }, bindings: { label: sta('Submit Order') } },
-        { component_key: 'sb-status', component_code: 'StatusBadge', bindings: { status: fld('sale_order', 'status') } },
+      { component_key: 'tb-so', component_code: 'toolbar', children: [
+        { component_key: 'btn-save', component_code: 'button', props: { variant: 'primary' }, bindings: { label: sta('Save Draft') } },
+        { component_key: 'btn-submit', component_code: 'button', props: { variant: 'secondary' }, bindings: { label: sta('Submit Order') } },
+        { component_key: 'sb-status', component_code: 'status_badge', bindings: { status: fld('sale_order', 'status') } },
       ]},
       vsec('sec-doc', 'Document Information', [
         vrow('r-doc-1', [
-          vcol('c-doc-1', [inp('f-docno',   'TextInput',  'sale_order', 'documentNumber',  'Document Number',   { readOnly: true })]),
-          vcol('c-doc-2', [inp('f-docdate',  'DatePicker', 'sale_order', 'documentDate',    'Document Date')]),
-          vcol('c-doc-3', [inp('f-status',   'Label',      'sale_order', 'status',           'Status')]),
-          vcol('c-doc-4', [inp('f-createdby','Label',      'sale_order', 'createdBy',        'Created By')]),
+          vcol('c-doc-1', [inp('f-docno',   'text_input',  'sale_order', 'documentNumber',  'Document Number',   { readOnly: true })]),
+          vcol('c-doc-2', [inp('f-docdate',  'date_picker', 'sale_order', 'documentDate',    'Document Date')]),
+          vcol('c-doc-3', [inp('f-status',   'label',      'sale_order', 'status',           'Status')]),
+          vcol('c-doc-4', [inp('f-createdby','label',      'sale_order', 'createdBy',        'Created By')]),
         ]),
         vrow('r-doc-2', [
-          vcol('c-doc-5', [inp('f-org',   'ReferenceSelect', 'sale_order', 'organisation', 'Organisation', { entity: 'organisation' })]),
-          vcol('c-doc-6', [inp('f-branch','ReferenceSelect', 'sale_order', 'branch',        'Branch',       { entity: 'branch' })]),
-          vcol('c-doc-7', [inp('f-dept',  'ReferenceSelect', 'sale_order', 'department',    'Department',   { entity: 'department' })]),
+          vcol('c-doc-5', [inp('f-org',   'reference_select', 'sale_order', 'organisation', 'Organisation', { entity: 'organisation' })]),
+          vcol('c-doc-6', [inp('f-branch','reference_select', 'sale_order', 'branch',        'Branch',       { entity: 'branch' })]),
+          vcol('c-doc-7', [inp('f-dept',  'reference_select', 'sale_order', 'department',    'Department',   { entity: 'department' })]),
         ]),
       ]),
       vsec('sec-cust', 'Customer Details', [
         vrow('r-cust-1', [
-          vcol('c-cust-1', [inp('f-customer', 'ReferenceSelect', 'sale_order', 'customer',       'Customer *',        { entity: 'customer', required: true })]),
-          vcol('c-cust-2', [inp('f-gstin',    'TextInput',       'sale_order', 'gstin',           'Customer GSTIN')]),
-          vcol('c-cust-3', [inp('f-exec',     'ReferenceSelect', 'sale_order', 'salesExecutive', 'Sales Executive *', { entity: 'employee', required: true })]),
-          vcol('c-cust-4', [inp('f-source',   'Dropdown',        'sale_order', 'orderSource',    'Order Source',      { options: ['WalkIn','Online','Referral','Exhibition','Campaign'] })]),
+          vcol('c-cust-1', [inp('f-customer', 'reference_select', 'sale_order', 'customer',       'Customer *',        { entity: 'customer', required: true })]),
+          vcol('c-cust-2', [inp('f-gstin',    'text_input',       'sale_order', 'gstin',           'Customer GSTIN')]),
+          vcol('c-cust-3', [inp('f-exec',     'reference_select', 'sale_order', 'salesExecutive', 'Sales Executive *', { entity: 'employee', required: true })]),
+          vcol('c-cust-4', [inp('f-source',   'dropdown_select',        'sale_order', 'orderSource',    'Order Source',      { options: ['WalkIn','Online','Referral','Exhibition','Campaign'] })]),
         ]),
         vrow('r-cust-2', [
-          vcol('c-cust-5', [inp('f-priority', 'Dropdown',  'sale_order', 'priority',              'Priority',               { options: ['High','Medium','Low'] })]),
-          vcol('c-cust-6', [inp('f-deldate',  'DatePicker','sale_order', 'requestedDeliveryDate', 'Requested Delivery Date')]),
-          vcol('c-cust-7', [inp('f-validtill','DatePicker','sale_order', 'validTillDate',          'Valid Till Date')]),
-          vcol('c-cust-8', [inp('f-pos',      'Dropdown',  'sale_order', 'placeOfSupply',         'Place of Supply',        { options: ['Maharashtra','Karnataka','TamilNadu','Delhi','Gujarat','Telangana','AndhraPradesh','WestBengal','Rajasthan','UttarPradesh'] })]),
+          vcol('c-cust-5', [inp('f-priority', 'dropdown_select',  'sale_order', 'priority',              'Priority',               { options: ['High','Medium','Low'] })]),
+          vcol('c-cust-6', [inp('f-deldate',  'date_picker','sale_order', 'requestedDeliveryDate', 'Requested Delivery Date')]),
+          vcol('c-cust-7', [inp('f-validtill','date_picker','sale_order', 'validTillDate',          'Valid Till Date')]),
+          vcol('c-cust-8', [inp('f-pos',      'dropdown_select',  'sale_order', 'placeOfSupply',         'Place of Supply',        { options: ['Maharashtra','Karnataka','TamilNadu','Delhi','Gujarat','Telangana','AndhraPradesh','WestBengal','Rajasthan','UttarPradesh'] })]),
         ]),
       ]),
       vsec('sec-del', 'Delivery', [
         vrow('r-del-1', [
-          vcol('c-del-1', [inp('f-delterm', 'ReferenceSelect', 'sale_order', 'deliveryTerm', 'Delivery Term', { entity: 'delivery_term' })]),
-          vcol('c-del-2', [inp('f-deltype', 'ReferenceSelect', 'sale_order', 'deliveryType', 'Delivery Type', { entity: 'delivery_type' })]),
-          vcol('c-del-3', [inp('f-delslot', 'ReferenceSelect', 'sale_order', 'deliverySlot', 'Delivery Slot', { entity: 'delivery_slot' })]),
+          vcol('c-del-1', [inp('f-delterm', 'reference_select', 'sale_order', 'deliveryTerm', 'Delivery Term', { entity: 'delivery_term' })]),
+          vcol('c-del-2', [inp('f-deltype', 'reference_select', 'sale_order', 'deliveryType', 'Delivery Type', { entity: 'delivery_type' })]),
+          vcol('c-del-3', [inp('f-delslot', 'reference_select', 'sale_order', 'deliverySlot', 'Delivery Slot', { entity: 'delivery_slot' })]),
         ]),
         vrow('r-del-2', [
-          vcol('c-del-4', [inp('f-deladdr', 'Textarea', 'sale_order', 'deliveryAddress', 'Delivery Address', { rows: 3 })]),
+          vcol('c-del-4', [inp('f-deladdr', 'textarea', 'sale_order', 'deliveryAddress', 'Delivery Address', { rows: 3 })]),
         ]),
       ]),
       vsec('sec-pay', 'Payment Details', [
         vrow('r-pay-1', [
-          vcol('c-pay-1', [inp('f-paymode',   'Dropdown',    'sale_order', 'paymentMode',   'Payment Mode *',   { options: ['Cash','Finance','Exchange'], required: true })]),
-          vcol('c-pay-2', [inp('f-paymethod', 'Dropdown',    'sale_order', 'paymentMethod', 'Payment Method',   { options: ['Cheque','DD','NEFT','RTGS','UPI','Cash'] })]),
-          vcol('c-pay-3', [inp('f-advance',   'NumberInput', 'sale_order', 'advancePayment','Advance Payment (₹)')]),
+          vcol('c-pay-1', [inp('f-paymode',   'dropdown_select',    'sale_order', 'paymentMode',   'Payment Mode *',   { options: ['Cash','Finance','Exchange'], required: true })]),
+          vcol('c-pay-2', [inp('f-paymethod', 'dropdown_select',    'sale_order', 'paymentMethod', 'Payment Method',   { options: ['Cheque','DD','NEFT','RTGS','UPI','Cash'] })]),
+          vcol('c-pay-3', [inp('f-advance',   'number_input', 'sale_order', 'advancePayment','Advance Payment (₹)')]),
         ]),
       ]),
       vsec('sec-fin', 'Finance', [
         vrow('r-fin-1', [
-          vcol('c-fin-1', [inp('f-financier', 'ReferenceSelect', 'sale_order', 'financier',     'Financier',       { entity: 'financier' })]),
-          vcol('c-fin-2', [inp('f-downpay',   'NumberInput',     'sale_order', 'downPayment',   'Down Payment (₹)')]),
-          vcol('c-fin-3', [inp('f-finamount', 'NumberInput',     'sale_order', 'financeAmount', 'Finance Amount (₹)')]),
+          vcol('c-fin-1', [inp('f-financier', 'reference_select', 'sale_order', 'financier',     'Financier',       { entity: 'financier' })]),
+          vcol('c-fin-2', [inp('f-downpay',   'number_input',     'sale_order', 'downPayment',   'Down Payment (₹)')]),
+          vcol('c-fin-3', [inp('f-finamount', 'number_input',     'sale_order', 'financeAmount', 'Finance Amount (₹)')]),
         ]),
         vrow('r-fin-2', [
-          vcol('c-fin-4', [inp('f-tenure',  'Dropdown',    'sale_order', 'tenure',         'Tenure (Months)', { options: ['12','24','36','48','60','72'] })]),
-          vcol('c-fin-5', [inp('f-emirate', 'NumberInput', 'sale_order', 'emiInterestRate','EMI Interest Rate (%)')]),
+          vcol('c-fin-4', [inp('f-tenure',  'dropdown_select',    'sale_order', 'tenure',         'Tenure (Months)', { options: ['12','24','36','48','60','72'] })]),
+          vcol('c-fin-5', [inp('f-emirate', 'number_input', 'sale_order', 'emiInterestRate','EMI Interest Rate (%)')]),
         ]),
       ]),
       vsec('sec-ins', 'Insurance', [
         vrow('r-ins-1', [
-          vcol('c-ins-1', [inp('f-insprov',    'ReferenceSelect', 'sale_order', 'insuranceProvider',    'Insurance Provider', { entity: 'insurance_provider' })]),
-          vcol('c-ins-2', [inp('f-inspolicy',  'TextInput',       'sale_order', 'insurancePolicyNumber','Policy Number')]),
-          vcol('c-ins-3', [inp('f-insdate',    'DatePicker',      'sale_order', 'insurancePolicyDate',  'Policy Date')]),
+          vcol('c-ins-1', [inp('f-insprov',    'reference_select', 'sale_order', 'insuranceProvider',    'Insurance Provider', { entity: 'insurance_provider' })]),
+          vcol('c-ins-2', [inp('f-inspolicy',  'text_input',       'sale_order', 'insurancePolicyNumber','Policy Number')]),
+          vcol('c-ins-3', [inp('f-insdate',    'date_picker',      'sale_order', 'insurancePolicyDate',  'Policy Date')]),
         ]),
       ]),
       vsec('sec-totals', 'Order Totals', [
         vrow('r-tot-1', [
-          vcol('c-tot-1', [inp('f-totalqty',  'Label', 'sale_order', 'totalQuantity',   'Total Quantity')]),
-          vcol('c-tot-2', [inp('f-totalbase', 'Label', 'sale_order', 'totalBaseAmount', 'Total Base Amount (₹)')]),
-          vcol('c-tot-3', [inp('f-totaltax',  'Label', 'sale_order', 'totalTaxAmount',  'Total Tax Amount (₹)')]),
-          vcol('c-tot-4', [inp('f-netamt',    'Label', 'sale_order', 'netAmount',       'Net Amount (₹)')]),
+          vcol('c-tot-1', [inp('f-totalqty',  'label', 'sale_order', 'totalQuantity',   'Total Quantity')]),
+          vcol('c-tot-2', [inp('f-totalbase', 'label', 'sale_order', 'totalBaseAmount', 'Total Base Amount (₹)')]),
+          vcol('c-tot-3', [inp('f-totaltax',  'label', 'sale_order', 'totalTaxAmount',  'Total Tax Amount (₹)')]),
+          vcol('c-tot-4', [inp('f-netamt',    'label', 'sale_order', 'netAmount',       'Net Amount (₹)')]),
         ]),
       ]),
       vsec('sec-int', 'Internal Notes', [
         vrow('r-int-1', [
-          vcol('c-int-1', [inp('f-remarks',    'Textarea', 'sale_order', 'remarks',            'Remarks',             { rows: 3 })]),
-          vcol('c-int-2', [inp('f-cancelrsn',  'Textarea', 'sale_order', 'cancellationReason', 'Cancellation Reason', { rows: 3 })]),
+          vcol('c-int-1', [inp('f-remarks',    'textarea', 'sale_order', 'remarks',            'Remarks',             { rows: 3 })]),
+          vcol('c-int-2', [inp('f-cancelrsn',  'textarea', 'sale_order', 'cancellationReason', 'Cancellation Reason', { rows: 3 })]),
         ]),
       ]),
       vsec('sec-lines', 'Order Lines', [
-        { component_key: 'dt-lines', component_code: 'DataTable',
+        { component_key: 'dt-lines', component_code: 'data_table',
           props: {
             addRowEnabled: true, deleteRowEnabled: true,
             columns: [
@@ -222,12 +222,12 @@ const customerMasterPayload: Record<string, unknown> = {
   meta: { description: 'Customer master list with full field exposure' },
   datasources: [{ source_key: 'cust_list', base_entity: 'customer', pagination: { page_size: 25 }, sort: [{ field: 'customerCode', direction: 'asc' }] }],
   component_tree: {
-    component_key: 'root', component_code: 'PageRoot',
+    component_key: 'root', component_code: 'page_root',
     children: [
-      { component_key: 'tb-cust', component_code: 'Toolbar', children: [
-        { component_key: 'btn-new-cust', component_code: 'Button', props: { variant: 'primary' }, bindings: { label: sta('New Customer') } },
+      { component_key: 'tb-cust', component_code: 'toolbar', children: [
+        { component_key: 'btn-new-cust', component_code: 'button', props: { variant: 'primary' }, bindings: { label: sta('New Customer') } },
       ]},
-      { component_key: 'fp-cust', component_code: 'FilterPanel', bindings: { filters: sta([
+      { component_key: 'fp-cust', component_code: 'filter_panel', bindings: { filters: sta([
         { field: 'customerCode',  operator: 'contains', label: 'Customer Code', type: 'text' },
         { field: 'firstName',     operator: 'contains', label: 'Name',          type: 'text' },
         { field: 'customerType',  label: 'Type',        type: 'enum' },
@@ -235,7 +235,7 @@ const customerMasterPayload: Record<string, unknown> = {
         { field: 'billingCity',   operator: 'contains', label: 'City',          type: 'text' },
         { field: 'isActive',      label: 'Active',      type: 'boolean' },
       ]) }},
-      { component_key: 'dt-cust', component_code: 'DataTable',
+      { component_key: 'dt-cust', component_code: 'data_table',
         props: { columns: [
           { key: 'customerCode',  label: 'Code',         sortable: true, width: 120 },
           { key: 'customerType',  label: 'Type',         width: 100,  type: 'enum' },
@@ -266,12 +266,12 @@ const vehicleCatalogPayload: Record<string, unknown> = {
   meta: { description: 'Vehicle / Product master catalog' },
   datasources: [{ source_key: 'veh_list', base_entity: 'vehicle', pagination: { page_size: 25 }, sort: [{ field: 'modelName', direction: 'asc' }] }],
   component_tree: {
-    component_key: 'root', component_code: 'PageRoot',
+    component_key: 'root', component_code: 'page_root',
     children: [
-      { component_key: 'tb-veh', component_code: 'Toolbar', children: [
-        { component_key: 'btn-new-veh', component_code: 'Button', props: { variant: 'primary' }, bindings: { label: sta('New Vehicle') } },
+      { component_key: 'tb-veh', component_code: 'toolbar', children: [
+        { component_key: 'btn-new-veh', component_code: 'button', props: { variant: 'primary' }, bindings: { label: sta('New Vehicle') } },
       ]},
-      { component_key: 'fp-veh', component_code: 'FilterPanel', bindings: { filters: sta([
+      { component_key: 'fp-veh', component_code: 'filter_panel', bindings: { filters: sta([
         { field: 'manufacturer', operator: 'contains', label: 'Manufacturer', type: 'text' },
         { field: 'modelName',    operator: 'contains', label: 'Model',        type: 'text' },
         { field: 'fuelType',     label: 'Fuel Type',   type: 'enum' },
@@ -279,7 +279,7 @@ const vehicleCatalogPayload: Record<string, unknown> = {
         { field: 'color',        label: 'Color',       type: 'enum' },
         { field: 'isActive',     label: 'Active',      type: 'boolean' },
       ]) }},
-      { component_key: 'dt-veh', component_code: 'DataTable',
+      { component_key: 'dt-veh', component_code: 'data_table',
         props: { columns: [
           { key: 'vehicleCode',       label: 'Code',         sortable: true, width: 120 },
           { key: 'manufacturer',      label: 'Manufacturer', sortable: true, width: 130 },
@@ -312,17 +312,17 @@ const salesDashboardPayload: Record<string, unknown> = {
     { source_key: 'veh_lowstock', base_entity: 'vehicle',  pagination: { page_size: 8  }, sort: [{ field: 'stockQty', direction: 'asc' }] },
   ],
   component_tree: {
-    component_key: 'root', component_code: 'PageRoot',
+    component_key: 'root', component_code: 'page_root',
     children: [
       vrow('r-kpi', [
-        vcol('c-kpi-1', [{ component_key: 'm-orders',  component_code: 'MetricComparison', props: { label: "Today's Orders" },         bindings: { value: fld('sale_order', '_count_today'),          comparison: sta('vs yesterday') } }]),
-        vcol('c-kpi-2', [{ component_key: 'm-revenue', component_code: 'MetricComparison', props: { label: 'Month Revenue (₹)' },       bindings: { value: fld('sale_order', '_sum_netAmount_month'),  comparison: sta('vs last month') } }]),
-        vcol('c-kpi-3', [{ component_key: 'm-open',    component_code: 'MetricComparison', props: { label: 'Open Orders' },             bindings: { value: fld('sale_order', '_count_open'),           trend: sta('neutral') } }]),
-        vcol('c-kpi-4', [{ component_key: 'm-cust',    component_code: 'MetricComparison', props: { label: 'Active Customers' },        bindings: { value: fld('customer',   '_count_active'),         trend: sta('up') } }]),
+        vcol('c-kpi-1', [{ component_key: 'm-orders',  component_code: 'metric_comparison', props: { label: "Today's Orders" },         bindings: { value: fld('sale_order', '_count_today'),          comparison: sta('vs yesterday') } }]),
+        vcol('c-kpi-2', [{ component_key: 'm-revenue', component_code: 'metric_comparison', props: { label: 'Month Revenue (₹)' },       bindings: { value: fld('sale_order', '_sum_netAmount_month'),  comparison: sta('vs last month') } }]),
+        vcol('c-kpi-3', [{ component_key: 'm-open',    component_code: 'metric_comparison', props: { label: 'Open Orders' },             bindings: { value: fld('sale_order', '_count_open'),           trend: sta('neutral') } }]),
+        vcol('c-kpi-4', [{ component_key: 'm-cust',    component_code: 'metric_comparison', props: { label: 'Active Customers' },        bindings: { value: fld('customer',   '_count_active'),         trend: sta('up') } }]),
       ]),
       vrow('r-data', [
         vcol('c-data-1', [
-          { component_key: 'dt-recent-so', component_code: 'DataTable',
+          { component_key: 'dt-recent-so', component_code: 'data_table',
             props: { title: 'Recent Sale Orders', columns: [
               { key: 'documentNumber', label: 'SO#',     width: 130 },
               { key: 'documentDate',   label: 'Date',    width: 100, type: 'date' },
@@ -336,7 +336,7 @@ const salesDashboardPayload: Record<string, unknown> = {
           },
         ]),
         vcol('c-data-2', [
-          { component_key: 'dg-lowstock', component_code: 'DataCardGrid',
+          { component_key: 'dg-lowstock', component_code: 'data_card_grid',
             props: { title: 'Low Stock Alert', cardFields: [
               { key: 'modelName',    label: 'Model' },
               { key: 'fuelType',     label: 'Fuel' },
