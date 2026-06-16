@@ -1,4 +1,5 @@
 import type { ComponentNode } from '../types/viewStudio'
+import { evaluateConditionNode, type ConditionNode } from './viewEventEngine'
 
 // ─── Runtime Context ─────────────────────────────────────────────────────────
 
@@ -36,6 +37,28 @@ export function resolveVisibility(node: ComponentNode, ctx: RuntimeContext): boo
   return true
 }
 
+/**
+ * Evaluate a compound condition node (and/or/leaf) from the event engine
+ * against a RuntimeContext. Used to extend visibility resolution beyond
+ * the simple flat VisibilityRule cases.
+ *
+ * Pass a ConditionNode stored in node.props.__condition or similar.
+ */
+export function resolveCompoundCondition(
+  condition: ConditionNode,
+  ctx: RuntimeContext,
+): boolean {
+  // Synthesise a dummy ViewEvent so evaluateConditionNode has access to
+  // field values via the role/fieldValues parameters.
+  const dummyEvent = {
+    type: 'on_load' as const,
+    source_key: '__runtime__',
+    timestamp: 0,
+    data: ctx.fieldValues ?? {},
+  }
+  return evaluateConditionNode(condition, dummyEvent, ctx.role, ctx.fieldValues)
+}
+
 // ─── Permissions ─────────────────────────────────────────────────────────────
 
 export interface ResolvedPermissions {
@@ -52,7 +75,13 @@ export function resolvePermissions(node: ComponentNode, ctx: RuntimeContext): Re
 
   function testRule(rule: unknown): boolean {
     if (!rule || typeof rule !== 'object') return false
-    const r = rule as { roles?: string[]; condition?: string }
+    const r = rule as { roles?: string[]; condition?: string; type?: string; conditions?: unknown[] }
+
+    // Compound condition node (and/or/field_equals/role_in)
+    if (r.type === 'and' || r.type === 'or' || r.type === 'field_equals' || r.type === 'role_in') {
+      return resolveCompoundCondition(r as ConditionNode, ctx)
+    }
+
     if (r.roles && r.roles.length > 0) {
       return r.roles.includes(role)
     }

@@ -1,10 +1,19 @@
 /**
  * ComponentRenderMap — Maps component_code to preview React components
  * Supports both PascalCase (TextInput) and snake_case (text_input) keys.
+ *
+ * Phase 4: PreviewProps gains onEvent and isPreviewMode so renderers can
+ * emit events into the engine when in live-preview mode.
  */
 
 import React from 'react'
-import type { ComponentNode } from '../../../types/viewStudio'
+import type { ComponentNode, EventType } from '../../../types/viewStudio'
+
+export type OnEventFn = (
+  eventType: EventType,
+  sourceKey: string,
+  data?: Record<string, unknown>,
+) => void
 
 export type PreviewRenderer = (props: PreviewProps) => React.ReactNode
 
@@ -12,6 +21,10 @@ export interface PreviewProps {
   node: ComponentNode
   children?: React.ReactNode[]
   isSelected?: boolean
+  /** Fires a view event through the event engine (only wired in preview mode). */
+  onEvent?: OnEventFn
+  /** True when the canvas is in live-preview mode vs. design mode. */
+  isPreviewMode?: boolean
 }
 
 // Helper: resolve a binding label (show field_key if field binding)
@@ -394,8 +407,22 @@ function FilterPanelRenderer(props: PreviewProps) {
 function ButtonRenderer(props: PreviewProps) {
   const label = bindingLabel(props.node, 'label', props.node.props?.label as string || 'Button')
   const variant = props.node.props?.variant as string ?? 'primary'
+
+  function handleClick() {
+    if (props.isPreviewMode && props.onEvent) {
+      props.onEvent('on_click', props.node.component_key, {
+        label,
+        variant,
+      })
+    }
+  }
+
   return (
-    <button className={`prev-button prev-button--${variant}`} disabled>
+    <button
+      className={`prev-button prev-button--${variant}`}
+      disabled={!props.isPreviewMode}
+      onClick={handleClick}
+    >
       {label}
     </button>
   )
