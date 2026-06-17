@@ -44,6 +44,17 @@ const STATUS_VARIANT_MAP: Record<string, BadgeVariant> = {
   pending: 'warn',
   warning: 'warning',
   failed: 'error',
+  // Surface types — distinct colors for at-a-glance scanning
+  standard_crud: 'info',
+  advanced_crud: 'purple',
+  header_line: 'brand',
+  dashboard: 'success',
+  wizard: 'warn',
+  detail_page: 'gray',
+  split_view: 'info',
+  kanban: 'warn',
+  calendar: 'success',
+  custom_page: 'gray',
 }
 
 export function StatusBadge({ status, label }: { status: string; label?: string }) {

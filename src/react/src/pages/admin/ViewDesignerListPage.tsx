@@ -1,15 +1,17 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import {
-  Button, StatusBadge, SearchInput, Select,
+  Button, StatusBadge, SearchInput, Select, Tooltip,
   VirtualGrid, PageLayout, Modal, ConfirmDialog, useToast,
   type VirtualGridColumn, type RowAction,
 } from '../../design-system'
-import { useViews, useArchiveView, useCreateView } from '../../hooks/useViewStudio'
+import { useViews, useArchiveView, useCreateView, useEntityTypes, useViewStats } from '../../hooks/useViewStudio'
 import type { View, SurfaceType, CreateViewRequest } from '../../types/viewStudio'
 import { SURFACE_TYPES } from '../../types/viewStudio'
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function relativeDate(iso: string) {
   const diff = Date.now() - new Date(iso).getTime()
@@ -22,6 +24,40 @@ function relativeDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+const SURFACE_LABELS: Record<string, string> = {
+  standard_crud: 'Standard CRUD',
+  advanced_crud: 'Advanced CRUD',
+  header_line: 'Header / Line',
+  dashboard: 'Dashboard',
+  wizard: 'Wizard',
+  detail_page: 'Detail Page',
+  split_view: 'Split View',
+  kanban: 'Kanban',
+  calendar: 'Calendar',
+  custom_page: 'Custom Page',
+}
+
+const surfaceLabel = (s: string) => SURFACE_LABELS[s] ?? s.replace(/_/g, ' ')
+
+function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: '3px 10px', borderRadius: 9999, fontSize: '0.75rem', fontWeight: 500,
+        border: 'none', cursor: 'pointer',
+        background: active ? 'var(--brand-500)' : 'var(--neutral-100)',
+        color: active ? 'white' : 'var(--fg-primary)',
+        transition: 'background 120ms, color 120ms',
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export function ViewDesignerListPage() {
   const navigate = useNavigate()
   const { success, error } = useToast()
@@ -29,6 +65,7 @@ export function ViewDesignerListPage() {
 
   const [search, setSearch] = useState('')
   const [surfaceFilter, setSurfaceFilter] = useState<string>('')
+  const [entityFilter, setEntityFilter] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [deleteTarget, setDeleteTarget] = useState<View | null>(null)
   const [creating, setCreating] = useState(false)
@@ -41,11 +78,22 @@ export function ViewDesignerListPage() {
 
   const { data, isLoading } = useViews({
     surface: surfaceFilter as SurfaceType | undefined,
+    entity: entityFilter || undefined,
     status: statusFilter as 'draft' | 'published' | undefined,
     search: search || undefined,
   })
+  const { data: entityTypesData } = useEntityTypes()
+  const { data: statsData } = useViewStats()
   const archiveMut = useArchiveView()
   const createMut = useCreateView()
+
+  const entityDisplayNames = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const e of entityTypesData?.items ?? []) {
+      map[e.entity_type] = e.display_name
+    }
+    return map
+  }, [entityTypesData])
 
   const filtered = data?.items ?? []
 
@@ -53,7 +101,6 @@ export function ViewDesignerListPage() {
     {
       key: 'view_label',
       label: 'View',
-      // No fixed width - this column will flex to fill remaining space
       render: (row) => (
         <div>
           <div style={{ fontWeight: 500 }}>{row.view_label || row.artifact_name}</div>
@@ -64,28 +111,65 @@ export function ViewDesignerListPage() {
     {
       key: 'surface_type',
       label: 'Surface',
-      width: 140,
-      render: (row) => <StatusBadge status={row.surface_type ?? 'unknown'} />,
+      width: 150,
+      render: (row) => (
+        <StatusBadge status={row.surface_type ?? 'unknown'} label={surfaceLabel(row.surface_type ?? '')} />
+      ),
     },
     {
       key: 'primary_entity',
       label: 'Entity',
-      width: 140,
-      render: (row) => <span>{row.primary_entity ?? '—'}</span>,
+      width: 150,
+      render: (row) => {
+        if (!row.primary_entity) return <span>—</span>
+        const name = entityDisplayNames[row.primary_entity] ?? row.primary_entity.replace(/_/g, ' ')
+        return (
+          <button
+            onClick={(e) => { e.stopPropagation(); setEntityFilter(row.primary_entity!) }}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              color: 'inherit', textDecoration: 'underline dotted', textUnderlineOffset: 3,
+              fontSize: 'inherit', fontFamily: 'inherit',
+            }}
+            title={`Filter by ${name}`}
+          >
+            {name}
+          </button>
+        )
+      },
     },
     {
       key: 'status',
       label: 'Status',
-      width: 100,
-      render: (row) => (
-        <StatusBadge status={row.is_active ? 'published' : row.is_draft ? 'draft' : 'inactive'} />
-      ),
+      width: 140,
+      render: (row) => {
+        if (row.is_active) return <StatusBadge status="published" />
+        if (row.is_draft && row.has_published) {
+          return (
+            <Tooltip content="Editing in progress — the previously published version is still live for users." placement="top">
+              <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                <StatusBadge status="draft" />
+                <StatusBadge status="published" label="Live" />
+              </div>
+            </Tooltip>
+          )
+        }
+        if (row.is_draft) return <StatusBadge status="draft" />
+        return <StatusBadge status="inactive" />
+      },
     },
     {
       key: 'version',
       label: 'Version',
       width: 80,
-      render: (row) => <span>v{row.latest_version_no ?? 0}</span>,
+      render: (row) => (
+        <Tooltip
+          content={`Version ${row.latest_version_no ?? 0} — the latest saved draft. Publish state is shown in the Status column.`}
+          placement="top"
+        >
+          <span style={{ cursor: 'default' }}>v{row.latest_version_no ?? 0}</span>
+        </Tooltip>
+      ),
     },
     {
       key: 'updated_at',
@@ -147,6 +231,14 @@ export function ViewDesignerListPage() {
     })
   }
 
+  const entityOptions = [
+    { value: '', label: 'All entities' },
+    ...(statsData?.by_entity ?? []).map(s => ({
+      value: s.entity,
+      label: `${entityDisplayNames[s.entity] ?? s.entity.replace(/_/g, ' ')} (${s.count})`,
+    })),
+  ]
+
   return (
     <PageLayout
       title="UI Studio"
@@ -157,7 +249,12 @@ export function ViewDesignerListPage() {
         </Button>
       }
     >
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+      {/* Filter bar */}
+      <div style={{
+        display: 'flex', gap: '0.75rem', marginBottom: '0.75rem',
+        flexWrap: 'wrap', paddingBottom: '0.75rem',
+        borderBottom: '1px solid var(--border-tertiary)',
+      }}>
         <SearchInput
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -167,7 +264,12 @@ export function ViewDesignerListPage() {
         <Select
           value={surfaceFilter}
           onChange={(e) => setSurfaceFilter(e.target.value)}
-          options={[{ value: '', label: 'All surfaces' }, ...SURFACE_TYPES.map(s => ({ value: s, label: s.replace(/_/g, ' ') }))]}
+          options={[{ value: '', label: 'All surfaces' }, ...SURFACE_TYPES.map(s => ({ value: s, label: surfaceLabel(s) }))]}
+        />
+        <Select
+          value={entityFilter}
+          onChange={(e) => setEntityFilter(e.target.value)}
+          options={entityOptions}
         />
         <Select
           value={statusFilter}
@@ -179,6 +281,26 @@ export function ViewDesignerListPage() {
           ]}
         />
       </div>
+
+      {/* Entity chips — quick entity filter with counts */}
+      {statsData && statsData.by_entity.length > 0 && (
+        <div style={{
+          display: 'flex', gap: '0.5rem', flexWrap: 'wrap',
+          paddingBottom: '0.75rem', marginBottom: '0.75rem',
+          borderBottom: '1px solid var(--border-secondary)',
+        }}>
+          <Chip active={entityFilter === ''} onClick={() => setEntityFilter('')}>All</Chip>
+          {statsData.by_entity.map(s => (
+            <Chip
+              key={s.entity}
+              active={entityFilter === s.entity}
+              onClick={() => setEntityFilter(entityFilter === s.entity ? '' : s.entity)}
+            >
+              {entityDisplayNames[s.entity] ?? s.entity.replace(/_/g, ' ')} · {s.count}
+            </Chip>
+          ))}
+        </div>
+      )}
 
       <VirtualGrid
         data={filtered}
@@ -218,7 +340,7 @@ export function ViewDesignerListPage() {
             <Select
               value={newSurface}
               onChange={(e) => setNewSurface(e.target.value as unknown as SurfaceType)}
-              options={SURFACE_TYPES.map(s => ({ value: s, label: s.replace(/_/g, ' ') }))}
+              options={SURFACE_TYPES.map(s => ({ value: s, label: surfaceLabel(s) }))}
             />
           </div>
           <div>

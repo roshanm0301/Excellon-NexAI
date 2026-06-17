@@ -142,11 +142,12 @@ func (r *Repo) ListViews(ctx context.Context, tenantID, surface, entity, status,
 		       COALESCE(h.surface_type,''), COALESCE(h.primary_entity,''), COALESCE(h.view_code,''),
 		       COALESCE(h.view_label,''), COALESCE(h.view_category,''),
 		       h.created_at, h.updated_at, h.created_by, COALESCE(h.revision, 1),
-		       COALESCE(v.version_id::text, ''), COALESCE(v.version_no, 0), COALESCE(v.is_draft, true), COALESCE(v.is_active, false)
+		       COALESCE(v.version_id::text, ''), COALESCE(v.version_no, 0), COALESCE(v.is_draft, true), COALESCE(v.is_active, false),
+		       EXISTS(SELECT 1 FROM artifact_version av2 WHERE av2.artifact_id = h.artifact_id AND av2.is_active = true) AS has_published
 		FROM artifact_header h
 		LEFT JOIN LATERAL (
-			SELECT version_id, version_no, is_draft, is_active 
-			FROM artifact_version WHERE artifact_id = h.artifact_id 
+			SELECT version_id, version_no, is_draft, is_active
+			FROM artifact_version WHERE artifact_id = h.artifact_id
 			ORDER BY version_no DESC LIMIT 1
 		) v ON true
 		%s
@@ -169,6 +170,7 @@ func (r *Repo) ListViews(ctx context.Context, tenantID, surface, entity, status,
 			&v.ViewLabel, &v.ViewCategory,
 			&v.CreatedAt, &v.UpdatedAt, &v.CreatedBy, &v.Revision,
 			&v.LatestVersionID, &v.LatestVersionNo, &v.IsDraft, &v.IsActive,
+			&v.HasPublished,
 		); err != nil {
 			return nil, 0, fmt.Errorf("viewstudio: scan view: %w", err)
 		}
@@ -178,6 +180,37 @@ func (r *Repo) ListViews(ctx context.Context, tenantID, surface, entity, status,
 		views = []View{}
 	}
 	return views, total, nil
+}
+
+func (r *Repo) GetViewStats(ctx context.Context, tenantID string) (ViewStats, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT COALESCE(primary_entity, '') AS entity, COUNT(*)::int AS count
+		FROM artifact_header
+		WHERE tenant_id = $1
+		  AND artifact_type = 'ui_view'
+		  AND deleted_at IS NULL
+		  AND COALESCE(primary_entity, '') != ''
+		GROUP BY primary_entity
+		ORDER BY count DESC, primary_entity ASC`,
+		tenantID,
+	)
+	if err != nil {
+		return ViewStats{}, fmt.Errorf("viewstudio: get view stats: %w", err)
+	}
+	defer rows.Close()
+
+	var stats ViewStats
+	for rows.Next() {
+		var s ViewEntityStat
+		if err := rows.Scan(&s.Entity, &s.Count); err != nil {
+			return ViewStats{}, fmt.Errorf("viewstudio: scan view stat: %w", err)
+		}
+		stats.ByEntity = append(stats.ByEntity, s)
+	}
+	if stats.ByEntity == nil {
+		stats.ByEntity = []ViewEntityStat{}
+	}
+	return stats, nil
 }
 
 func (r *Repo) GetView(ctx context.Context, tenantID, artifactID string) (*View, error) {

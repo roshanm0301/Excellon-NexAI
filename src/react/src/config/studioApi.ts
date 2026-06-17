@@ -381,6 +381,7 @@ import type {
   ViewVariant,
   DataSourceConfig,
   ViewPayload,
+  ViewStats,
 } from '../types/viewStudio'
 
 const STUDIO_PREFIX = '/studio'
@@ -522,6 +523,9 @@ export const getSyncStatus = (viewKey: string) =>
   studioFetch<SyncStatusResponse>(`${STUDIO_PREFIX}/views/${viewKey}/sync-status`)
 
 // ── Entity Schema APIs (M3.2) ────────────────────────────────────────────────
+
+export const getViewStats = () =>
+  studioFetch<ViewStats>(`${STUDIO_PREFIX}/views/stats`)
 
 export const listEntityTypes = () =>
   studioFetch<{ items: EntityTypeSummary[] }>(`${STUDIO_PREFIX}/entities`)
