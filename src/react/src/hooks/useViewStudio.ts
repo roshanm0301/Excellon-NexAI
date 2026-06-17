@@ -18,6 +18,8 @@ import {
   getEntityFields,
   getSyncStatus,
   getViewStats,
+  duplicateView,
+  unpublishView,
 } from '../config/studioApi'
 import type {
   ViewListParams,
@@ -130,6 +132,39 @@ export function useArchiveView() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (viewKey: string) => archiveView(viewKey),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['views'] })
+      qc.invalidateQueries({ queryKey: ['view-stats'] })
+    },
+  })
+}
+
+export function usePublishViewById() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (viewKey: string) => publishView(viewKey),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['views'] })
+      qc.invalidateQueries({ queryKey: ['view-stats'] })
+    },
+  })
+}
+
+export function useDuplicateView() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (viewKey: string) => duplicateView(viewKey),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['views'] })
+      qc.invalidateQueries({ queryKey: ['view-stats'] })
+    },
+  })
+}
+
+export function useUnpublishView() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (viewKey: string) => unpublishView(viewKey),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['views'] })
       qc.invalidateQueries({ queryKey: ['view-stats'] })

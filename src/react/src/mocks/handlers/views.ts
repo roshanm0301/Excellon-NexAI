@@ -268,6 +268,38 @@ export const viewHandlers = [
     return HttpResponse.json(ver)
   }),
 
+  // Duplicate view
+  http.post('/api/v1/studio/views/:key/duplicate', ({ params }) => {
+    const store = loadViews()
+    const source = store.find(v => v.artifact_id === params.key || v.view_code === params.key)
+    if (!source) return new HttpResponse(null, { status: 404 })
+    const copy: ViewRecord = {
+      ...source,
+      artifact_id: randomId(),
+      view_label: `${source.view_label} (Copy)`,
+      view_code: undefined,
+      is_draft: true,
+      is_active: false,
+      created_at: now(),
+      updated_at: now(),
+      revision: 1,
+      _versions: [],
+    }
+    store.push(copy)
+    saveViews(store)
+    return HttpResponse.json(toView(copy), { status: 201 })
+  }),
+
+  // Unpublish view
+  http.post('/api/v1/studio/views/:key/unpublish', ({ params }) => {
+    const store = loadViews()
+    const idx = store.findIndex(v => v.artifact_id === params.key || v.view_code === params.key)
+    if (idx === -1) return new HttpResponse(null, { status: 404 })
+    store[idx] = { ...store[idx], is_active: false, is_draft: true, updated_at: now() }
+    saveViews(store)
+    return new HttpResponse(null, { status: 204 })
+  }),
+
   // Delete view
   http.delete('/api/v1/studio/views/:key', ({ params }) => {
     const store = loadViews()

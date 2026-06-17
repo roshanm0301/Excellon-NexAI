@@ -48,6 +48,8 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 		r.Post("/views", h.createView)
 		r.Post("/views/import", h.importView)
 		r.Put("/views/{viewKey}/draft", h.saveDraft)
+		r.Post("/views/{viewKey}/duplicate", h.duplicateView)
+		r.Post("/views/{viewKey}/unpublish", h.unpublishView)
 		r.Post("/views/{viewKey}/publish", h.publishView)
 		r.Post("/views/{viewKey}/validate", h.validateView)
 		r.Post("/views/{viewKey}/rollback/{versionID}", h.rollbackView)
@@ -904,4 +906,45 @@ func errorCodeForStatus(status int) string {
 		}
 		return "REQUEST_ERROR"
 	}
+}
+
+// ─── Designer: duplicate ─────────────────────────────────────────────────────
+
+func (h *Handler) duplicateView(w http.ResponseWriter, r *http.Request) {
+	tenantID := middleware.TenantID(r.Context())
+	userID := middleware.UserID(r.Context())
+	viewKey := chi.URLParam(r, "viewKey")
+	if tenantID == "" || userID == "" || viewKey == "" {
+		writeError(w, r, http.StatusBadRequest, "missing required params")
+		return
+	}
+
+	newView, err := h.repo.DuplicateView(r.Context(), tenantID, viewKey, userID)
+	if err != nil {
+		slog.Error("viewstudio: duplicate", "error", err)
+		writeError(w, r, http.StatusInternalServerError, "failed to duplicate view")
+		return
+	}
+	slog.Info("viewstudio: audit", "event", "duplicate", "tenant_id", tenantID, "user_id", userID, "source_key", viewKey, "new_id", newView.ArtifactID)
+	writeJSON(w, http.StatusCreated, newView)
+}
+
+// ─── Designer: unpublish ─────────────────────────────────────────────────────
+
+func (h *Handler) unpublishView(w http.ResponseWriter, r *http.Request) {
+	tenantID := middleware.TenantID(r.Context())
+	userID := middleware.UserID(r.Context())
+	viewKey := chi.URLParam(r, "viewKey")
+	if tenantID == "" || userID == "" || viewKey == "" {
+		writeError(w, r, http.StatusBadRequest, "missing required params")
+		return
+	}
+
+	if err := h.repo.UnpublishView(r.Context(), tenantID, viewKey, userID); err != nil {
+		slog.Error("viewstudio: unpublish", "error", err)
+		writeError(w, r, http.StatusInternalServerError, "failed to unpublish view")
+		return
+	}
+	slog.Info("viewstudio: audit", "event", "unpublish", "tenant_id", tenantID, "user_id", userID, "view_key", viewKey)
+	w.WriteHeader(http.StatusNoContent)
 }
