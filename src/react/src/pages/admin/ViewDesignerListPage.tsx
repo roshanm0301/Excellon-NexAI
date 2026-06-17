@@ -93,6 +93,8 @@ export function ViewDesignerListPage() {
 
   const { data: statsData } = useViewStats()
   const { data: entityTypesData } = useEntityTypes()
+  // Unfiltered fetch — always reflects all views; used for entity browser regardless of active filter
+  const { data: allViewsData } = useViews()
   const { data: viewsData, isLoading } = useViews({
     entity: selectedEntity ?? undefined,
     search: viewSearch || undefined,
@@ -113,14 +115,29 @@ export function ViewDesignerListPage() {
     return map
   }, [entityTypesData])
 
-  const entitiesWithViews = useMemo(() =>
-    (statsData?.by_entity ?? []).map(s => ({
-      key: s.entity,
-      displayName: entityDisplayNames[s.entity] ?? s.entity.replace(/_/g, ' '),
-      count: s.count,
-    })),
-    [statsData, entityDisplayNames],
-  )
+  // Prefer statsData when available; fall back to grouping the unfiltered views list.
+  // Using allViewsData (not viewsData) means the entity browser stays populated even
+  // when an entity filter is active on the right panel.
+  const entitiesWithViews = useMemo(() => {
+    if (statsData?.by_entity?.length) {
+      return statsData.by_entity.map(s => ({
+        key: s.entity,
+        displayName: entityDisplayNames[s.entity] ?? s.entity.replace(/_/g, ' '),
+        count: s.count,
+      }))
+    }
+    const counts: Record<string, number> = {}
+    for (const v of allViewsData?.items ?? []) {
+      if (v.primary_entity) counts[v.primary_entity] = (counts[v.primary_entity] ?? 0) + 1
+    }
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([key, count]) => ({
+        key,
+        displayName: entityDisplayNames[key] ?? key.replace(/_/g, ' '),
+        count,
+      }))
+  }, [statsData, allViewsData, entityDisplayNames])
 
   const entitiesWithViewsSet = useMemo(() =>
     new Set(entitiesWithViews.map(e => e.key)),
@@ -146,7 +163,9 @@ export function ViewDesignerListPage() {
   }, [entitiesWithViews, entitySearch])
 
   const views = viewsData?.items ?? []
-  const totalViews = statsData?.by_entity.reduce((s, e) => s + e.count, 0) ?? 0
+  const totalViews = statsData?.by_entity?.length
+    ? statsData.by_entity.reduce((s, e) => s + e.count, 0)
+    : (allViewsData?.total ?? 0)
   const totalEntities = entitiesWithViews.length
 
   const publishedCount = views.filter(v => v.is_active).length

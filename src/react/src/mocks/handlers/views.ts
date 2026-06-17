@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { seedViews } from '../data/views'
 
-const VIEWS_KEY = 'msw_views_v3'
+const VIEWS_KEY = 'msw_views_v4'
 
 // Matches the View type from types/viewStudio.ts exactly
 interface ViewRecord {
