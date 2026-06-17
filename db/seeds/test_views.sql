@@ -135,7 +135,13 @@ VALUES
     '00000000-0000-0000-0000-000000000001',
     'split_view', 'customer', 'customer_360', 'Customer 360'
 )
-ON CONFLICT DO NOTHING;
+ON CONFLICT (artifact_id) DO UPDATE SET
+    artifact_name  = EXCLUDED.artifact_name,
+    surface_type   = EXCLUDED.surface_type,
+    primary_entity = EXCLUDED.primary_entity,
+    view_code      = EXCLUDED.view_code,
+    view_label     = EXCLUDED.view_label,
+    updated_at     = now();
 
 -- ============================================================================
 -- 2. artifact_version rows (one per view, published and active)
@@ -1246,6 +1252,11 @@ VALUES
     }',
     true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 )
-ON CONFLICT DO NOTHING;
+ON CONFLICT (version_id) DO UPDATE SET
+    payload      = EXCLUDED.payload,
+    is_active    = EXCLUDED.is_active,
+    is_draft     = EXCLUDED.is_draft,
+    published_at = EXCLUDED.published_at,
+    published_by = EXCLUDED.published_by;
 
 COMMIT;
