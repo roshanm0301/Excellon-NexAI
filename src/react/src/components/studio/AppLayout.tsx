@@ -61,13 +61,13 @@ export function AppLayout() {
       <aside className={`ex-sidebar${collapsed ? ' collapsed' : ''}`}>
         {/* Brand */}
         <div className="ex-sidebar-brand">
-          <img src="/excellon-emblem.svg" alt="Excellon" width={32} height={32} />
+          <img src={`${import.meta.env.BASE_URL}excellon-emblem.svg`} alt="Excellon" width={32} height={32} />
           {!collapsed && (
             <div className="brand-stack">
               <span className="ex-wordmark">
-                e<span style={{ color: 'var(--brand-500)' }}>x</span>cellon
+                E<span style={{ color: 'var(--brand-500)' }}>x</span>cellon
               </span>
-              <span className="ex-tagline">NexAI Studio</span>
+              <span className="ex-tagline">NexAI</span>
             </div>
           )}
         </div>
