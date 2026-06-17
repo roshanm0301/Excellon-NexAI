@@ -528,5 +528,3 @@ export const listEntityTypes = () =>
 
 export const getEntityFields = (entityType: string) =>
   studioFetch<{ items: EntityFieldDef[] }>(`${STUDIO_PREFIX}/entities/${encodeURIComponent(entityType)}/fields`)
-
-
