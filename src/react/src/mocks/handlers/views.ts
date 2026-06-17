@@ -72,7 +72,8 @@ function randomId() {
 function toView(v: ViewRecord) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { _draft_payload, _versions, ...pub } = v
-  return pub
+  const has_published = (v._versions ?? []).some(ver => ver.is_active)
+  return { ...pub, has_published }
 }
 
 function toViewWithPayload(v: ViewRecord) {
@@ -124,13 +125,30 @@ export const viewHandlers = [
     const url = new URL(request.url)
     const search = url.searchParams.get('search')?.toLowerCase()
     const surface = url.searchParams.get('surface') ?? url.searchParams.get('surface_type')
+    const entity = url.searchParams.get('entity')
     const status = url.searchParams.get('status')
     let items = store
     if (search) items = items.filter(v => v.view_label.toLowerCase().includes(search) || (v.view_code ?? '').toLowerCase().includes(search))
     if (surface) items = items.filter(v => v.surface_type === surface)
+    if (entity) items = items.filter(v => v.primary_entity === entity)
     if (status === 'draft') items = items.filter(v => v.is_draft)
     if (status === 'published') items = items.filter(v => v.is_active && !v.is_draft)
     return HttpResponse.json({ items: items.map(toView), total: items.length })
+  }),
+
+  // View stats — entity counts (must be before /:key to avoid route collision)
+  http.get('/api/v1/studio/views/stats', () => {
+    const store = loadViews()
+    const counts: Record<string, number> = {}
+    for (const v of store) {
+      if (v.primary_entity) {
+        counts[v.primary_entity] = (counts[v.primary_entity] ?? 0) + 1
+      }
+    }
+    const by_entity = Object.entries(counts)
+      .map(([entity, count]) => ({ entity, count }))
+      .sort((a, b) => b.count - a.count || a.entity.localeCompare(b.entity))
+    return HttpResponse.json({ by_entity })
   }),
 
   // Create view
@@ -248,6 +266,38 @@ export const viewHandlers = [
     viewStore.length = 0; store.forEach(v => viewStore.push(v))
     saveViews(store)
     return HttpResponse.json(ver)
+  }),
+
+  // Duplicate view
+  http.post('/api/v1/studio/views/:key/duplicate', ({ params }) => {
+    const store = loadViews()
+    const source = store.find(v => v.artifact_id === params.key || v.view_code === params.key)
+    if (!source) return new HttpResponse(null, { status: 404 })
+    const copy: ViewRecord = {
+      ...source,
+      artifact_id: randomId(),
+      view_label: `${source.view_label} (Copy)`,
+      view_code: undefined,
+      is_draft: true,
+      is_active: false,
+      created_at: now(),
+      updated_at: now(),
+      revision: 1,
+      _versions: [],
+    }
+    store.push(copy)
+    saveViews(store)
+    return HttpResponse.json(toView(copy), { status: 201 })
+  }),
+
+  // Unpublish view
+  http.post('/api/v1/studio/views/:key/unpublish', ({ params }) => {
+    const store = loadViews()
+    const idx = store.findIndex(v => v.artifact_id === params.key || v.view_code === params.key)
+    if (idx === -1) return new HttpResponse(null, { status: 404 })
+    store[idx] = { ...store[idx], is_active: false, is_draft: true, updated_at: now() }
+    saveViews(store)
+    return new HttpResponse(null, { status: 204 })
   }),
 
   // Delete view
@@ -416,7 +466,9 @@ export const viewHandlers = [
   http.get('/api/v1/studio/entities', () => {
     return HttpResponse.json({
       items: [
+        { entity_type: 'sale_order', display_name: 'Sale Order' },
         { entity_type: 'customer', display_name: 'Customer' },
+        { entity_type: 'vehicle', display_name: 'Vehicle' },
         { entity_type: 'order', display_name: 'Order' },
         { entity_type: 'product', display_name: 'Product' },
         { entity_type: 'invoice', display_name: 'Invoice' },

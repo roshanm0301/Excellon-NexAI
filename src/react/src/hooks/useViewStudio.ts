@@ -17,6 +17,9 @@ import {
   listEntityTypes,
   getEntityFields,
   getSyncStatus,
+  getViewStats,
+  duplicateView,
+  unpublishView,
 } from '../config/studioApi'
 import type {
   ViewListParams,
@@ -70,12 +73,21 @@ export function useRuntimeViewByCode(viewCode: string | undefined, entity: strin
 
 // ─── View Mutations ──────────────────────────────────────────────────────────
 
+export function useViewStats() {
+  return useQuery({
+    queryKey: ['view-stats'],
+    queryFn: getViewStats,
+    staleTime: 30_000,
+  })
+}
+
 export function useCreateView() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (body: CreateViewRequest) => createView(body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['views'] })
+      qc.invalidateQueries({ queryKey: ['view-stats'] })
     },
   })
 }
@@ -99,6 +111,7 @@ export function usePublishView(viewKey: string) {
       qc.invalidateQueries({ queryKey: ['view', viewKey] })
       qc.invalidateQueries({ queryKey: ['views'] })
       qc.invalidateQueries({ queryKey: ['view-versions', viewKey] })
+      qc.invalidateQueries({ queryKey: ['view-stats'] })
     },
   })
 }
@@ -121,6 +134,40 @@ export function useArchiveView() {
     mutationFn: (viewKey: string) => archiveView(viewKey),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['views'] })
+      qc.invalidateQueries({ queryKey: ['view-stats'] })
+    },
+  })
+}
+
+export function usePublishViewById() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (viewKey: string) => publishView(viewKey),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['views'] })
+      qc.invalidateQueries({ queryKey: ['view-stats'] })
+    },
+  })
+}
+
+export function useDuplicateView() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (viewKey: string) => duplicateView(viewKey),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['views'] })
+      qc.invalidateQueries({ queryKey: ['view-stats'] })
+    },
+  })
+}
+
+export function useUnpublishView() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (viewKey: string) => unpublishView(viewKey),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['views'] })
+      qc.invalidateQueries({ queryKey: ['view-stats'] })
     },
   })
 }

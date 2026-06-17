@@ -142,11 +142,12 @@ func (r *Repo) ListViews(ctx context.Context, tenantID, surface, entity, status,
 		       COALESCE(h.surface_type,''), COALESCE(h.primary_entity,''), COALESCE(h.view_code,''),
 		       COALESCE(h.view_label,''), COALESCE(h.view_category,''),
 		       h.created_at, h.updated_at, h.created_by, COALESCE(h.revision, 1),
-		       COALESCE(v.version_id::text, ''), COALESCE(v.version_no, 0), COALESCE(v.is_draft, true), COALESCE(v.is_active, false)
+		       COALESCE(v.version_id::text, ''), COALESCE(v.version_no, 0), COALESCE(v.is_draft, true), COALESCE(v.is_active, false),
+		       EXISTS(SELECT 1 FROM artifact_version av2 WHERE av2.artifact_id = h.artifact_id AND av2.is_active = true) AS has_published
 		FROM artifact_header h
 		LEFT JOIN LATERAL (
-			SELECT version_id, version_no, is_draft, is_active 
-			FROM artifact_version WHERE artifact_id = h.artifact_id 
+			SELECT version_id, version_no, is_draft, is_active
+			FROM artifact_version WHERE artifact_id = h.artifact_id
 			ORDER BY version_no DESC LIMIT 1
 		) v ON true
 		%s
@@ -169,6 +170,7 @@ func (r *Repo) ListViews(ctx context.Context, tenantID, surface, entity, status,
 			&v.ViewLabel, &v.ViewCategory,
 			&v.CreatedAt, &v.UpdatedAt, &v.CreatedBy, &v.Revision,
 			&v.LatestVersionID, &v.LatestVersionNo, &v.IsDraft, &v.IsActive,
+			&v.HasPublished,
 		); err != nil {
 			return nil, 0, fmt.Errorf("viewstudio: scan view: %w", err)
 		}
@@ -178,6 +180,37 @@ func (r *Repo) ListViews(ctx context.Context, tenantID, surface, entity, status,
 		views = []View{}
 	}
 	return views, total, nil
+}
+
+func (r *Repo) GetViewStats(ctx context.Context, tenantID string) (ViewStats, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT COALESCE(primary_entity, '') AS entity, COUNT(*)::int AS count
+		FROM artifact_header
+		WHERE tenant_id = $1
+		  AND artifact_type = 'ui_view'
+		  AND deleted_at IS NULL
+		  AND COALESCE(primary_entity, '') != ''
+		GROUP BY primary_entity
+		ORDER BY count DESC, primary_entity ASC`,
+		tenantID,
+	)
+	if err != nil {
+		return ViewStats{}, fmt.Errorf("viewstudio: get view stats: %w", err)
+	}
+	defer rows.Close()
+
+	var stats ViewStats
+	for rows.Next() {
+		var s ViewEntityStat
+		if err := rows.Scan(&s.Entity, &s.Count); err != nil {
+			return ViewStats{}, fmt.Errorf("viewstudio: scan view stat: %w", err)
+		}
+		stats.ByEntity = append(stats.ByEntity, s)
+	}
+	if stats.ByEntity == nil {
+		stats.ByEntity = []ViewEntityStat{}
+	}
+	return stats, nil
 }
 
 func (r *Repo) GetView(ctx context.Context, tenantID, artifactID string) (*View, error) {
@@ -835,6 +868,106 @@ type compiledFieldRaw struct {
 	CompiledType string `json:"compiled_type"`
 	Required     bool   `json:"required"`
 	Expression   string `json:"expression,omitempty"`
+}
+
+// ─── Duplicate ───────────────────────────────────────────────────────────────
+
+func (r *Repo) DuplicateView(ctx context.Context, tenantID, sourceArtifactID, userID string) (*View, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("viewstudio: begin tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	var src struct {
+		SurfaceType   string
+		PrimaryEntity string
+		ViewLabel     string
+		ViewCode      *string
+	}
+	err = tx.QueryRow(ctx, `
+		SELECT COALESCE(surface_type,''), COALESCE(primary_entity,''), COALESCE(view_label,''), view_code
+		FROM artifact_header WHERE artifact_id = $1 AND tenant_id = $2 AND artifact_type = 'ui_view'`,
+		sourceArtifactID, tenantID).Scan(&src.SurfaceType, &src.PrimaryEntity, &src.ViewLabel, &src.ViewCode)
+	if err != nil {
+		return nil, fmt.Errorf("viewstudio: source view not found: %w", err)
+	}
+
+	var srcPayload json.RawMessage
+	_ = tx.QueryRow(ctx, `
+		SELECT payload FROM artifact_version WHERE artifact_id = $1 ORDER BY version_no DESC LIMIT 1`,
+		sourceArtifactID).Scan(&srcPayload)
+	if srcPayload == nil {
+		srcPayload = json.RawMessage(`{}`)
+	}
+
+	newID := idgen.NewV7()
+	newVerID := idgen.NewV7()
+	now := time.Now().UTC()
+	newLabel := src.ViewLabel + " (Copy)"
+	artifactName := generateArtifactName(src.PrimaryEntity, "", newLabel)
+
+	_, err = tx.Exec(ctx, `
+		INSERT INTO artifact_header (artifact_id, artifact_name, artifact_type, tenant_id, node_id,
+		                             surface_type, primary_entity, view_code, view_label, view_category,
+		                             created_at, updated_at, created_by)
+		VALUES ($1, $2, 'ui_view', $3, NULL, $4, $5, NULL, $6, NULL, $7, $7, $8)`,
+		newID, artifactName, tenantID, src.SurfaceType, src.PrimaryEntity, newLabel, now, userID)
+	if err != nil {
+		return nil, fmt.Errorf("viewstudio: insert duplicate header: %w", err)
+	}
+
+	_, err = tx.Exec(ctx, `
+		INSERT INTO artifact_version (version_id, artifact_id, version_no, payload, is_active, is_draft, created_at, created_by, revision)
+		VALUES ($1, $2, 1, $3, false, true, $4, $5, 1)`,
+		newVerID, newID, srcPayload, now, userID)
+	if err != nil {
+		return nil, fmt.Errorf("viewstudio: insert duplicate version: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("viewstudio: commit duplicate: %w", err)
+	}
+
+	return &View{
+		ArtifactID:      newID,
+		ArtifactName:    artifactName,
+		ArtifactType:    "ui_view",
+		TenantID:        tenantID,
+		SurfaceType:     src.SurfaceType,
+		PrimaryEntity:   src.PrimaryEntity,
+		ViewLabel:       newLabel,
+		IsDraft:         true,
+		IsActive:        false,
+		LatestVersionID: newVerID,
+		LatestVersionNo: 1,
+		Revision:        1,
+		CreatedAt:       now,
+		UpdatedAt:       now,
+		CreatedBy:       userID,
+	}, nil
+}
+
+// ─── Unpublish ────────────────────────────────────────────────────────────────
+
+func (r *Repo) UnpublishView(ctx context.Context, tenantID, artifactID, userID string) error {
+	var ownerTenant string
+	err := r.pool.QueryRow(ctx, `SELECT tenant_id FROM artifact_header WHERE artifact_id = $1 AND artifact_type = 'ui_view'`, artifactID).Scan(&ownerTenant)
+	if err != nil {
+		return fmt.Errorf("viewstudio: view not found: %w", err)
+	}
+	if ownerTenant != tenantID {
+		return fmt.Errorf("viewstudio: tenant mismatch")
+	}
+	now := time.Now().UTC()
+	_, err = r.pool.Exec(ctx, `
+		UPDATE artifact_version SET is_active = false, is_draft = true WHERE artifact_id = $1 AND is_active = true`,
+		artifactID)
+	if err != nil {
+		return fmt.Errorf("viewstudio: unpublish: %w", err)
+	}
+	_, _ = r.pool.Exec(ctx, `UPDATE artifact_header SET updated_at = $1, revision = COALESCE(revision, 1) + 1 WHERE artifact_id = $2`, now, artifactID)
+	return nil
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

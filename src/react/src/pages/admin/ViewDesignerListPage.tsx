@@ -1,15 +1,19 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
+import { useMemo, useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { LayoutGrid, Search, Plus } from 'lucide-react'
 import {
-  Button, StatusBadge, SearchInput, Select,
-  VirtualGrid, PageLayout, Modal, ConfirmDialog, useToast,
-  type VirtualGridColumn, type RowAction,
+  Button, StatusBadge, Select, Modal, ConfirmDialog,
+  ActionMenu, useToast,
+  type ActionMenuItem,
 } from '../../design-system'
-import { useViews, useArchiveView, useCreateView } from '../../hooks/useViewStudio'
+import {
+  useViews, useArchiveView, useCreateView, useEntityTypes, useViewStats,
+  usePublishViewById, useDuplicateView, useUnpublishView,
+} from '../../hooks/useViewStudio'
 import type { View, SurfaceType, CreateViewRequest } from '../../types/viewStudio'
 import { SURFACE_TYPES } from '../../types/viewStudio'
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function relativeDate(iso: string) {
   const diff = Date.now() - new Date(iso).getTime()
@@ -22,16 +26,62 @@ function relativeDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+const SURFACE_LABELS: Record<string, string> = {
+  standard_crud: 'Standard CRUD',
+  advanced_crud: 'Advanced CRUD',
+  header_line: 'Header / Line',
+  dashboard: 'Dashboard',
+  wizard: 'Wizard',
+  detail_page: 'Detail Page',
+  split_view: 'Split View',
+  kanban: 'Kanban',
+  calendar: 'Calendar',
+  custom_page: 'Custom Page',
+}
+const surfaceLabel = (s: string) => SURFACE_LABELS[s] ?? s.replace(/_/g, ' ')
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function StatusPill({ view }: { view: View }) {
+  if (view.is_active) {
+    return (
+      <span style={{
+        background: '#F1F9F2', color: '#1AB049',
+        borderRadius: 20, padding: '2px 10px', fontSize: 11.5, fontWeight: 600,
+      }}>Published</span>
+    )
+  }
+  return (
+    <span style={{
+      background: '#FFFAEB', color: '#F59E0B',
+      borderRadius: 20, padding: '2px 10px', fontSize: 11.5, fontWeight: 600,
+    }}>Draft</span>
+  )
+}
+
+function VersionChip({ no }: { no: number }) {
+  return (
+    <span style={{
+      background: '#F5F6F8', border: '1px solid #EBEDF0',
+      borderRadius: 5, padding: '1px 8px', fontSize: 11.5, fontFamily: 'monospace', color: '#8593A3',
+    }}>v{no}</span>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export function ViewDesignerListPage() {
   const navigate = useNavigate()
   const { success, error } = useToast()
-  useQueryClient()
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  const [search, setSearch] = useState('')
-  const [surfaceFilter, setSurfaceFilter] = useState<string>('')
-  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [entitySearch, setEntitySearch] = useState('')
+  const [viewSearch, setViewSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
   const [deleteTarget, setDeleteTarget] = useState<View | null>(null)
+  const [confirmUnpublish, setConfirmUnpublish] = useState<View | null>(null)
   const [creating, setCreating] = useState(false)
+  const [preselectedEntity, setPreselectedEntity] = useState<string | null>(null)
 
   // Create form state
   const [newLabel, setNewLabel] = useState('')
@@ -39,73 +89,97 @@ export function ViewDesignerListPage() {
   const [newEntity, setNewEntity] = useState('')
   const [newCode, setNewCode] = useState('')
 
-  const { data, isLoading } = useViews({
-    surface: surfaceFilter as SurfaceType | undefined,
+  const selectedEntity = searchParams.get('entity') ?? null
+
+  const { data: statsData } = useViewStats()
+  const { data: entityTypesData } = useEntityTypes()
+  const { data: viewsData, isLoading } = useViews({
+    entity: selectedEntity ?? undefined,
+    search: viewSearch || undefined,
     status: statusFilter as 'draft' | 'published' | undefined,
-    search: search || undefined,
   })
+
   const archiveMut = useArchiveView()
   const createMut = useCreateView()
+  const publishMut = usePublishViewById()
+  const duplicateMut = useDuplicateView()
+  const unpublishMut = useUnpublishView()
 
-  const filtered = data?.items ?? []
+  const entityDisplayNames = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const e of entityTypesData?.items ?? []) {
+      map[e.entity_type] = e.display_name
+    }
+    return map
+  }, [entityTypesData])
 
-  const columns: VirtualGridColumn<View>[] = [
-    {
-      key: 'view_label',
-      label: 'View',
-      // No fixed width - this column will flex to fill remaining space
-      render: (row) => (
-        <div>
-          <div style={{ fontWeight: 500 }}>{row.view_label || row.artifact_name}</div>
-          {row.view_code && <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{row.view_code}</div>}
-        </div>
-      ),
-    },
-    {
-      key: 'surface_type',
-      label: 'Surface',
-      width: 140,
-      render: (row) => <StatusBadge status={row.surface_type ?? 'unknown'} />,
-    },
-    {
-      key: 'primary_entity',
-      label: 'Entity',
-      width: 140,
-      render: (row) => <span>{row.primary_entity ?? '—'}</span>,
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      width: 100,
-      render: (row) => (
-        <StatusBadge status={row.is_active ? 'published' : row.is_draft ? 'draft' : 'inactive'} />
-      ),
-    },
-    {
-      key: 'version',
-      label: 'Version',
-      width: 80,
-      render: (row) => <span>v{row.latest_version_no ?? 0}</span>,
-    },
-    {
-      key: 'updated_at',
-      label: 'Modified',
-      width: 120,
-      render: (row) => <span>{relativeDate(row.updated_at)}</span>,
-    },
-  ]
+  const entitiesWithViews = useMemo(() =>
+    (statsData?.by_entity ?? []).map(s => ({
+      key: s.entity,
+      displayName: entityDisplayNames[s.entity] ?? s.entity.replace(/_/g, ' '),
+      count: s.count,
+    })),
+    [statsData, entityDisplayNames],
+  )
 
-  const rowActions: RowAction<View>[] = [
-    {
-      label: 'Edit',
-      onClick: (row) => navigate(`/studio/views/${row.artifact_id}/edit`),
-    },
-    {
-      label: 'Archive',
-      variant: 'danger',
-      onClick: (row) => setDeleteTarget(row),
-    },
-  ]
+  const entitiesWithViewsSet = useMemo(() =>
+    new Set(entitiesWithViews.map(e => e.key)),
+    [entitiesWithViews],
+  )
+
+  const entitiesWithoutViews = useMemo(() => {
+    if (!entitySearch.trim()) return []
+    return (entityTypesData?.items ?? [])
+      .filter(e => !entitiesWithViewsSet.has(e.entity_type))
+      .filter(e =>
+        e.display_name.toLowerCase().includes(entitySearch.toLowerCase()) ||
+        e.entity_type.toLowerCase().includes(entitySearch.toLowerCase()),
+      )
+  }, [entityTypesData, entitiesWithViewsSet, entitySearch])
+
+  const filteredEntitiesWithViews = useMemo(() => {
+    if (!entitySearch.trim()) return entitiesWithViews
+    return entitiesWithViews.filter(e =>
+      e.displayName.toLowerCase().includes(entitySearch.toLowerCase()) ||
+      e.key.toLowerCase().includes(entitySearch.toLowerCase()),
+    )
+  }, [entitiesWithViews, entitySearch])
+
+  const views = viewsData?.items ?? []
+  const totalViews = statsData?.by_entity.reduce((s, e) => s + e.count, 0) ?? 0
+  const totalEntities = entitiesWithViews.length
+
+  const publishedCount = views.filter(v => v.is_active).length
+
+  // Auto-select first entity on mount
+  useEffect(() => {
+    if (!selectedEntity && entitiesWithViews.length > 0) {
+      setSearchParams({ entity: entitiesWithViews[0].key }, { replace: true })
+    }
+  }, [entitiesWithViews, selectedEntity, setSearchParams])
+
+  function selectEntity(key: string | null) {
+    setSearchParams(key ? { entity: key } : {})
+    setViewSearch('')
+    setStatusFilter('')
+  }
+
+  function openCreate(preEntity?: string) {
+    setPreselectedEntity(preEntity ?? null)
+    setNewEntity(preEntity ?? '')
+    setNewLabel('')
+    setNewSurface('standard_crud')
+    setNewCode('')
+    setCreating(true)
+  }
+
+  function resetForm() {
+    setNewLabel('')
+    setNewSurface('standard_crud')
+    setNewEntity('')
+    setNewCode('')
+    setPreselectedEntity(null)
+  }
 
   function handleCreate() {
     if (!newLabel.trim() || !newEntity.trim()) {
@@ -129,13 +203,6 @@ export function ViewDesignerListPage() {
     })
   }
 
-  function resetForm() {
-    setNewLabel('')
-    setNewSurface('standard_crud')
-    setNewEntity('')
-    setNewCode('')
-  }
-
   function handleArchive() {
     if (!deleteTarget) return
     archiveMut.mutate(deleteTarget.artifact_id, {
@@ -147,51 +214,384 @@ export function ViewDesignerListPage() {
     })
   }
 
+  function handleUnpublish() {
+    if (!confirmUnpublish) return
+    unpublishMut.mutate(confirmUnpublish.artifact_id, {
+      onSuccess: () => {
+        success('Unpublished', `${confirmUnpublish.view_label} reverted to draft`)
+        setConfirmUnpublish(null)
+      },
+      onError: () => error('Failed', 'Could not unpublish view'),
+    })
+  }
+
+  function rowActions(row: View): ActionMenuItem[] {
+    return [
+      {
+        label: 'Open in Designer',
+        onClick: () => navigate(`/studio/views/${row.artifact_id}/edit`),
+      },
+      {
+        label: 'Duplicate',
+        onClick: () => duplicateMut.mutate(row.artifact_id, {
+          onSuccess: () => success('Duplicated', `${row.view_label} (Copy) created`),
+          onError: () => error('Failed', 'Could not duplicate view'),
+        }),
+      },
+      row.is_active
+        ? { label: 'Unpublish', onClick: () => setConfirmUnpublish(row) }
+        : {
+          label: 'Publish',
+          onClick: () => publishMut.mutate(row.artifact_id, {
+            onSuccess: () => success('Published', `${row.view_label} is now live`),
+            onError: () => error('Failed', 'Could not publish view'),
+          }),
+        },
+      {
+        label: 'Delete',
+        variant: 'danger' as const,
+        onClick: () => setDeleteTarget(row),
+      },
+    ]
+  }
+
+  const selectedDisplayName = selectedEntity
+    ? (entityDisplayNames[selectedEntity] ?? selectedEntity.replace(/_/g, ' '))
+    : 'All Views'
+
   return (
-    <PageLayout
-      title="UI Studio"
-      subtitle={`${data?.total ?? 0} views`}
-      headerActions={
-        <Button onClick={() => setCreating(true)} size="sm">
-          <Plus size={14} /> New View
-        </Button>
-      }
-    >
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        <SearchInput
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search views..."
-          style={{ width: 260 }}
-        />
-        <Select
-          value={surfaceFilter}
-          onChange={(e) => setSurfaceFilter(e.target.value)}
-          options={[{ value: '', label: 'All surfaces' }, ...SURFACE_TYPES.map(s => ({ value: s, label: s.replace(/_/g, ' ') }))]}
-        />
-        <Select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          options={[
-            { value: '', label: 'All statuses' },
-            { value: 'draft', label: 'Draft' },
-            { value: 'published', label: 'Published' },
-          ]}
-        />
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* ── Compact page header ── */}
+      <div style={{
+        background: '#fff',
+        borderBottom: '1px solid #E7E9ED',
+        padding: '0 32px',
+        height: 58,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        flexShrink: 0,
+      }}>
+        <div>
+          <span style={{ fontSize: 18, fontWeight: 800, color: '#1A2030', marginRight: 10 }}>
+            Views
+          </span>
+          <span style={{ fontSize: 13, color: '#8593A3' }}>
+            {totalViews} views · {totalEntities} entities
+          </span>
+        </div>
       </div>
 
-      <VirtualGrid
-        data={filtered}
-        columns={columns}
-        rowActions={rowActions}
-        loading={isLoading}
-        onRowClick={(row) => navigate(`/studio/views/${row.artifact_id}/edit`)}
-        emptyMessage="No views found. Create your first view to get started."
-        data-testid="views-grid"
-      />
+      {/* ── Split panel ── */}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* ── Left: Entity browser ── */}
+        <aside style={{
+          width: 296,
+          flexShrink: 0,
+          background: '#fff',
+          borderRight: '1px solid #E7E9ED',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}>
+          {/* Search */}
+          <div style={{ padding: '12px 14px', borderBottom: '1px solid #E7E9ED' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              border: '1px solid #E7E9ED', borderRadius: 8, padding: '6px 10px',
+              background: '#F5F6F8',
+            }}>
+              <Search size={13} color="#8593A3" />
+              <input
+                value={entitySearch}
+                onChange={e => setEntitySearch(e.target.value)}
+                placeholder="Search all entities..."
+                style={{
+                  border: 'none', outline: 'none', background: 'transparent',
+                  fontSize: 13, color: '#1A2030', flex: 1,
+                }}
+              />
+            </div>
+          </div>
 
-      {/* Create Modal */}
-      <Modal open={creating} onClose={() => { setCreating(false); resetForm() }} title="Create New View" data-testid="create-view-modal">
+          {/* Entity list */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Entities with views */}
+            {filteredEntitiesWithViews.map(e => {
+              const isActive = selectedEntity === e.key
+              return (
+                <button
+                  key={e.key}
+                  onClick={() => selectEntity(e.key)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '8px 10px', borderRadius: 10, cursor: 'pointer',
+                    border: 'none', textAlign: 'left', width: '100%',
+                    background: isActive ? '#FCEBE3' : 'transparent',
+                    boxShadow: isActive ? 'inset 3px 0 0 #EB6A2C' : 'none',
+                    transition: 'background 120ms',
+                  }}
+                  onMouseEnter={e2 => { if (!isActive) (e2.currentTarget as HTMLButtonElement).style.background = '#F5F6F8' }}
+                  onMouseLeave={e2 => { if (!isActive) (e2.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                >
+                  <div style={{
+                    width: 32, height: 32, flexShrink: 0, borderRadius: 8,
+                    background: isActive ? '#F5D4C4' : '#EEF1F4',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <LayoutGrid size={15} color={isActive ? '#C04910' : '#586A70'} />
+                  </div>
+                  <span style={{
+                    flex: 1, fontSize: 13, fontWeight: isActive ? 600 : 500,
+                    color: isActive ? '#C04910' : '#1A2030',
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>{e.displayName}</span>
+                  <span style={{
+                    background: isActive ? '#F5D4C4' : '#F5F6F8',
+                    color: isActive ? '#C04910' : '#8593A3',
+                    borderRadius: 20, padding: '1px 8px', fontSize: 11, fontWeight: 600,
+                  }}>{e.count}</span>
+                </button>
+              )
+            })}
+
+            {/* Entities without views — only shown when searching */}
+            {entitiesWithoutViews.length > 0 && (
+              <>
+                <div style={{
+                  fontSize: 10, fontWeight: 700, letterSpacing: '0.07em',
+                  textTransform: 'uppercase', color: '#B6BDC6',
+                  padding: '10px 10px 4px',
+                }}>No Views Yet</div>
+                {entitiesWithoutViews.map(e => (
+                  <button
+                    key={e.entity_type}
+                    onClick={() => openCreate(e.entity_type)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '8px 10px', borderRadius: 10, cursor: 'pointer',
+                      border: '1.5px dashed #D3D0DC', textAlign: 'left', width: '100%',
+                      background: '#FAFBFC', transition: 'background 120ms',
+                    }}
+                  >
+                    <div style={{
+                      width: 32, height: 32, flexShrink: 0, borderRadius: 8,
+                      background: '#F5F6F8',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <Plus size={14} color="#B6BDC6" />
+                    </div>
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: '#8593A3' }}>
+                      {e.display_name}
+                    </span>
+                    <span style={{ fontSize: 11, color: '#B6BDC6' }}>+ Create</span>
+                  </button>
+                ))}
+              </>
+            )}
+
+            {/* Unassigned divider + entry */}
+            <div style={{ height: 1, background: '#E7E9ED', margin: '8px 0' }} />
+            <button
+              onClick={() => selectEntity(null)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '8px 10px', borderRadius: 10, cursor: 'pointer',
+                border: 'none', textAlign: 'left', width: '100%',
+                background: selectedEntity === null ? '#FCEBE3' : 'transparent',
+                boxShadow: selectedEntity === null ? 'inset 3px 0 0 #EB6A2C' : 'none',
+                transition: 'background 120ms',
+                color: selectedEntity === null ? '#C04910' : '#8593A3',
+                fontSize: 13,
+              }}
+              onMouseEnter={e => { if (selectedEntity !== null) (e.currentTarget as HTMLButtonElement).style.background = '#F5F6F8' }}
+              onMouseLeave={e => { if (selectedEntity !== null) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+            >
+              <div style={{
+                width: 32, height: 32, flexShrink: 0, borderRadius: 8,
+                background: '#F5F6F8',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <LayoutGrid size={15} color="#B6BDC6" />
+              </div>
+              <span style={{ fontWeight: 500 }}>Unassigned</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* ── Right: Views panel ── */}
+        <div style={{ flex: 1, background: '#F5F6F8', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {/* Panel header */}
+          <div style={{
+            background: '#fff', borderBottom: '1px solid #E7E9ED',
+            padding: '0 20px', height: 58,
+            display: 'flex', alignItems: 'center', gap: 12,
+            flexShrink: 0,
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: 17, fontWeight: 800, color: '#1A2030', lineHeight: 1.2 }}>
+                {selectedDisplayName}
+              </span>
+              <span style={{ fontSize: 12, color: '#8593A3', marginTop: 1 }}>
+                {views.length} views · {publishedCount} published
+              </span>
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              border: '1px solid #E7E9ED', borderRadius: 8, padding: '5px 10px',
+              background: '#F5F6F8', width: 160,
+            }}>
+              <Search size={13} color="#8593A3" />
+              <input
+                value={viewSearch}
+                onChange={e => setViewSearch(e.target.value)}
+                placeholder="Search views..."
+                style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 12.5, color: '#1A2030', flex: 1 }}
+              />
+            </div>
+            <Select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              options={[
+                { value: '', label: 'All statuses' },
+                { value: 'draft', label: 'Draft' },
+                { value: 'published', label: 'Published' },
+              ]}
+            />
+            <Button onClick={() => openCreate(selectedEntity ?? undefined)} size="sm">
+              <Plus size={14} /> New View
+            </Button>
+          </div>
+
+          {/* Views table */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+            {isLoading ? (
+              <div style={{ padding: 40, textAlign: 'center', color: '#8593A3', fontSize: 13 }}>
+                Loading views…
+              </div>
+            ) : views.length === 0 ? (
+              <div style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', padding: '60px 20px', gap: 12,
+              }}>
+                <div style={{
+                  width: 54, height: 54, borderRadius: 12,
+                  background: '#EEF1F4', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <LayoutGrid size={24} color="#B6BDC6" />
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#1A2030' }}>No views yet</div>
+                <div style={{ fontSize: 13, color: '#8593A3', textAlign: 'center' }}>
+                  {selectedEntity
+                    ? `Create the first view for ${selectedDisplayName}.`
+                    : 'No views match your filters.'
+                  }
+                </div>
+                {selectedEntity && (
+                  <Button onClick={() => openCreate(selectedEntity)} size="sm">
+                    <Plus size={14} /> New View
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div style={{
+                background: '#fff',
+                border: '1px solid #E7E9ED',
+                borderRadius: 14,
+                overflow: 'hidden',
+              }}>
+                {/* Column headers */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 140px 95px 80px 100px 40px',
+                  background: '#F5F6F8',
+                  borderBottom: '1px solid #E7E9ED',
+                }}>
+                  {['View', 'Surface', 'Status', 'Version', 'Modified', ''].map(h => (
+                    <div key={h} style={{
+                      padding: '8px 14px',
+                      fontSize: 10.5, fontWeight: 600,
+                      letterSpacing: '0.05em', textTransform: 'uppercase',
+                      color: '#8593A3',
+                    }}>{h}</div>
+                  ))}
+                </div>
+
+                {/* Rows */}
+                {views.map((row, i) => (
+                  <div
+                    key={row.artifact_id}
+                    onClick={() => navigate(`/studio/views/${row.artifact_id}/edit`)}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 140px 95px 80px 100px 40px',
+                      borderBottom: i < views.length - 1 ? '1px solid #E7E9ED' : 'none',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      background: row.is_draft && !row.is_active ? '#FFFCFA' : '#fff',
+                      boxShadow: row.is_draft && !row.is_active ? 'inset 3px 0 0 #F59E0B' : 'none',
+                      transition: 'background 80ms',
+                    }}
+                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = '#FAFBFC'}
+                    onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background =
+                      row.is_draft && !row.is_active ? '#FFFCFA' : '#fff'
+                    }
+                  >
+                    {/* View name */}
+                    <div style={{ padding: '10px 14px' }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#1A2030' }}>
+                        {row.view_label || row.artifact_name}
+                      </div>
+                      {row.view_code && (
+                        <div style={{ fontSize: 11, color: '#8593A3', fontFamily: 'monospace', marginTop: 2 }}>
+                          {row.view_code}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Surface */}
+                    <div style={{ padding: '10px 14px' }}>
+                      <StatusBadge status={row.surface_type ?? 'unknown'} label={surfaceLabel(row.surface_type ?? '')} />
+                    </div>
+
+                    {/* Status */}
+                    <div style={{ padding: '10px 14px' }}>
+                      <StatusPill view={row} />
+                    </div>
+
+                    {/* Version */}
+                    <div style={{ padding: '10px 14px' }}>
+                      <VersionChip no={row.latest_version_no ?? 0} />
+                    </div>
+
+                    {/* Modified */}
+                    <div style={{ padding: '10px 14px', fontSize: 12.5, color: '#8593A3' }}>
+                      {relativeDate(row.updated_at)}
+                    </div>
+
+                    {/* Actions */}
+                    <div
+                      style={{ padding: '10px 8px' }}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <ActionMenu items={rowActions(row)} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Create Modal ── */}
+      <Modal
+        open={creating}
+        onClose={() => { setCreating(false); resetForm() }}
+        title="Create New View"
+        data-testid="create-view-modal"
+      >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '0.5rem 0' }}>
           <div>
             <label style={{ display: 'block', marginBottom: 4, fontWeight: 500, fontSize: '0.875rem' }}>View Label *</label>
@@ -199,26 +599,40 @@ export function ViewDesignerListPage() {
               type="text"
               value={newLabel}
               onChange={e => setNewLabel(e.target.value)}
-              placeholder="e.g. Customer List"
+              placeholder="e.g. Sale Order List"
               style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: 6 }}
             />
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: 4, fontWeight: 500, fontSize: '0.875rem' }}>Primary Entity *</label>
-            <input
-              type="text"
-              value={newEntity}
-              onChange={e => setNewEntity(e.target.value)}
-              placeholder="e.g. customer"
-              style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: 6 }}
-            />
+            {preselectedEntity ? (
+              <div style={{
+                padding: '0.5rem', border: '1px solid #E7E9ED', borderRadius: 6,
+                background: '#F5F6F8', color: '#1A2030', fontSize: '0.875rem',
+                fontWeight: 500,
+              }}>
+                {entityDisplayNames[preselectedEntity] ?? preselectedEntity}
+                <span style={{ color: '#8593A3', marginLeft: 6, fontWeight: 400, fontSize: 12 }}>
+                  (pre-selected)
+                </span>
+              </div>
+            ) : (
+              <Select
+                value={newEntity}
+                onChange={e => setNewEntity(e.target.value)}
+                options={[
+                  { value: '', label: 'Select entity…' },
+                  ...(entityTypesData?.items ?? []).map(e => ({ value: e.entity_type, label: e.display_name })),
+                ]}
+              />
+            )}
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: 4, fontWeight: 500, fontSize: '0.875rem' }}>Surface Type</label>
             <Select
               value={newSurface}
               onChange={(e) => setNewSurface(e.target.value as unknown as SurfaceType)}
-              options={SURFACE_TYPES.map(s => ({ value: s, label: s.replace(/_/g, ' ') }))}
+              options={SURFACE_TYPES.map(s => ({ value: s, label: surfaceLabel(s) }))}
             />
           </div>
           <div>
@@ -227,23 +641,20 @@ export function ViewDesignerListPage() {
               type="text"
               value={newCode}
               onChange={e => setNewCode(e.target.value)}
-              placeholder="e.g. customer_list"
+              placeholder="e.g. sale_order_list"
               style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: 6 }}
             />
-            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-              Lowercase, digits, underscores. 3-50 chars.
-            </span>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
             <Button variant="secondary" onClick={() => { setCreating(false); resetForm() }}>Cancel</Button>
             <Button onClick={handleCreate} disabled={createMut.isPending}>
-              {createMut.isPending ? 'Creating...' : 'Create View'}
+              {createMut.isPending ? 'Creating…' : 'Create View'}
             </Button>
           </div>
         </div>
       </Modal>
 
-      {/* Archive Confirm */}
+      {/* ── Archive Confirm ── */}
       <ConfirmDialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
@@ -253,7 +664,18 @@ export function ViewDesignerListPage() {
         confirmLabel="Archive"
         danger={true}
       />
-    </PageLayout>
+
+      {/* ── Unpublish Confirm ── */}
+      <ConfirmDialog
+        open={!!confirmUnpublish}
+        onClose={() => setConfirmUnpublish(null)}
+        onConfirm={handleUnpublish}
+        title="Unpublish View"
+        message={`Unpublishing "${confirmUnpublish?.view_label}" will revert it to draft status. Users will no longer see the live version.`}
+        confirmLabel="Unpublish"
+        danger={false}
+      />
+    </div>
   )
 }
 

@@ -54,6 +54,7 @@ type View struct {
 	LatestVersionNo int    `json:"latest_version_no,omitempty"`
 	IsDraft         bool   `json:"is_draft"`
 	IsActive        bool   `json:"is_active"`
+	HasPublished    bool   `json:"has_published"`
 }
 
 type ViewVersion struct {
@@ -273,4 +274,15 @@ type EntityTypeListResponse struct {
 
 type EntityFieldListResponse struct {
 	Items []EntityFieldDef `json:"items"`
+}
+
+// ─── View Stats ──────────────────────────────────────────────────────────────
+
+type ViewEntityStat struct {
+	Entity string `json:"entity"`
+	Count  int    `json:"count"`
+}
+
+type ViewStats struct {
+	ByEntity []ViewEntityStat `json:"by_entity"`
 }

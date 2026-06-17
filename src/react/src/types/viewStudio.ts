@@ -51,6 +51,7 @@ export interface View {
   latest_version_no?: number;
   is_draft: boolean;
   is_active: boolean;
+  has_published?: boolean;
 }
 
 export interface ViewVersion {
@@ -383,4 +384,15 @@ export interface EntityFieldDef {
 export interface RuntimeContext {
   role?: string;
   fieldValues?: Record<string, unknown>;
+}
+
+// ─── View Stats ──────────────────────────────────────────────────────────────
+
+export interface ViewEntityStat {
+  entity: string;
+  count: number;
+}
+
+export interface ViewStats {
+  by_entity: ViewEntityStat[];
 }

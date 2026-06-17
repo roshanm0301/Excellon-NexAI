@@ -381,6 +381,7 @@ import type {
   ViewVariant,
   DataSourceConfig,
   ViewPayload,
+  ViewStats,
 } from '../types/viewStudio'
 
 const STUDIO_PREFIX = '/studio'
@@ -521,7 +522,16 @@ export const importViewFromPackage = (pkg: ViewExportPackage) =>
 export const getSyncStatus = (viewKey: string) =>
   studioFetch<SyncStatusResponse>(`${STUDIO_PREFIX}/views/${viewKey}/sync-status`)
 
+export const duplicateView = (viewKey: string) =>
+  studioFetch<View>(`${STUDIO_PREFIX}/views/${viewKey}/duplicate`, { method: 'POST' })
+
+export const unpublishView = (viewKey: string) =>
+  studioFetch<void>(`${STUDIO_PREFIX}/views/${viewKey}/unpublish`, { method: 'POST' })
+
 // ── Entity Schema APIs (M3.2) ────────────────────────────────────────────────
+
+export const getViewStats = () =>
+  studioFetch<ViewStats>(`${STUDIO_PREFIX}/views/stats`)
 
 export const listEntityTypes = () =>
   studioFetch<{ items: EntityTypeSummary[] }>(`${STUDIO_PREFIX}/entities`)
