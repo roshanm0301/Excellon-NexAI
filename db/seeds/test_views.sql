@@ -21,7 +21,7 @@ BEGIN;
 
 INSERT INTO artifact_header
     (artifact_id, artifact_name, artifact_type, tenant_id, created_by,
-     surface_type, primary_entity, view_code, view_label, revision)
+     surface_type, primary_entity, view_code, view_label)
 VALUES
 (
     '00000000-0000-0000-0002-000000000001',
@@ -29,7 +29,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'standard_crud', 'vehicle', 'vehicle_master', 'Vehicle Master', 1
+    'standard_crud', 'vehicle', 'vehicle_master', 'Vehicle Master'
 ),
 (
     '00000000-0000-0000-0002-000000000002',
@@ -37,7 +37,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'standard_crud', 'customer', 'customer_master', 'Customer Master', 1
+    'standard_crud', 'customer', 'customer_master', 'Customer Master'
 ),
 (
     '00000000-0000-0000-0002-000000000003',
@@ -45,7 +45,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'standard_crud', 'supplier', 'supplier_master', 'Supplier Master', 1
+    'standard_crud', 'supplier', 'supplier_master', 'Supplier Master'
 ),
 (
     '00000000-0000-0000-0002-000000000004',
@@ -53,7 +53,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'standard_crud', 'parts', 'parts_inventory', 'Parts Inventory', 1
+    'standard_crud', 'parts', 'parts_inventory', 'Parts Inventory'
 ),
 (
     '00000000-0000-0000-0002-000000000005',
@@ -61,7 +61,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'standard_crud', 'employee', 'employee_directory', 'Employee Directory', 1
+    'standard_crud', 'employee', 'employee_directory', 'Employee Directory'
 ),
 (
     '00000000-0000-0000-0002-000000000006',
@@ -69,7 +69,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'standard_crud', 'technician', 'technician_list', 'Technician List', 1
+    'standard_crud', 'technician', 'technician_list', 'Technician List'
 ),
 (
     '00000000-0000-0000-0002-000000000007',
@@ -77,7 +77,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'standard_crud', 'finance_company', 'finance_company_list', 'Finance Company List', 1
+    'standard_crud', 'finance_company', 'finance_company_list', 'Finance Company List'
 ),
 (
     '00000000-0000-0000-0002-000000000008',
@@ -85,7 +85,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'header_line', 'sale_order', 'sale_order_editor', 'Sale Order Editor', 1
+    'header_line', 'sale_order', 'sale_order_editor', 'Sale Order Editor'
 ),
 (
     '00000000-0000-0000-0002-000000000009',
@@ -93,7 +93,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'header_line', 'service_order', 'service_order_editor', 'Service Order Editor', 1
+    'header_line', 'service_order', 'service_order_editor', 'Service Order Editor'
 ),
 (
     '00000000-0000-0000-0002-000000000010',
@@ -101,7 +101,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'header_line', 'purchase_order', 'purchase_order_editor', 'Purchase Order Editor', 1
+    'header_line', 'purchase_order', 'purchase_order_editor', 'Purchase Order Editor'
 ),
 (
     '00000000-0000-0000-0002-000000000011',
@@ -109,7 +109,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'dashboard', 'dashboard', 'sales_dashboard', 'Sales Dashboard', 1
+    'dashboard', 'dashboard', 'sales_dashboard', 'Sales Dashboard'
 ),
 (
     '00000000-0000-0000-0002-000000000012',
@@ -117,7 +117,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'dashboard', 'dashboard', 'service_dashboard', 'Service Dashboard', 1
+    'dashboard', 'dashboard', 'service_dashboard', 'Service Dashboard'
 ),
 (
     '00000000-0000-0000-0002-000000000013',
@@ -125,7 +125,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'wizard', 'sale_order', 'new_vehicle_sale_wizard', 'New Vehicle Sale Wizard', 1
+    'wizard', 'sale_order', 'new_vehicle_sale_wizard', 'New Vehicle Sale Wizard'
 ),
 (
     '00000000-0000-0000-0002-000000000014',
@@ -133,7 +133,7 @@ VALUES
     'ui_view',
     '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
-    'split_view', 'customer', 'customer_360', 'Customer 360', 1
+    'split_view', 'customer', 'customer_360', 'Customer 360'
 )
 ON CONFLICT DO NOTHING;
 
@@ -143,7 +143,7 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO artifact_version
     (version_id, artifact_id, version_no, payload, is_active, is_draft,
-     created_by, published_at, published_by, revision)
+     created_by, published_at, published_by)
 VALUES
 
 -- --------------------------------------------------------------------------
@@ -195,7 +195,7 @@ VALUES
         "data_sources": [{"key": "vehicles", "entity": "vehicle", "type": "list"}],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 ),
 
 -- --------------------------------------------------------------------------
@@ -246,7 +246,7 @@ VALUES
         "data_sources": [{"key": "customers", "entity": "customer", "type": "list"}],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 ),
 
 -- --------------------------------------------------------------------------
@@ -296,7 +296,7 @@ VALUES
         "data_sources": [{"key": "suppliers", "entity": "supplier", "type": "list"}],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 ),
 
 -- --------------------------------------------------------------------------
@@ -353,7 +353,7 @@ VALUES
         "data_sources": [{"key": "parts", "entity": "parts", "type": "list"}],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 ),
 
 -- --------------------------------------------------------------------------
@@ -403,7 +403,7 @@ VALUES
         "data_sources": [{"key": "employees", "entity": "employee", "type": "list"}],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 ),
 
 -- --------------------------------------------------------------------------
@@ -453,7 +453,7 @@ VALUES
         "data_sources": [{"key": "technicians", "entity": "technician", "type": "list"}],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 ),
 
 -- --------------------------------------------------------------------------
@@ -502,7 +502,7 @@ VALUES
         "data_sources": [{"key": "finance_companies", "entity": "finance_company", "type": "list"}],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 ),
 
 -- --------------------------------------------------------------------------
@@ -624,7 +624,7 @@ VALUES
         "data_sources": [{"key": "sale_order", "entity": "sale_order", "type": "single"}],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 ),
 
 -- --------------------------------------------------------------------------
@@ -726,7 +726,7 @@ VALUES
         "data_sources": [{"key": "service_order", "entity": "service_order", "type": "single"}],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 ),
 
 -- --------------------------------------------------------------------------
@@ -819,7 +819,7 @@ VALUES
         "data_sources": [{"key": "purchase_order", "entity": "purchase_order", "type": "single"}],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 ),
 
 -- --------------------------------------------------------------------------
@@ -907,7 +907,7 @@ VALUES
         ],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 ),
 
 -- --------------------------------------------------------------------------
@@ -996,7 +996,7 @@ VALUES
         ],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 ),
 
 -- --------------------------------------------------------------------------
@@ -1125,7 +1125,7 @@ VALUES
         ],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 ),
 
 -- --------------------------------------------------------------------------
@@ -1244,7 +1244,7 @@ VALUES
         ],
         "events": []
     }',
-    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001', 1
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 )
 ON CONFLICT DO NOTHING;
 
