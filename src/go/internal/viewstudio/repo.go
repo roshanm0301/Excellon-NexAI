@@ -113,7 +113,9 @@ func (r *Repo) ListViews(ctx context.Context, tenantID, surface, entity, status,
 		args = append(args, surface)
 		argN++
 	}
-	if entity != "" {
+	if entity == "__unassigned__" {
+		baseWhere += ` AND (h.primary_entity IS NULL OR h.primary_entity = '')`
+	} else if entity != "" {
 		baseWhere += fmt.Sprintf(` AND h.primary_entity = $%d`, argN)
 		args = append(args, entity)
 		argN++

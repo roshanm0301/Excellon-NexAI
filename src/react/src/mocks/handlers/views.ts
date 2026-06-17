@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { seedViews } from '../data/views'
 
-const VIEWS_KEY = 'msw_views'
+const VIEWS_KEY = 'msw_views_v3'
 
 // Matches the View type from types/viewStudio.ts exactly
 interface ViewRecord {
@@ -130,7 +130,8 @@ export const viewHandlers = [
     let items = store
     if (search) items = items.filter(v => v.view_label.toLowerCase().includes(search) || (v.view_code ?? '').toLowerCase().includes(search))
     if (surface) items = items.filter(v => v.surface_type === surface)
-    if (entity) items = items.filter(v => v.primary_entity === entity)
+    if (entity === '__unassigned__') items = items.filter(v => !v.primary_entity)
+    else if (entity) items = items.filter(v => v.primary_entity === entity)
     if (status === 'draft') items = items.filter(v => v.is_draft)
     if (status === 'published') items = items.filter(v => v.is_active && !v.is_draft)
     return HttpResponse.json({ items: items.map(toView), total: items.length })
@@ -462,16 +463,22 @@ export const viewHandlers = [
     return HttpResponse.json({ errors: [], warnings: [] })
   }),
 
-  // Entity Schema (M3.2) — mock compiled entity types for the field picker
+  // Entity Schema (M3.2) — DMS entity types matching db/seeds/test_entities.sql
   http.get('/api/v1/studio/entities', () => {
     return HttpResponse.json({
       items: [
-        { entity_type: 'sale_order', display_name: 'Sale Order' },
-        { entity_type: 'customer', display_name: 'Customer' },
-        { entity_type: 'vehicle', display_name: 'Vehicle' },
-        { entity_type: 'order', display_name: 'Order' },
-        { entity_type: 'product', display_name: 'Product' },
-        { entity_type: 'invoice', display_name: 'Invoice' },
+        { entity_type: 'customer',         display_name: 'Customer' },
+        { entity_type: 'employee',         display_name: 'Employee' },
+        { entity_type: 'finance_company',  display_name: 'Finance Company' },
+        { entity_type: 'part_category',    display_name: 'Part Category' },
+        { entity_type: 'parts',            display_name: 'Parts' },
+        { entity_type: 'parts_request',    display_name: 'Parts Request' },
+        { entity_type: 'purchase_order',   display_name: 'Purchase Order' },
+        { entity_type: 'sale_order',       display_name: 'Sale Order' },
+        { entity_type: 'service_order',    display_name: 'Service Order' },
+        { entity_type: 'supplier',         display_name: 'Supplier' },
+        { entity_type: 'technician',       display_name: 'Technician' },
+        { entity_type: 'vehicle',          display_name: 'Vehicle' },
       ],
     })
   }),

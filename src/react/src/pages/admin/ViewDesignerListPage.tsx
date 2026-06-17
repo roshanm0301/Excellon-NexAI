@@ -159,7 +159,7 @@ export function ViewDesignerListPage() {
   }, [entitiesWithViews, selectedEntity, setSearchParams])
 
   function selectEntity(key: string | null) {
-    setSearchParams(key ? { entity: key } : {})
+    setSearchParams(key ? { entity: key } : {}, { replace: true })
     setViewSearch('')
     setStatusFilter('')
   }
@@ -255,9 +255,11 @@ export function ViewDesignerListPage() {
     ]
   }
 
-  const selectedDisplayName = selectedEntity
-    ? (entityDisplayNames[selectedEntity] ?? selectedEntity.replace(/_/g, ' '))
-    : 'All Views'
+  const selectedDisplayName = selectedEntity === '__unassigned__'
+    ? 'Unassigned'
+    : selectedEntity
+      ? (entityDisplayNames[selectedEntity] ?? selectedEntity.replace(/_/g, ' '))
+      : 'All Views'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -393,19 +395,19 @@ export function ViewDesignerListPage() {
             {/* Unassigned divider + entry */}
             <div style={{ height: 1, background: '#E7E9ED', margin: '8px 0' }} />
             <button
-              onClick={() => selectEntity(null)}
+              onClick={() => selectEntity('__unassigned__')}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
                 padding: '8px 10px', borderRadius: 10, cursor: 'pointer',
                 border: 'none', textAlign: 'left', width: '100%',
-                background: selectedEntity === null ? '#FCEBE3' : 'transparent',
-                boxShadow: selectedEntity === null ? 'inset 3px 0 0 #EB6A2C' : 'none',
+                background: selectedEntity === '__unassigned__' ? '#FCEBE3' : 'transparent',
+                boxShadow: selectedEntity === '__unassigned__' ? 'inset 3px 0 0 #EB6A2C' : 'none',
                 transition: 'background 120ms',
-                color: selectedEntity === null ? '#C04910' : '#8593A3',
+                color: selectedEntity === '__unassigned__' ? '#C04910' : '#8593A3',
                 fontSize: 13,
               }}
-              onMouseEnter={e => { if (selectedEntity !== null) (e.currentTarget as HTMLButtonElement).style.background = '#F5F6F8' }}
-              onMouseLeave={e => { if (selectedEntity !== null) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+              onMouseEnter={e => { if (selectedEntity !== '__unassigned__') (e.currentTarget as HTMLButtonElement).style.background = '#F5F6F8' }}
+              onMouseLeave={e => { if (selectedEntity !== '__unassigned__') (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
             >
               <div style={{
                 width: 32, height: 32, flexShrink: 0, borderRadius: 8,
@@ -459,7 +461,7 @@ export function ViewDesignerListPage() {
                 { value: 'published', label: 'Published' },
               ]}
             />
-            <Button onClick={() => openCreate(selectedEntity ?? undefined)} size="sm">
+            <Button onClick={() => openCreate(selectedEntity && selectedEntity !== '__unassigned__' ? selectedEntity : undefined)} size="sm">
               <Plus size={14} /> New View
             </Button>
           </div>
@@ -483,12 +485,12 @@ export function ViewDesignerListPage() {
                 </div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: '#1A2030' }}>No views yet</div>
                 <div style={{ fontSize: 13, color: '#8593A3', textAlign: 'center' }}>
-                  {selectedEntity
+                  {selectedEntity && selectedEntity !== '__unassigned__'
                     ? `Create the first view for ${selectedDisplayName}.`
                     : 'No views match your filters.'
                   }
                 </div>
-                {selectedEntity && (
+                {selectedEntity && selectedEntity !== '__unassigned__' && (
                   <Button onClick={() => openCreate(selectedEntity)} size="sm">
                     <Plus size={14} /> New View
                   </Button>
