@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Save, Undo2, Redo2, Eye, Upload, ChevronLeft, AlertTriangle, CheckCircle2, Settings } from 'lucide-react'
+import { Save, Undo2, Redo2, Eye, Upload, ChevronLeft, AlertTriangle, CheckCircle2, Settings, BookOpen } from 'lucide-react'
 import { Button, Spinner, useToast } from '../../../design-system'
 import { useView, useSaveDraft, usePublishView, useComponentRegistry } from '../../../hooks/useViewStudio'
 import { useCanvasStore } from './useCanvasStore'
@@ -10,6 +10,7 @@ import { PropertyPanel } from './PropertyPanel'
 import { useAutoSave } from './useAutoSave'
 import { PreviewCanvas } from './PreviewCanvas'
 import { ViewSettingsDrawer, DrawerTab } from './ViewSettingsDrawer'
+import { SurfaceGuidePanel } from './SurfaceGuidePanel'
 import { validateTree, getValidationSummary } from '../../../lib/viewTreeValidator'
 import type { ViewPayload, SurfaceType } from '../../../types/viewStudio'
 import { SURFACE_TYPE_META } from '../../../types/viewStudio'
@@ -33,6 +34,7 @@ export function ViewDesignerPage() {
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerTab, setDrawerTab] = useState<DrawerTab>('datasources')
+  const [guideOpen, setGuideOpen] = useState(false)
 
   // Load view into canvas store when data arrives
   useEffect(() => {
@@ -144,7 +146,15 @@ export function ViewDesignerPage() {
             </div>
             <span className="vd-toolbar__meta">
               {viewData.surface_type ? (SURFACE_TYPE_META[viewData.surface_type as SurfaceType]?.label ?? viewData.surface_type) : ''}
-              {viewData.primary_entity ? ` · ${viewData.primary_entity}` : ''}
+              <button
+                className="vd-surface-guide-btn"
+                onClick={() => setGuideOpen(true)}
+                title="Open Surface Type Guide"
+                aria-label="Surface type guide"
+              >
+                <BookOpen size={12} />
+              </button>
+              {viewData.primary_entity ? `· ${viewData.primary_entity}` : ''}
             </span>
           </div>
         </div>
@@ -246,6 +256,13 @@ export function ViewDesignerPage() {
           viewCode={viewData.view_code}
           onClose={() => setDrawerOpen(false)}
           initialTab={drawerTab}
+        />
+      )}
+
+      {guideOpen && (
+        <SurfaceGuidePanel
+          initialSurface={(viewData.surface_type ?? 'standard_crud') as SurfaceType}
+          onClose={() => setGuideOpen(false)}
         />
       )}
     </div>
