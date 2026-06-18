@@ -40,7 +40,7 @@ export function ViewDesignerPage() {
   useEffect(() => {
     if (viewData) {
       const p = viewData.latest_payload as ViewPayload
-      setView(viewData.artifact_id, viewData.view_code ?? null, p, viewData.primary_entity ?? null, viewData.revision ?? 0)
+      setView(viewData.artifact_id, viewData.view_code ?? null, p, viewData.primary_entity ?? null, viewData.revision ?? 0, (viewData.surface_type ?? null) as SurfaceType | null)
     }
     return () => { reset() }
   }, [viewData, setView, reset])

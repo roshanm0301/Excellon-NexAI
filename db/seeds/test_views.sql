@@ -1259,4 +1259,249 @@ ON CONFLICT (version_id) DO UPDATE SET
     published_at = EXCLUDED.published_at,
     published_by = EXCLUDED.published_by;
 
+-- ============================================================================
+-- Purchase Order views (added for full DMS coverage)
+-- ============================================================================
+
+INSERT INTO artifact_header
+    (artifact_id, artifact_name, artifact_type, tenant_id, created_by,
+     surface_type, primary_entity, view_code, view_label)
+VALUES
+(
+    '00000000-0000-0000-0002-000000000015',
+    'ui_view.purchase_order.po_list',
+    'ui_view',
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000001',
+    'standard_crud', 'purchase_order', 'po_list', 'Purchase Order List'
+),
+(
+    '00000000-0000-0000-0002-000000000016',
+    'ui_view.purchase_order.po_entry',
+    'ui_view',
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000001',
+    'header_line', 'purchase_order', 'po_entry', 'Purchase Order Entry'
+)
+ON CONFLICT (artifact_id) DO UPDATE SET
+    artifact_name  = EXCLUDED.artifact_name,
+    surface_type   = EXCLUDED.surface_type,
+    primary_entity = EXCLUDED.primary_entity,
+    view_code      = EXCLUDED.view_code,
+    view_label     = EXCLUDED.view_label,
+    updated_at     = now();
+
+-- --------------------------------------------------------------------------
+-- View 15: Purchase Order List (standard_crud)
+-- --------------------------------------------------------------------------
+INSERT INTO artifact_version
+    (version_id, artifact_id, version_no, payload, is_active, is_draft,
+     created_by, published_at, published_by)
+VALUES
+(
+    '00000000-0000-0000-0005-000000000015',
+    '00000000-0000-0000-0002-000000000015',
+    1,
+    '{
+        "component_tree": {
+            "component_key": "root",
+            "component_code": "page_root",
+            "props": {},
+            "children": [
+                {
+                    "component_key": "tb_po_list",
+                    "component_code": "toolbar",
+                    "props": {"position": "top"},
+                    "children": [
+                        {"component_key": "btn_new_po",  "component_code": "button", "props": {"label": "New PO",  "variant": "primary"}},
+                        {"component_key": "btn_approve", "component_code": "button", "props": {"label": "Approve", "variant": "secondary"}},
+                        {"component_key": "btn_export",  "component_code": "button", "props": {"label": "Export",  "variant": "ghost"}}
+                    ]
+                },
+                {
+                    "component_key": "fp_po",
+                    "component_code": "filter_panel",
+                    "props": {},
+                    "bindings": {}
+                },
+                {
+                    "component_key": "dt_po_list",
+                    "component_code": "data_table",
+                    "props": {
+                        "searchable": true,
+                        "paginated": true,
+                        "pageSize": 25,
+                        "selectable": true,
+                        "columns": [
+                            {"key": "po_number",      "label": "PO Number",          "type": "text"},
+                            {"key": "supplier",       "label": "Supplier",            "type": "reference"},
+                            {"key": "po_date",        "label": "PO Date",             "type": "date"},
+                            {"key": "delivery_date",  "label": "Expected Delivery",   "type": "date"},
+                            {"key": "status",         "label": "Status",              "type": "badge"},
+                            {"key": "total_amount",   "label": "Total Amount",        "type": "currency"}
+                        ]
+                    },
+                    "bindings": {"data": {"source": "po_list", "entity": "purchase_order"}}
+                }
+            ]
+        },
+        "data_sources": [
+            {"key": "po_list", "entity": "purchase_order", "type": "list", "pagination": {"page_size": 25}}
+        ],
+        "events": []
+    }',
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
+)
+ON CONFLICT (version_id) DO UPDATE SET
+    payload      = EXCLUDED.payload,
+    is_active    = EXCLUDED.is_active,
+    is_draft     = EXCLUDED.is_draft,
+    published_at = EXCLUDED.published_at,
+    published_by = EXCLUDED.published_by;
+
+-- --------------------------------------------------------------------------
+-- View 16: Purchase Order Entry (header_line)
+-- --------------------------------------------------------------------------
+INSERT INTO artifact_version
+    (version_id, artifact_id, version_no, payload, is_active, is_draft,
+     created_by, published_at, published_by)
+VALUES
+(
+    '00000000-0000-0000-0005-000000000016',
+    '00000000-0000-0000-0002-000000000016',
+    1,
+    '{
+        "component_tree": {
+            "component_key": "root",
+            "component_code": "page_root",
+            "props": {},
+            "children": [
+                {
+                    "component_key": "tb_po_entry",
+                    "component_code": "toolbar",
+                    "props": {"position": "top"},
+                    "children": [
+                        {"component_key": "btn_save",    "component_code": "button", "props": {"label": "Save Draft",  "variant": "secondary"}},
+                        {"component_key": "btn_submit",  "component_code": "button", "props": {"label": "Submit PO",   "variant": "primary"}},
+                        {"component_key": "btn_approve", "component_code": "button", "props": {"label": "Approve",     "variant": "primary"}},
+                        {"component_key": "btn_print",   "component_code": "button", "props": {"label": "Print",       "variant": "ghost"}},
+                        {"component_key": "btn_cancel",  "component_code": "button", "props": {"label": "Cancel PO",   "variant": "ghost"}},
+                        {
+                            "component_key": "sb_po_status",
+                            "component_code": "status_badge",
+                            "props": {},
+                            "bindings": {"status": {"source": "field", "entity": "purchase_order", "field_key": "status"}}
+                        }
+                    ]
+                },
+                {
+                    "component_key": "sec_po_hdr",
+                    "component_code": "section",
+                    "props": {"title": "Purchase Order Details", "collapsible": false},
+                    "children": [
+                        {
+                            "component_key": "row_po_1",
+                            "component_code": "grid_row",
+                            "props": {},
+                            "children": [
+                                {"component_key": "col_po_1", "component_code": "grid_column", "props": {}, "children": [
+                                    {"component_key": "f_pono", "component_code": "text_input",
+                                     "props": {"label": "PO Number", "readOnly": true},
+                                     "bindings": {"value": {"source": "field", "entity": "purchase_order", "field_key": "po_number"}}}
+                                ]},
+                                {"component_key": "col_po_2", "component_code": "grid_column", "props": {}, "children": [
+                                    {"component_key": "f_supplier", "component_code": "reference_select",
+                                     "props": {"label": "Supplier *", "required": true},
+                                     "bindings": {"value": {"source": "field", "entity": "purchase_order", "field_key": "supplier"}}}
+                                ]},
+                                {"component_key": "col_po_3", "component_code": "grid_column", "props": {}, "children": [
+                                    {"component_key": "f_podate", "component_code": "date_picker",
+                                     "props": {"label": "PO Date", "required": true},
+                                     "bindings": {"value": {"source": "field", "entity": "purchase_order", "field_key": "po_date"}}}
+                                ]},
+                                {"component_key": "col_po_4", "component_code": "grid_column", "props": {}, "children": [
+                                    {"component_key": "f_delivdt", "component_code": "date_picker",
+                                     "props": {"label": "Expected Delivery"},
+                                     "bindings": {"value": {"source": "field", "entity": "purchase_order", "field_key": "delivery_date"}}}
+                                ]}
+                            ]
+                        },
+                        {
+                            "component_key": "row_po_2",
+                            "component_code": "grid_row",
+                            "props": {},
+                            "children": [
+                                {"component_key": "col_po_5", "component_code": "grid_column", "props": {}, "children": [
+                                    {"component_key": "f_status", "component_code": "dropdown_select",
+                                     "props": {"label": "Status", "required": true},
+                                     "bindings": {"value": {"source": "field", "entity": "purchase_order", "field_key": "status"}}}
+                                ]},
+                                {"component_key": "col_po_6", "component_code": "grid_column", "props": {}, "children": [
+                                    {"component_key": "f_branch", "component_code": "reference_select",
+                                     "props": {"label": "Branch"},
+                                     "bindings": {"value": {"source": "field", "entity": "purchase_order", "field_key": "branch"}}}
+                                ]},
+                                {"component_key": "col_po_7", "component_code": "grid_column", "props": {}, "children": [
+                                    {"component_key": "f_total", "component_code": "currency_input",
+                                     "props": {"label": "Total Amount", "readOnly": true},
+                                     "bindings": {"value": {"source": "field", "entity": "purchase_order", "field_key": "total_amount"}}}
+                                ]},
+                                {"component_key": "col_po_8", "component_code": "grid_column", "props": {}, "children": [
+                                    {"component_key": "f_remarks", "component_code": "textarea",
+                                     "props": {"label": "Remarks", "rows": 2},
+                                     "bindings": {"value": {"source": "field", "entity": "purchase_order", "field_key": "remarks"}}}
+                                ]}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "component_key": "sec_po_lines",
+                    "component_code": "section",
+                    "props": {"title": "Order Lines"},
+                    "children": [
+                        {
+                            "component_key": "dt_po_lines",
+                            "component_code": "data_table",
+                            "props": {
+                                "addRowEnabled": true,
+                                "deleteRowEnabled": true,
+                                "columns": [
+                                    {"key": "part_code",     "label": "Part Code",      "type": "reference", "editable": true},
+                                    {"key": "description",   "label": "Description",    "type": "text",      "editable": false},
+                                    {"key": "uom",           "label": "UOM",            "type": "text",      "editable": false},
+                                    {"key": "qty_ordered",   "label": "Qty Ordered",    "type": "number",    "editable": true},
+                                    {"key": "unit_price",    "label": "Unit Price",     "type": "currency",  "editable": true},
+                                    {"key": "discount_pct",  "label": "Disc %",         "type": "number",    "editable": true},
+                                    {"key": "gst_pct",       "label": "GST %",          "type": "number",    "editable": false},
+                                    {"key": "line_total",    "label": "Line Total",     "type": "currency",  "editable": false}
+                                ]
+                            },
+                            "bindings": {"data": {"source": "pol_list", "entity": "purchase_order_line"}}
+                        }
+                    ]
+                },
+                {
+                    "component_key": "tp_po",
+                    "component_code": "totals_panel",
+                    "props": {"showGST": true, "showDiscount": true},
+                    "bindings": {"line_items": {"source": "pol_list"}}
+                }
+            ]
+        },
+        "data_sources": [
+            {"key": "po_record", "entity": "purchase_order",      "type": "single"},
+            {"key": "pol_list",  "entity": "purchase_order_line", "type": "list", "filter_by_parent": "po_id"}
+        ],
+        "events": []
+    }',
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
+)
+ON CONFLICT (version_id) DO UPDATE SET
+    payload      = EXCLUDED.payload,
+    is_active    = EXCLUDED.is_active,
+    is_draft     = EXCLUDED.is_draft,
+    published_at = EXCLUDED.published_at,
+    published_by = EXCLUDED.published_by;
+
 COMMIT;

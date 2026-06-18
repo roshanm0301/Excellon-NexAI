@@ -729,4 +729,14 @@ export const seedViews: ViewSeed[] = [
   makeDraftView('00000000-0000-0000-0002-000000000014', 'Vehicle Master',       'standard_crud','vehicle',         vehicleMasterPayload,       'vehicle_master'),
   makeDraftView('00000000-0000-0000-0002-000000000015', 'Purchase Order Form',  'header_line',  'purchase_order',  purchaseOrderPayload,       'purchase_order_form'),
   makeDraftView('00000000-0000-0000-0002-000000000016', 'Parts Request',        'standard_crud','parts_request',   partsRequestPayload,        'parts_request'),
+
+  // ─── additional surface types (for full palette testing) ──────────────────
+  makeView('00000000-0000-0000-0002-000000000017', 'Customer Detail',          'detail_page',   'customer',        customerMasterPayload,      'customer_detail'),
+  makeView('00000000-0000-0000-0002-000000000018', 'Parts Bulk Update',        'advanced_crud', 'parts',           partsInventoryPayload,      'parts_bulk_update'),
+  makeView('00000000-0000-0000-0002-000000000019', 'Test Drive Calendar',      'calendar',      'customer',        customerMasterPayload,      'test_drive_calendar'),
+  makeView('00000000-0000-0000-0002-000000000020', 'EMI Calculator',           'custom_page',   'sale_order',      saleOrdersPayload,          'emi_calculator'),
+
+  // ─── Purchase Order demo views — blank canvas for drag-drop demo ───────────
+  makeView('00000000-0000-0000-0002-000000000021', 'PO List View (Demo)',      'standard_crud', 'purchase_order',  { meta: {}, datasources: [{ source_key: 'po_list', base_entity: 'purchase_order', pagination: { page_size: 20 } }], component_tree: { component_key: 'root', component_code: 'page_root', children: [] }, events: [] }, 'po_list_demo'),
+  makeView('00000000-0000-0000-0002-000000000022', 'PO Entry View (Demo)',     'header_line',   'purchase_order',  { meta: {}, datasources: [{ source_key: 'po_record', base_entity: 'purchase_order', pagination: { page_size: 1 } }, { source_key: 'pol_list', base_entity: 'purchase_order_line', pagination: { page_size: 50 } }], component_tree: { component_key: 'root', component_code: 'page_root', children: [{ component_key: 'hls_root', component_code: 'header_line_section', label: 'Purchase Order', props: {}, children: [] }] }, events: [] }, 'po_entry_demo'),
 ]

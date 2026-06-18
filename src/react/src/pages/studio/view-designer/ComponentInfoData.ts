@@ -460,4 +460,85 @@ export const COMPONENT_INFO: Record<string, ComponentInfoEntry> = {
     keyProps: ['status_field', 'column_values', 'card_template', 'allow_drag'],
     previewTemplate: 'kanban',
   },
+
+  // ─── Input (new) ──────────────────────────────────────────────────────────
+  address_block: {
+    tagline: 'Full address entry with multiple lines',
+    description: 'Captures structured address data across multiple fields in one component.',
+    useCases: ['Customer delivery address', 'Dealer branch address', 'Supplier location'],
+    keyProps: ['address_line1', 'city', 'state', 'pincode'],
+    previewTemplate: 'section',
+  },
+  // ─── Display (new) ────────────────────────────────────────────────────────
+  progress_bar: {
+    tagline: 'Visual indicator of completion percentage',
+    description: 'Shows progress towards a goal — like job completion, target achievement, or capacity.',
+    useCases: ['Service job completion %', 'Sales target progress', 'Parts stock level'],
+    keyProps: ['value', 'max', 'showPercentage', 'color'],
+    previewTemplate: 'metric',
+  },
+  qr_barcode: {
+    tagline: 'Display QR code or barcode from a value',
+    description: 'Renders a scannable QR code or barcode from any text or ID field.',
+    useCases: ['Vehicle QR for workshop', 'Part barcode display', 'Job card QR code'],
+    keyProps: ['value', 'type', 'size'],
+    previewTemplate: 'label',
+  },
+
+  // ─── Navigation (new) ─────────────────────────────────────────────────────
+  breadcrumb: {
+    tagline: 'Navigation trail showing current location',
+    description: 'Shows the path of where the user is in the application hierarchy.',
+    useCases: ['Sales → Customer → Profile breadcrumb', 'Service → Job Card breadcrumb'],
+    keyProps: ['items', 'separator'],
+    previewTemplate: 'label',
+  },
+
+  // ─── Action (new) ─────────────────────────────────────────────────────────
+  menu_dropdown: {
+    tagline: 'Button that opens a dropdown menu of actions',
+    description: 'A button that reveals a list of action options when clicked — for contextual menus.',
+    useCases: ['More actions button', 'Export options', 'Status change actions'],
+    keyProps: ['label', 'variant'],
+    previewTemplate: 'button',
+  },
+  icon_button: {
+    tagline: 'Compact action button with just an icon',
+    description: 'A small button showing only an icon — used for toolbar actions, row actions, and compact UIs.',
+    useCases: ['Edit row icon', 'Delete icon', 'Refresh icon in toolbar'],
+    keyProps: ['icon', 'variant', 'tooltip'],
+    previewTemplate: 'button',
+  },
+
+  // ─── Data (new) ───────────────────────────────────────────────────────────
+  timeline_view: {
+    tagline: 'Chronological event timeline display',
+    description: 'Shows a list of events in time order with date stamps, making history easy to scan.',
+    useCases: ['Vehicle service history', 'Customer interaction log', 'Complaint status timeline'],
+    keyProps: ['events', 'groupBy'],
+    previewTemplate: 'related_list',
+  },
+
+  // ─── Composite (new) ──────────────────────────────────────────────────────
+  kpi_card: {
+    tagline: 'KPI metric card with value, target and trend',
+    description: 'A rich metric display combining the current value, target, and trend arrow — ideal for dashboards.',
+    useCases: ['Sales today vs target', 'Open service jobs', 'Parts turnover'],
+    keyProps: ['title', 'value', 'target', 'trend', 'format'],
+    previewTemplate: 'metric',
+  },
+  signature_block: {
+    tagline: 'Capture a digital signature',
+    description: 'A signature capture and display area for approval sign-offs, consent, and delivery confirmation.',
+    useCases: ['Customer delivery acknowledgement', 'Approval sign-off', 'PDI sign-off'],
+    keyProps: ['label', 'showTimestamp'],
+    previewTemplate: 'section',
+  },
+  document_attachment: {
+    tagline: 'Upload and view document attachments',
+    description: 'Allows users to attach and view documents — PDFs, images, and files — against a record.',
+    useCases: ['KYC document upload', 'Insurance document', 'Service report attachment'],
+    keyProps: ['label', 'maxFiles', 'accept'],
+    previewTemplate: 'section',
+  },
 }

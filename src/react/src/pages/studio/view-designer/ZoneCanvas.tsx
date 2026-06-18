@@ -84,6 +84,9 @@ export function ZoneCanvas() {
   function makeDragLeave() {
     return (e: React.DragEvent) => {
       e.stopPropagation()
+      // Only clear when drag truly leaves this element — not when entering a child
+      const related = e.relatedTarget as Node | null
+      if (related && (e.currentTarget as HTMLElement).contains(related)) return
       setDropTarget(null)
     }
   }
@@ -320,6 +323,7 @@ function ComponentBlock({
         onClick={(e) => { e.stopPropagation(); onSelect(node.component_key) }}
         onMouseEnter={() => onHover(node.component_key)}
         onMouseLeave={() => onHover(null)}
+        onDragOver={(e) => e.preventDefault()}
       >
         {isContainer && (
           <button

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { ComponentNode, ViewPayload, EventDefinition, DataSourceConfig, FieldBinding, VisibilityRule, ComponentRegistryEntry } from '../../../types/viewStudio'
+import type { ComponentNode, ViewPayload, EventDefinition, DataSourceConfig, FieldBinding, VisibilityRule, ComponentRegistryEntry, SurfaceType } from '../../../types/viewStudio'
 import { canInsert } from '../../../lib/viewTreeValidator'
 
 // ─── Canvas State Types ──────────────────────────────────────────────────────
@@ -9,6 +9,7 @@ export interface CanvasState {
   viewId: string | null
   viewCode: string | null
   primaryEntity: string | null
+  surfaceType: SurfaceType | null
   isDirty: boolean
   payload: ViewPayload | null
   revision: number
@@ -31,7 +32,7 @@ export interface CanvasState {
   registry: ComponentRegistryEntry[]
 
   // Actions
-  setView: (viewId: string, viewCode: string | null, payload: ViewPayload, primaryEntity?: string | null, revision?: number) => void
+  setView: (viewId: string, viewCode: string | null, payload: ViewPayload, primaryEntity?: string | null, revision?: number, surfaceType?: SurfaceType | null) => void
   setRevision: (revision: number) => void
   reset: () => void
   select: (key: string | null) => void
@@ -145,6 +146,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   isDirty: false,
   payload: null,
   revision: 0,
+  surfaceType: null,
   selectedKey: null,
   hoveredKey: null,
   panelMode: 'properties',
@@ -155,10 +157,11 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   historyIndex: -1,
   registry: [],
 
-  setView: (viewId, viewCode, payload, primaryEntity = null, revision = 0) => set({
+  setView: (viewId, viewCode, payload, primaryEntity = null, revision = 0, surfaceType = null) => set({
     viewId,
     viewCode,
     primaryEntity: primaryEntity ?? null,
+    surfaceType: surfaceType ?? null,
     payload,
     revision,
     isDirty: false,
