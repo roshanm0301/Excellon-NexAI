@@ -212,3 +212,213 @@ test.describe('View CRUD flows', () => {
     expect(deleteRes.ok()).toBeTruthy()
   })
 })
+
+// ─── New View Creation — Feature tests (T1–T6) ────────────────────────────────
+
+test.describe('New View Creation — surface cards, entity picker, auto-name', () => {
+  test('T1 — Surface type card grid renders all enabled types + Kanban disabled', async ({ page }) => {
+    await page.goto('studio/views')
+    await page.locator(SEL.newViewBtn).click()
+
+    const modal = page.locator(SEL.createViewModal)
+    await expect(modal).toBeVisible()
+
+    // Each enabled surface type should have a visible card
+    const enabledSurfaces = ['standard_crud', 'advanced_crud', 'header_line', 'dashboard', 'wizard', 'detail_page', 'split_view', 'calendar', 'custom_page']
+    for (const s of enabledSurfaces) {
+      await expect(modal.locator(`[data-testid="surface-card-${s}"]`)).toBeVisible()
+    }
+
+    // New labels — not old developer names
+    await expect(modal.getByText('List View', { exact: true })).toBeVisible()
+    await expect(modal.getByText('Header + Lines', { exact: true })).toBeVisible()
+    await expect(modal.getByText('Form View', { exact: true })).toBeVisible()
+    await expect(modal.getByText('Editable Grid', { exact: true })).toBeVisible()
+    // Old names should NOT appear
+    await expect(modal.getByText('Standard CRUD', { exact: true })).not.toBeVisible()
+    await expect(modal.getByText('Header / Line', { exact: true })).not.toBeVisible()
+    await expect(modal.getByText('Detail Page', { exact: true })).not.toBeVisible()
+
+    // Kanban is present but aria-disabled
+    const kanbanCard = modal.locator('[data-testid="surface-card-kanban"]')
+    await expect(kanbanCard).toBeVisible()
+    await expect(kanbanCard).toHaveAttribute('aria-disabled', 'true')
+    await expect(kanbanCard.getByText('Soon')).toBeVisible()
+
+    await modal.getByRole('button', { name: /Cancel/i }).click()
+  })
+
+  test('T2 — Entity dropdown populated from Entity Designer (real DB)', async ({ page, request }) => {
+    // Query the backend directly to know what entities should be in the dropdown
+    const entitiesRes = await request.get('/api/v1/studio/entities', { headers: DEV_HEADERS })
+    expect(entitiesRes.ok()).toBeTruthy()
+    const { items } = await entitiesRes.json()
+    expect(Array.isArray(items)).toBeTruthy()
+    expect(items.length).toBeGreaterThan(0)
+
+    await page.goto('studio/views')
+    await page.locator(SEL.newViewBtn).click()
+
+    const modal = page.locator(SEL.createViewModal)
+    // Select "List View" (requires entity)
+    await modal.locator('[data-testid="surface-card-standard_crud"]').click()
+
+    // Open the entity select
+    const entitySelect = modal.locator('select').first()
+    await expect(entitySelect).toBeVisible()
+
+    // Verify at least one known entity appears in the options
+    const options = await entitySelect.locator('option').allTextContents()
+    const entityNames = items.map((e: { display_name: string }) => e.display_name)
+
+    // At least one entity from the DB should be in the dropdown
+    const matched = entityNames.some((name: string) => options.includes(name))
+    expect(matched).toBeTruthy()
+
+    // Should NOT be the old hardcoded 12-item list exclusively
+    // The real DB has more entities than 12 (or at least the count matches the API)
+    const nonEmptyOptions = options.filter((o: string) => o && !o.includes('Select entity'))
+    expect(nonEmptyOptions.length).toBe(items.length)
+
+    await modal.getByRole('button', { name: /Cancel/i }).click()
+  })
+
+  test('T3 — Dashboard surface → entity optional, view creates without entity', async ({ page, request }) => {
+    await page.goto('studio/views')
+    await page.locator(SEL.newViewBtn).click()
+
+    const modal = page.locator(SEL.createViewModal)
+    // Select Dashboard
+    await modal.locator('[data-testid="surface-card-dashboard"]').click()
+
+    // Entity label should say "optional"
+    await expect(modal.getByText(/optional/i)).toBeVisible()
+
+    // Enter name, skip entity
+    const nameInput = modal.locator('input[type="text"]').first()
+    await nameInput.triple_click?.() // clear auto-filled name
+    await nameInput.fill('Test Dashboard No Entity')
+
+    // Should create without entity
+    await modal.getByRole('button', { name: /Create View/i }).click()
+    await expect(page).toHaveURL(/studio\/views\/.+\/edit/, { timeout: 8000 })
+
+    // Cleanup
+    const url = page.url()
+    const match = url.match(/studio\/views\/([^/]+)\/edit/)
+    if (match?.[1]) {
+      await request.delete(`/api/v1/studio/views/${match[1]}`, { headers: DEV_HEADERS })
+    }
+  })
+
+  test('T4 — List View surface → entity required, validation blocks empty entity', async ({ page }) => {
+    await page.goto('studio/views')
+    await page.locator(SEL.newViewBtn).click()
+
+    const modal = page.locator(SEL.createViewModal)
+    // standard_crud is default selected — ensure it
+    await modal.locator('[data-testid="surface-card-standard_crud"]').click()
+
+    // Clear the auto-filled name and enter a name
+    const nameInput = modal.locator('input[type="text"]').first()
+    await nameInput.fill('Test Without Entity')
+
+    // Don't select entity — submit
+    await modal.getByRole('button', { name: /Create View/i }).click()
+
+    // Modal should still be visible (validation blocked)
+    await expect(modal).toBeVisible()
+    // URL should NOT change to /edit
+    await expect(page).not.toHaveURL(/studio\/views\/.+\/edit/)
+  })
+
+  test('T5 — Auto-name and auto-code generation', async ({ page }) => {
+    await page.goto('studio/views')
+    await page.locator(SEL.newViewBtn).click()
+
+    const modal = page.locator(SEL.createViewModal)
+
+    // Select Header + Lines
+    await modal.locator('[data-testid="surface-card-header_line"]').click()
+
+    // Select entity "Sale Order"
+    const entitySelect = modal.locator('select').first()
+    await entitySelect.selectOption({ label: 'Sale Order' })
+
+    // Name should be auto-filled
+    const nameInput = modal.locator('input[type="text"]').first()
+    const autoName = await nameInput.inputValue()
+    expect(autoName).toMatch(/Sale Order/i)
+    expect(autoName).toMatch(/Header/i)
+
+    // View code should be auto-filled as snake_case
+    const codeInput = modal.locator('input[type="text"]').nth(1)
+    const autoCode = await codeInput.inputValue()
+    expect(autoCode).toMatch(/^[a-z0-9_]+$/) // snake_case
+    expect(autoCode).toContain('sale_order')
+
+    // Now manually edit the name
+    await nameInput.fill('Vehicle Sale Order')
+    // Code should update
+    await page.waitForTimeout(50)
+    const updatedCode = await codeInput.inputValue()
+    expect(updatedCode).toBe('vehicle_sale_order')
+
+    // Change surface type — name should NOT reset (user manually typed it)
+    await modal.locator('[data-testid="surface-card-standard_crud"]').click()
+    const nameAfterSurfaceChange = await nameInput.inputValue()
+    expect(nameAfterSurfaceChange).toBe('Vehicle Sale Order')
+
+    await modal.getByRole('button', { name: /Cancel/i }).click()
+  })
+
+  test('T6 — End-to-end: create view, appears in list with correct surface badge', async ({ page, request }) => {
+    const ts = Date.now()
+    const viewName = `Vehicle Sale Order ${ts}`
+
+    await page.goto('studio/views')
+    await page.locator(SEL.newViewBtn).click()
+
+    const modal = page.locator(SEL.createViewModal)
+
+    // Select Header + Lines
+    await modal.locator('[data-testid="surface-card-header_line"]').click()
+
+    // Select entity
+    const entitySelect = modal.locator('select').first()
+    await entitySelect.selectOption({ label: 'Sale Order' })
+
+    // Override auto-name
+    const nameInput = modal.locator('input[type="text"]').first()
+    await nameInput.fill(viewName)
+
+    // Set view code
+    const codeInput = modal.locator('input[type="text"]').nth(1)
+    await codeInput.fill(`vehicle_sale_order_${ts}`)
+
+    await modal.getByRole('button', { name: /Create View/i }).click()
+    await expect(page).toHaveURL(/studio\/views\/.+\/edit/, { timeout: 8000 })
+
+    // Extract ID for cleanup
+    const url = page.url()
+    const match = url.match(/studio\/views\/([^/]+)\/edit/)
+    const viewId = match?.[1]
+
+    // Navigate back to list
+    await page.goto('studio/views')
+    await expect(page.locator(SEL.viewsGrid)).toBeVisible()
+
+    // Row should be visible in the list
+    const row = page.locator(SEL.viewsGrid).getByText(viewName, { exact: false })
+    await expect(row).toBeVisible({ timeout: 5000 })
+
+    // Surface badge should show "Header + Lines" (new label)
+    const rowContainer = row.locator('..').locator('..')
+    await expect(rowContainer.getByText('Header + Lines')).toBeVisible()
+
+    // Cleanup
+    if (viewId) {
+      await request.delete(`/api/v1/studio/views/${viewId}`, { headers: DEV_HEADERS })
+    }
+  })
+})

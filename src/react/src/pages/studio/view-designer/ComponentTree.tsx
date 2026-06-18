@@ -1,6 +1,7 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { Trash2, Copy, GripVertical } from 'lucide-react'
 import { useCanvasStore } from './useCanvasStore'
+import { TreeContextMenu } from './TreeContextMenu'
 import type { ComponentNode } from '../../../types/viewStudio'
 
 interface ComponentTreeProps {
@@ -22,6 +23,7 @@ interface TreeNodeProps {
 
 function TreeNode({ node, depth }: TreeNodeProps) {
   const { selectedKey, hoveredKey, select, hover, removeNode, duplicateNode, insertNode, canInsertChild } = useCanvasStore()
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
 
   const isSelected = selectedKey === node.component_key
   const isHovered = hoveredKey === node.component_key
@@ -30,6 +32,13 @@ function TreeNode({ node, depth }: TreeNodeProps) {
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     select(node.component_key)
+  }, [node.component_key, select])
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    select(node.component_key)
+    setContextMenu({ x: e.clientX, y: e.clientY })
   }, [node.component_key, select])
 
   const handleMouseEnter = useCallback(() => {
@@ -97,6 +106,7 @@ function TreeNode({ node, depth }: TreeNodeProps) {
       <div
         className="ct-node__header"
         onClick={handleClick}
+        onContextMenu={handleContextMenu}
         data-component-key={node.component_key}
       >
         {depth > 0 && <GripVertical size={12} style={{ opacity: 0.4, cursor: 'grab' }} />}
@@ -129,6 +139,16 @@ function TreeNode({ node, depth }: TreeNodeProps) {
             <TreeNode key={child.component_key} node={child} depth={depth + 1} />
           ))}
         </div>
+      )}
+
+      {contextMenu && (
+        <TreeContextMenu
+          nodeKey={node.component_key}
+          nodeCode={node.component_code}
+          anchorX={contextMenu.x}
+          anchorY={contextMenu.y}
+          onClose={() => setContextMenu(null)}
+        />
       )}
     </div>
   )

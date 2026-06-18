@@ -4,14 +4,15 @@ import { Save, Undo2, Redo2, Eye, Upload, ChevronLeft, AlertTriangle, CheckCircl
 import { Button, Spinner, useToast } from '../../../design-system'
 import { useView, useSaveDraft, usePublishView, useComponentRegistry } from '../../../hooks/useViewStudio'
 import { useCanvasStore } from './useCanvasStore'
-import { ComponentPalette } from './ComponentPalette'
-import { ComponentTree } from './ComponentTree'
+import { LeftRail } from './LeftRail'
+import { ZoneCanvas } from './ZoneCanvas'
 import { PropertyPanel } from './PropertyPanel'
 import { useAutoSave } from './useAutoSave'
 import { PreviewCanvas } from './PreviewCanvas'
 import { ViewSettingsDrawer, DrawerTab } from './ViewSettingsDrawer'
 import { validateTree, getValidationSummary } from '../../../lib/viewTreeValidator'
 import type { ViewPayload, SurfaceType } from '../../../types/viewStudio'
+import { SURFACE_TYPE_META } from '../../../types/viewStudio'
 import './ViewDesignerPage.css'
 import './PreviewCanvas.css'
 
@@ -134,10 +135,16 @@ export function ViewDesignerPage() {
             <ChevronLeft size={16} />
           </Button>
           <div className="vd-toolbar__title">
-            <span className="vd-toolbar__label">{viewData.view_label || viewData.artifact_name}</span>
+            <div className="vd-toolbar__title-row">
+              <span className="vd-toolbar__label">{viewData.view_label || viewData.artifact_name}</span>
+              {viewData.view_code && (
+                <span className="vd-toolbar__viewcode">{viewData.view_code}</span>
+              )}
+              {isDirty && <span className="vd-toolbar__dirty">● unsaved</span>}
+            </div>
             <span className="vd-toolbar__meta">
-              {viewData.surface_type?.replace(/_/g, ' ')} · {viewData.primary_entity}
-              {isDirty && <span className="vd-toolbar__dirty">• unsaved</span>}
+              {viewData.surface_type ? (SURFACE_TYPE_META[viewData.surface_type as SurfaceType]?.label ?? viewData.surface_type) : ''}
+              {viewData.primary_entity ? ` · ${viewData.primary_entity}` : ''}
             </span>
           </div>
         </div>
@@ -209,7 +216,7 @@ export function ViewDesignerPage() {
         {/* Left: Component Palette */}
         {paletteOpen && !previewMode && (
           <aside className="vd-sidebar vd-sidebar--left">
-            <ComponentPalette />
+            <LeftRail />
           </aside>
         )}
 
@@ -217,12 +224,12 @@ export function ViewDesignerPage() {
         <main className="vd-canvas">
           {previewMode
             ? <PreviewCanvas />
-            : payload && <ComponentTree tree={payload.component_tree} />
+            : <ZoneCanvas />
           }
         </main>
 
         {/* Right: Property Panel */}
-        {selectedKey && !previewMode && (
+        {!previewMode && (
           <aside className="vd-sidebar vd-sidebar--right">
             <PropertyPanel />
           </aside>

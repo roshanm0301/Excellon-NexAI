@@ -64,8 +64,6 @@ services:
       context: ./src/react
       dockerfile: Dockerfile
     restart: unless-stopped
-    ports:
-      - "4173:80"
 
 volumes:
   pgdata:

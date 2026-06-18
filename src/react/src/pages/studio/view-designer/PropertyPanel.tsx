@@ -1,22 +1,27 @@
 import { useCallback } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Trash2, MousePointer2 } from 'lucide-react'
 import { Button } from '../../../design-system'
 import { useCanvasStore } from './useCanvasStore'
 import { useComponentRegistry } from '../../../hooks/useViewStudio'
 import { BindingEditor } from './BindingEditor'
 import { EventEditor } from './EventEditor'
 import { VisibilityRuleBuilder } from './VisibilityRuleBuilder'
+import type { ComponentNode } from '../../../types/viewStudio'
+
+function countNodes(node: ComponentNode | undefined | null): number {
+  if (!node) return 0
+  return 1 + (node.children ?? []).reduce((acc, c) => acc + countNodes(c), 0)
+}
 
 export function PropertyPanel() {
   const {
-    selectedKey, getNode, updateNodeProps, removeNode, panelMode, setPanelMode,
+    selectedKey, getNode, updateNodeProps, removeNode, panelMode, setPanelMode, payload,
   } = useCanvasStore()
   const { data: registry } = useComponentRegistry()
 
+  // ALL hooks must be called unconditionally — before any conditional return
   const node = selectedKey ? getNode(selectedKey) : null
-  if (!node) return null
-
-  const registryEntry = (registry ?? []).find(c => c.component_code === node.component_code)
+  const registryEntry = node ? (registry ?? []).find(c => c.component_code === node.component_code) : undefined
   const configSchema = registryEntry?.config_schema as { properties?: Record<string, SchemaProperty> } | undefined
   const properties = configSchema?.properties ?? {}
 
@@ -26,9 +31,26 @@ export function PropertyPanel() {
   }, [selectedKey, updateNodeProps])
 
   const handleDelete = useCallback(() => {
-    if (!selectedKey || node.component_code === 'page_root') return
+    if (!selectedKey || !node || node.component_code === 'page_root') return
     removeNode(selectedKey)
   }, [selectedKey, node, removeNode])
+
+  // Conditional render after all hooks — empty state when nothing selected
+  if (!node) {
+    const total = countNodes(payload?.component_tree) - 1 // subtract page_root itself
+    return (
+      <div className="pp-empty-state" data-testid="property-panel-empty">
+        <div className="pp-empty-state__icon">
+          <MousePointer2 size={24} />
+        </div>
+        <p className="pp-empty-state__title">No component selected</p>
+        <p className="pp-empty-state__hint">Click a component in the canvas to inspect its properties</p>
+        {total > 0 && (
+          <span className="pp-empty-state__count">{total} component{total !== 1 ? 's' : ''}</span>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="pp-panel" data-testid="property-panel">

@@ -1,6 +1,9 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { LayoutGrid, Search, Plus } from 'lucide-react'
+import {
+  LayoutGrid, Search, Plus,
+  List, Table2, FileText, LayoutDashboard, GitMerge, FileEdit, PanelLeft, Trello, Calendar, Layout,
+} from 'lucide-react'
 import {
   Button, StatusBadge, Select, Modal, ConfirmDialog,
   ActionMenu, useToast,
@@ -11,7 +14,7 @@ import {
   usePublishViewById, useDuplicateView, useUnpublishView,
 } from '../../hooks/useViewStudio'
 import type { View, SurfaceType, CreateViewRequest } from '../../types/viewStudio'
-import { SURFACE_TYPES } from '../../types/viewStudio'
+import { SURFACE_TYPES, SURFACE_TYPE_META } from '../../types/viewStudio'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -26,19 +29,31 @@ function relativeDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-const SURFACE_LABELS: Record<string, string> = {
-  standard_crud: 'Standard CRUD',
-  advanced_crud: 'Advanced CRUD',
-  header_line: 'Header / Line',
-  dashboard: 'Dashboard',
-  wizard: 'Wizard',
-  detail_page: 'Detail Page',
-  split_view: 'Split View',
-  kanban: 'Kanban',
-  calendar: 'Calendar',
-  custom_page: 'Custom Page',
+const surfaceLabel = (s: string) => SURFACE_TYPE_META[s as SurfaceType]?.label ?? s.replace(/_/g, ' ')
+
+// Icon map — avoids dynamic import
+const SURFACE_ICONS: Record<SurfaceType, React.ComponentType<{ size?: number; color?: string }>> = {
+  standard_crud: List,
+  advanced_crud: Table2,
+  header_line:   FileText,
+  dashboard:     LayoutDashboard,
+  wizard:        GitMerge,
+  detail_page:   FileEdit,
+  split_view:    PanelLeft,
+  kanban:        Trello,
+  calendar:      Calendar,
+  custom_page:   Layout,
 }
-const surfaceLabel = (s: string) => SURFACE_LABELS[s] ?? s.replace(/_/g, ' ')
+
+function suggestName(entity: string, surface: SurfaceType, displayNames: Record<string, string>): string {
+  const eName = displayNames[entity] ?? entity.replace(/_/g, ' ')
+  const sLabel = SURFACE_TYPE_META[surface].label
+  return eName ? `${eName} ${sLabel}` : sLabel
+}
+
+function toViewCode(label: string): string {
+  return label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
+}
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -88,6 +103,7 @@ export function ViewDesignerListPage() {
   const [newSurface, setNewSurface] = useState<SurfaceType>('standard_crud')
   const [newEntity, setNewEntity] = useState('')
   const [newCode, setNewCode] = useState('')
+  const [nameAutoSet, setNameAutoSet] = useState(true) // false once user manually edits name
 
   const selectedEntity = searchParams.get('entity') ?? null
 
@@ -183,12 +199,21 @@ export function ViewDesignerListPage() {
     setStatusFilter('')
   }
 
+  // Auto-update name/code when surface or entity changes, unless user already typed a name
+  useEffect(() => {
+    if (!creating || !nameAutoSet) return
+    const suggested = suggestName(newEntity, newSurface, entityDisplayNames)
+    setNewLabel(suggested)
+    setNewCode(toViewCode(suggested))
+  }, [newSurface, newEntity, creating, nameAutoSet, entityDisplayNames])
+
   function openCreate(preEntity?: string) {
     setPreselectedEntity(preEntity ?? null)
     setNewEntity(preEntity ?? '')
     setNewLabel('')
     setNewSurface('standard_crud')
     setNewCode('')
+    setNameAutoSet(true)
     setCreating(true)
   }
 
@@ -197,19 +222,29 @@ export function ViewDesignerListPage() {
     setNewSurface('standard_crud')
     setNewEntity('')
     setNewCode('')
+    setNameAutoSet(true)
     setPreselectedEntity(null)
   }
 
   function handleCreate() {
-    if (!newLabel.trim() || !newEntity.trim()) {
-      error('Validation', 'View label and entity are required')
+    const entityRequired = SURFACE_TYPE_META[newSurface].requiresEntity
+    if (!newLabel.trim()) {
+      error('Validation', 'View name is required')
+      return
+    }
+    if (entityRequired && !newEntity.trim()) {
+      error('Validation', `Primary entity is required for a ${SURFACE_TYPE_META[newSurface].label}`)
+      return
+    }
+    if (!newCode.trim()) {
+      error('Validation', 'View code is required')
       return
     }
     const req: CreateViewRequest = {
       view_label: newLabel.trim(),
       surface_type: newSurface,
-      primary_entity: newEntity.trim(),
-      view_code: newCode.trim() || undefined,
+      primary_entity: newEntity.trim() || undefined,
+      view_code: newCode.trim(),
     }
     createMut.mutate(req, {
       onSuccess: (view) => {
@@ -480,8 +515,8 @@ export function ViewDesignerListPage() {
                 { value: 'published', label: 'Published' },
               ]}
             />
-            <Button onClick={() => openCreate(selectedEntity && selectedEntity !== '__unassigned__' ? selectedEntity : undefined)} size="sm">
-              <Plus size={14} /> New View
+            <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => openCreate(selectedEntity && selectedEntity !== '__unassigned__' ? selectedEntity : undefined)}>
+              New View
             </Button>
           </div>
 
@@ -510,8 +545,8 @@ export function ViewDesignerListPage() {
                   }
                 </div>
                 {selectedEntity && selectedEntity !== '__unassigned__' && (
-                  <Button onClick={() => openCreate(selectedEntity)} size="sm">
-                    <Plus size={14} /> New View
+                  <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => openCreate(selectedEntity)}>
+                    New View
                   </Button>
                 )}
               </div>
@@ -610,67 +645,149 @@ export function ViewDesignerListPage() {
       <Modal
         open={creating}
         onClose={() => { setCreating(false); resetForm() }}
-        title="Create New View"
+        title={preselectedEntity
+          ? `New ${entityDisplayNames[preselectedEntity] ?? preselectedEntity.replace(/_/g, ' ')} View`
+          : 'Create New View'
+        }
+        size="lg"
         data-testid="create-view-modal"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => { setCreating(false); resetForm() }}>Cancel</Button>
+            <Button variant="primary" onClick={handleCreate} loading={createMut.isPending}>Create View</Button>
+          </>
+        }
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '0.5rem 0' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '0.25rem 0' }}>
+
+          {/* ── Surface Type card grid (3 columns) ── */}
           <div>
-            <label style={{ display: 'block', marginBottom: 4, fontWeight: 500, fontSize: '0.875rem' }}>View Label *</label>
-            <input
-              type="text"
-              value={newLabel}
-              onChange={e => setNewLabel(e.target.value)}
-              placeholder="e.g. Sale Order List"
-              style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: 6 }}
-            />
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 13, color: '#1A2030' }}>
+              Surface Type <span style={{ color: '#E53E3E' }}>*</span>
+            </label>
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
+              gap: 8, maxHeight: 340, overflowY: 'auto',
+            }}>
+              {SURFACE_TYPES.map(s => {
+                const meta = SURFACE_TYPE_META[s]
+                const Icon = SURFACE_ICONS[s]
+                const selected = newSurface === s
+                const disabled = meta.disabled
+                return (
+                  <button
+                    key={s}
+                    data-testid={`surface-card-${s}`}
+                    aria-disabled={disabled ? 'true' : undefined}
+                    onClick={() => { if (!disabled) setNewSurface(s) }}
+                    style={{
+                      position: 'relative',
+                      display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                      gap: 4, padding: '10px 12px', borderRadius: 10, textAlign: 'left',
+                      border: selected ? '2px solid #EB6A2C' : '1.5px solid #E7E9ED',
+                      background: selected ? '#FCEBE3' : disabled ? '#F9FAFB' : '#fff',
+                      cursor: disabled ? 'not-allowed' : 'pointer',
+                      opacity: disabled ? 0.45 : 1,
+                      transition: 'border-color 100ms, background 100ms',
+                    }}
+                    onMouseEnter={e => { if (!disabled && !selected) (e.currentTarget as HTMLButtonElement).style.borderColor = '#C5C9D1' }}
+                    onMouseLeave={e => { if (!disabled && !selected) (e.currentTarget as HTMLButtonElement).style.borderColor = '#E7E9ED' }}
+                  >
+                    {disabled && (
+                      <span style={{
+                        position: 'absolute', top: 6, right: 6,
+                        background: '#E7E9ED', color: '#8593A3',
+                        borderRadius: 20, padding: '1px 7px', fontSize: 9.5, fontWeight: 700,
+                        letterSpacing: '0.04em', textTransform: 'uppercase',
+                      }}>Soon</span>
+                    )}
+                    <Icon size={18} color={selected ? '#C04910' : '#586A70'} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: selected ? '#C04910' : '#1A2030' }}>
+                      {meta.label}
+                    </span>
+                    <span style={{ fontSize: 11, color: '#8593A3', lineHeight: 1.4 }}>
+                      {meta.description}
+                    </span>
+                    <span style={{
+                      marginTop: 2, fontSize: 10, fontWeight: 600,
+                      color: meta.requiresEntity ? '#E53E3E' : '#22A06B',
+                    }}>
+                      {meta.requiresEntity ? '• Requires entity' : '• Entity optional'}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: 4, fontWeight: 500, fontSize: '0.875rem' }}>Primary Entity *</label>
-            {preselectedEntity ? (
-              <div style={{
-                padding: '0.5rem', border: '1px solid #E7E9ED', borderRadius: 6,
-                background: '#F5F6F8', color: '#1A2030', fontSize: '0.875rem',
-                fontWeight: 500,
-              }}>
-                {entityDisplayNames[preselectedEntity] ?? preselectedEntity}
-                <span style={{ color: '#8593A3', marginLeft: 6, fontWeight: 400, fontSize: 12 }}>
-                  (pre-selected)
-                </span>
-              </div>
-            ) : (
+
+          {/* ── Primary Entity — hidden when locked via preselectedEntity (shown in modal title instead) ── */}
+          {!preselectedEntity && (
+            <div>
+              <label style={{ display: 'block', marginBottom: 4, fontWeight: 600, fontSize: 13, color: '#1A2030' }}>
+                Primary Entity
+                {SURFACE_TYPE_META[newSurface].requiresEntity
+                  ? <span style={{ color: '#E53E3E', marginLeft: 3 }}>*</span>
+                  : <span style={{ color: '#8593A3', fontWeight: 400, marginLeft: 6, fontSize: 12 }}>(optional)</span>
+                }
+              </label>
               <Select
                 value={newEntity}
                 onChange={e => setNewEntity(e.target.value)}
                 options={[
-                  { value: '', label: 'Select entity…' },
+                  { value: '', label: SURFACE_TYPE_META[newSurface].requiresEntity ? 'Select entity…' : 'Select entity (optional)…' },
                   ...(entityTypesData?.items ?? []).map(e => ({ value: e.entity_type, label: e.display_name })),
                 ]}
               />
-            )}
-          </div>
+              {newEntity && (
+                <p style={{ margin: '4px 0 0', fontSize: 11.5, color: '#8593A3' }}>
+                  Use for: {SURFACE_TYPE_META[newSurface].example}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* ── View Name ── */}
           <div>
-            <label style={{ display: 'block', marginBottom: 4, fontWeight: 500, fontSize: '0.875rem' }}>Surface Type</label>
-            <Select
-              value={newSurface}
-              onChange={(e) => setNewSurface(e.target.value as unknown as SurfaceType)}
-              options={SURFACE_TYPES.map(s => ({ value: s, label: surfaceLabel(s) }))}
+            <label style={{ display: 'block', marginBottom: 4, fontWeight: 600, fontSize: 13, color: '#1A2030' }}>
+              View Name <span style={{ color: '#E53E3E' }}>*</span>
+            </label>
+            <input
+              type="text"
+              value={newLabel}
+              onChange={e => {
+                setNewLabel(e.target.value)
+                setNameAutoSet(false) // user is typing — stop auto-updating name
+                setNewCode(toViewCode(e.target.value))
+              }}
+              placeholder={suggestName(newEntity || 'my_entity', newSurface, entityDisplayNames)}
+              style={{
+                width: '100%', padding: '7px 10px', fontSize: 13,
+                border: '1.5px solid #E7E9ED', borderRadius: 8, outline: 'none',
+                boxSizing: 'border-box',
+              }}
+              onFocus={e => (e.currentTarget.style.borderColor = '#EB6A2C')}
+              onBlur={e => (e.currentTarget.style.borderColor = '#E7E9ED')}
             />
           </div>
+
+          {/* ── View Code ── */}
           <div>
-            <label style={{ display: 'block', marginBottom: 4, fontWeight: 500, fontSize: '0.875rem' }}>View Code (optional)</label>
+            <label style={{ display: 'block', marginBottom: 4, fontWeight: 600, fontSize: 13, color: '#1A2030' }}>
+              View Code <span style={{ color: '#E53E3E' }}>*</span>
+            </label>
             <input
               type="text"
               value={newCode}
               onChange={e => setNewCode(e.target.value)}
               placeholder="e.g. sale_order_list"
-              style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: 6 }}
+              style={{
+                width: '100%', padding: '7px 10px', fontSize: 13, fontFamily: 'monospace',
+                border: '1.5px solid #E7E9ED', borderRadius: 8, outline: 'none',
+                boxSizing: 'border-box', color: '#586A70',
+              }}
+              onFocus={e => (e.currentTarget.style.borderColor = '#EB6A2C')}
+              onBlur={e => (e.currentTarget.style.borderColor = '#E7E9ED')}
             />
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-            <Button variant="secondary" onClick={() => { setCreating(false); resetForm() }}>Cancel</Button>
-            <Button onClick={handleCreate} disabled={createMut.isPending}>
-              {createMut.isPending ? 'Creating…' : 'Create View'}
-            </Button>
           </div>
         </div>
       </Modal>

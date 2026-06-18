@@ -16,3 +16,6 @@ services:
     command: ["npm", "run", "dev", "--", "--host"]
     ports:
       - "4173:5173"
+    environment:
+      API_PROXY_TARGET: http://api:8080
+      VITE_AUTH_MODE: local

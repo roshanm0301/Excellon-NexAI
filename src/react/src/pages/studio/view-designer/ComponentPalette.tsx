@@ -5,8 +5,10 @@ import { useCanvasStore } from './useCanvasStore'
 import type { ComponentRegistryEntry, ComponentCategory } from '../../../types/viewStudio'
 import {
   LayoutGrid, Type, MousePointer, Database, Navigation,
-  Layers, Box, ToggleLeft,
+  Layers, Box, ToggleLeft, Info,
 } from 'lucide-react'
+import { ComponentInfoPopover } from './ComponentInfoPopover'
+import { COMPONENT_INFO } from './ComponentInfoData'
 
 const CATEGORY_ICONS: Record<string, typeof LayoutGrid> = {
   layout: LayoutGrid,
@@ -27,8 +29,14 @@ function generateKey(code: string): string {
   return `${code}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`
 }
 
+interface InfoTarget {
+  entry: ComponentRegistryEntry
+  rect: DOMRect
+}
+
 export function ComponentPalette() {
   const [search, setSearch] = useState('')
+  const [infoTarget, setInfoTarget] = useState<InfoTarget | null>(null)
   const { data: components } = useComponentRegistry()
   const { insertNode, payload, canInsertChild } = useCanvasStore()
 
@@ -56,7 +64,7 @@ export function ComponentPalette() {
   }
 
   function handleDoubleClick(component: ComponentRegistryEntry) {
-    if (!payload) return
+    if (!payload?.component_tree) return
     // Insert at page_root if nothing selected, or at the root
     const parentKey = payload.component_tree.component_key
     if (!canInsertChild(parentKey, component.component_code)) return
@@ -79,6 +87,21 @@ export function ComponentPalette() {
         />
       </div>
 
+      {infoTarget && (
+        <ComponentInfoPopover
+          entry={infoTarget.entry}
+          info={COMPONENT_INFO[infoTarget.entry.component_code] ?? {
+            tagline: infoTarget.entry.component_name,
+            description: `A ${infoTarget.entry.category} component.`,
+            useCases: [],
+            keyProps: [],
+            previewTemplate: 'section',
+          }}
+          anchorRect={infoTarget.rect}
+          onClose={() => setInfoTarget(null)}
+        />
+      )}
+
       {CATEGORY_ORDER.map(cat => {
         const items = grouped[cat]
         if (!items || items.length === 0) return null
@@ -90,7 +113,7 @@ export function ComponentPalette() {
             </div>
             <div className="cp-category__items">
               {items.map(c => {
-                const rootKey = payload?.component_tree.component_key ?? ''
+                const rootKey = payload?.component_tree?.component_key ?? ''
                 const rootAllowed = !rootKey || canInsertChild(rootKey, c.component_code)
                 return (
                   <div
@@ -107,6 +130,21 @@ export function ComponentPalette() {
                     <Icon size={14} className="cp-item__icon" />
                     <span className="cp-item__name">{c.component_name}</span>
                     {c.is_container && <span className="cp-item__badge">container</span>}
+                    <button
+                      className={`cp-item__info-btn${infoTarget?.entry.component_code === c.component_code ? ' cp-item__info-btn--active' : ''}`}
+                      onClick={e => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                        const rect = e.currentTarget.getBoundingClientRect()
+                        setInfoTarget(prev =>
+                          prev?.entry.component_code === c.component_code ? null : { entry: c, rect }
+                        )
+                      }}
+                      aria-label={`Info: ${c.component_name}`}
+                      title={`About ${c.component_name}`}
+                    >
+                      <Info size={11} />
+                    </button>
                   </div>
                 )
               })}

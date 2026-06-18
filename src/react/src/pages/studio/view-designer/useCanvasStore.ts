@@ -53,6 +53,11 @@ export interface CanvasState {
   moveNode: (key: string, newParentKey: string, index?: number) => void
   duplicateNode: (key: string) => void
 
+  // Context menu actions
+  moveNodeUp: (key: string) => void
+  moveNodeDown: (key: string) => void
+  wrapInSection: (key: string) => void
+
   // Events / datasources
   setEvents: (events: EventDefinition[]) => void
   setDataSources: (ds: DataSourceConfig[]) => void
@@ -282,6 +287,65 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     if (!parent) return
     const idx = (parent.children ?? []).findIndex(c => c.component_key === key)
     get().insertNode(parentKey, cloned, idx + 1)
+  },
+
+  moveNodeUp: (key) => {
+    const state = get()
+    if (!state.payload) return
+    const parentKey = findParentKey(state.payload.component_tree, key)
+    if (!parentKey) return
+    const parent = findNode(state.payload.component_tree, parentKey)
+    if (!parent) return
+    const children = [...(parent.children ?? [])]
+    const idx = children.findIndex(c => c.component_key === key)
+    if (idx <= 0) return
+    ;[children[idx - 1], children[idx]] = [children[idx], children[idx - 1]]
+    const newTree = updateNode(state.payload.component_tree, parentKey, n => ({ ...n, children }))
+    get().updateTree(newTree)
+  },
+
+  moveNodeDown: (key) => {
+    const state = get()
+    if (!state.payload) return
+    const parentKey = findParentKey(state.payload.component_tree, key)
+    if (!parentKey) return
+    const parent = findNode(state.payload.component_tree, parentKey)
+    if (!parent) return
+    const children = [...(parent.children ?? [])]
+    const idx = children.findIndex(c => c.component_key === key)
+    if (idx < 0 || idx >= children.length - 1) return
+    ;[children[idx], children[idx + 1]] = [children[idx + 1], children[idx]]
+    const newTree = updateNode(state.payload.component_tree, parentKey, n => ({ ...n, children }))
+    get().updateTree(newTree)
+  },
+
+  wrapInSection: (key) => {
+    const state = get()
+    if (!state.payload) return
+    const { registry } = state
+    const node = findNode(state.payload.component_tree, key)
+    if (!node) return
+    if (node.component_code === 'page_root' || node.component_code === 'section') return
+    const parentKey = findParentKey(state.payload.component_tree, key)
+    if (!parentKey) return
+    const parent = findNode(state.payload.component_tree, parentKey)
+    if (!parent) return
+    // Validate placement: section allowed in parent, and original node allowed in section
+    if (!canInsert(parent.component_code, 'section', registry)) return
+    if (!canInsert('section', node.component_code, registry)) return
+    const idx = (parent.children ?? []).findIndex(c => c.component_key === key)
+    const sectionKey = `section_${generateSuffix()}`
+    const section: ComponentNode = {
+      component_key: sectionKey,
+      component_code: 'section',
+      label: 'Section',
+      props: {},
+      children: [node],
+    }
+    const treeWithout = removeFromTree(state.payload.component_tree, key)
+    const newTree = insertInTree(treeWithout, parentKey, section, idx)
+    get().updateTree(newTree)
+    set({ selectedKey: sectionKey })
   },
 
   setEvents: (events) => {

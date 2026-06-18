@@ -213,6 +213,11 @@ export function canInsertChild(
     }
   }
 
+  // Empty allowed_parents means root-only — cannot be placed inside anything
+  if (childEntry.allowed_parents.length === 0) {
+    return { allowed: false, reason: `"${childCode}" is the root component and cannot be placed inside any other component` }
+  }
+
   if (childEntry.allowed_parents.length > 0 && !childEntry.allowed_parents.includes('all') && !childEntry.allowed_parents.includes('any')) {
     if (!childEntry.allowed_parents.includes(parentCode)) {
       return { allowed: false, reason: `"${childCode}" cannot be placed inside "${parentCode}"` }

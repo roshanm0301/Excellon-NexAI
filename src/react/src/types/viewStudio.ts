@@ -18,17 +18,100 @@ export type SurfaceType =
   | 'calendar';
 
 export const SURFACE_TYPES: readonly SurfaceType[] = [
-  'standard_crud',
-  'advanced_crud',
-  'header_line',
-  'custom_page',
-  'dashboard',
-  'wizard',
-  'detail_page',
-  'split_view',
-  'kanban',
-  'calendar',
+  'standard_crud',  // List View
+  'detail_page',    // Form View
+  'header_line',    // Header + Lines
+  'advanced_crud',  // Editable Grid
+  'split_view',     // Split View
+  'wizard',         // Wizard
+  'dashboard',      // Dashboard
+  'calendar',       // Calendar
+  'custom_page',    // Custom Page
+  'kanban',         // Kanban — disabled
 ] as const;
+
+export interface SurfaceTypeMeta {
+  label: string
+  icon: string        // lucide-react component name
+  description: string
+  example: string
+  requiresEntity: boolean
+  disabled?: boolean
+}
+
+export const SURFACE_TYPE_META: Record<SurfaceType, SurfaceTypeMeta> = {
+  standard_crud: {
+    label: 'List View',
+    icon: 'List',
+    description: 'Browse and manage records in a searchable, filterable list.',
+    example: 'Customer list, Parts catalog, Employee directory',
+    requiresEntity: true,
+  },
+  advanced_crud: {
+    label: 'Editable Grid',
+    icon: 'TableProperties',
+    description: 'Filter on the left, edit records inline on the right — no navigation needed.',
+    example: 'Bulk price updates, Batch status changes',
+    requiresEntity: true,
+  },
+  header_line: {
+    label: 'Header + Lines',
+    icon: 'FileText',
+    description: 'Document header with a child line-items grid and totals. Has a toolbar.',
+    example: 'Sale Order, Purchase Order, Service Order, Invoice',
+    requiresEntity: true,
+  },
+  dashboard: {
+    label: 'Dashboard',
+    icon: 'LayoutDashboard',
+    description: 'KPI metric cards, data tables, and summary widgets on a grid canvas.',
+    example: 'Sales overview, Service ops, Parts stock alerts',
+    requiresEntity: false,
+  },
+  wizard: {
+    label: 'Wizard',
+    icon: 'GitMerge',
+    description: 'Guided step-by-step form — validates each step before advancing.',
+    example: 'New vehicle sale, Test drive booking, Exchange appraisal',
+    requiresEntity: false,
+  },
+  detail_page: {
+    label: 'Form View',
+    icon: 'FileEdit',
+    description: 'Full-page form for viewing or editing a single record in sections.',
+    example: 'Customer profile, Vehicle detail, Employee record',
+    requiresEntity: true,
+  },
+  split_view: {
+    label: 'Split View',
+    icon: 'Columns2',
+    description: 'Scrollable list on the left; select a row to see full detail on the right.',
+    example: 'Customer 360, Vehicle history, Parts catalogue',
+    requiresEntity: false,
+  },
+  kanban: {
+    label: 'Kanban',
+    icon: 'Kanban',
+    description: 'Cards organised in workflow stage columns. Drag to move between stages.',
+    example: 'Service pipeline, Sales stages, Parts procurement',
+    requiresEntity: true,
+    disabled: true,
+  },
+  calendar: {
+    label: 'Calendar',
+    icon: 'CalendarDays',
+    description: 'Records displayed as events on a day / week / month time grid.',
+    example: 'Test drive slots, Technician schedule, Delivery calendar',
+    requiresEntity: true,
+  },
+  custom_page: {
+    label: 'Custom Page',
+    icon: 'Layout',
+    description: 'Freeform canvas with no predefined zones — full layout control.',
+    example: 'Welcome screen, EMI calculator, MIS report',
+    requiresEntity: false,
+  },
+}
 
 // ─── View (artifact_header extended) ─────────────────────────────────────────
 
@@ -218,7 +301,7 @@ export interface ViewMeta {
 export interface CreateViewRequest {
   view_label: string;
   surface_type: SurfaceType;
-  primary_entity: string;
+  primary_entity?: string;  // optional — required only when SURFACE_TYPE_META[surface].requiresEntity
   view_code?: string;
   view_category?: string;
   payload?: ViewPayload;
