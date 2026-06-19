@@ -1,71 +1,111 @@
 import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
+import TextField from '@mui/material/TextField'
+import InputAdornment from '@mui/material/InputAdornment'
+import SearchIcon from '@mui/icons-material/Search'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
   hint?: string
   error?: string
-  /** Leading icon rendered inside the input wrapper */
   icon?: ReactNode
-  /** Optional prefix text (e.g. "+91", "₹") */
   prefix?: string
-  /** Optional trailing text (e.g. "incl. GST") */
   suffix?: string
 }
 
-let _idCounter = 0
-function genId() { return `ex-input-${++_idCounter}` }
-
-export function Input({ label, hint, error, icon, prefix, suffix, id, className, disabled, ...props }: InputProps) {
-  const inputId = id ?? genId()
-  const wrapperClass = [
-    'ex-input',
-    error ? 'error' : '',
-    disabled ? 'disabled' : '',
-    className ?? '',
-  ].filter(Boolean).join(' ')
-
+export function Input({
+  label, hint, error, icon, prefix, suffix,
+  id, disabled, value, onChange, placeholder,
+  type, autoFocus, autoComplete, maxLength, minLength, name, required, readOnly,
+}: InputProps) {
   return (
-    <div className="ex-field">
-      {label && (
-        <label htmlFor={inputId} className="ex-field-label">
-          {label}
-        </label>
-      )}
-      <div className={wrapperClass}>
-        {icon && <span className="lead">{icon}</span>}
-        {prefix && <span className="pfx">{prefix}</span>}
-        <input id={inputId} disabled={disabled} {...props} />
-        {suffix && <span className="trl">{suffix}</span>}
-      </div>
-      {error && <span className="ex-field-error">{error}</span>}
-      {hint && !error && <span className="ex-field-hint">{hint}</span>}
-    </div>
+    <TextField
+      id={id}
+      label={label}
+      helperText={error ?? hint}
+      error={!!error}
+      disabled={disabled}
+      value={value}
+      onChange={onChange as React.ChangeEventHandler<HTMLInputElement>}
+      placeholder={placeholder}
+      type={type}
+      name={name}
+      required={required}
+      autoFocus={autoFocus}
+      autoComplete={autoComplete}
+      fullWidth
+      size="small"
+      slotProps={{
+        input: {
+          readOnly,
+          startAdornment: (icon || prefix) ? (
+            <InputAdornment position="start">
+              {icon ?? <span style={{ fontSize: '0.8rem', color: 'var(--fg-tertiary)' }}>{prefix}</span>}
+            </InputAdornment>
+          ) : undefined,
+          endAdornment: suffix ? (
+            <InputAdornment position="end">
+              <span style={{ fontSize: '0.8rem', color: 'var(--fg-tertiary)' }}>{suffix}</span>
+            </InputAdornment>
+          ) : undefined,
+        },
+        htmlInput: { maxLength, minLength },
+        formHelperText: {
+          sx: { color: error ? 'var(--error-600)' : 'var(--fg-tertiary)' },
+        },
+      }}
+    />
   )
 }
 
-export function SearchInput({ value, onChange, placeholder = 'Search...', ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function SearchInput({
+  value, onChange, placeholder = 'Search...', disabled,
+}: InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <div className="ex-search">
-      <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <circle cx={11} cy={11} r={8} />
-        <path d="m21 21-4.35-4.35" />
-      </svg>
-      <input value={value} onChange={onChange} placeholder={placeholder} {...props} />
-    </div>
+    <TextField
+      value={value}
+      onChange={onChange as React.ChangeEventHandler<HTMLInputElement>}
+      placeholder={placeholder}
+      disabled={disabled}
+      size="small"
+      fullWidth
+      slotProps={{
+        input: {
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon sx={{ fontSize: 16, color: 'var(--fg-tertiary)' }} />
+            </InputAdornment>
+          ),
+        },
+      }}
+      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'var(--bg-primary)' } }}
+    />
   )
 }
 
 export function Textarea({
-  label, hint, error, id, disabled, ...props
+  label, hint, error, id, disabled, value, onChange, placeholder, rows, maxLength, name,
 }: TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string; hint?: string; error?: string }) {
-  const textareaId = id ?? genId()
-  const cls = ['ex-textarea', error ? 'error' : ''].filter(Boolean).join(' ')
   return (
-    <div className="ex-field">
-      {label && <label htmlFor={textareaId} className="ex-field-label">{label}</label>}
-      <textarea id={textareaId} className={cls} disabled={disabled} {...props} />
-      {error && <span className="ex-field-error">{error}</span>}
-      {hint && !error && <span className="ex-field-hint">{hint}</span>}
-    </div>
+    <TextField
+      id={id}
+      label={label}
+      helperText={error ?? hint}
+      error={!!error}
+      disabled={disabled}
+      value={value}
+      onChange={onChange as unknown as React.ChangeEventHandler<HTMLInputElement>}
+      placeholder={placeholder}
+      name={name}
+      multiline
+      rows={rows ?? 4}
+      fullWidth
+      size="small"
+      slotProps={{
+        htmlInput: { maxLength },
+        formHelperText: {
+          sx: { color: error ? 'var(--error-600)' : 'var(--fg-tertiary)' },
+        },
+      }}
+    />
   )
 }

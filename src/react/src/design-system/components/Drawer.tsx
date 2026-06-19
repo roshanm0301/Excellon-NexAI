@@ -1,4 +1,6 @@
-import { useEffect, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import MuiDrawer from '@mui/material/Drawer'
+import IconButton from '@mui/material/IconButton'
 import { X } from 'lucide-react'
 
 interface DrawerProps {
@@ -11,30 +13,42 @@ interface DrawerProps {
 }
 
 export function Drawer({ open, onClose, title, children, footer, width = 480 }: DrawerProps) {
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [open, onClose])
-
-  if (!open) return null
-
   return (
-    <>
-      <div className="ex-scrim" onClick={onClose} />
-      <aside className="ex-detail" style={{ width }}>
-        <header>
-          <div>
-            <h3 style={{ margin: '4px 0 0', fontSize: 22, fontWeight: 700, letterSpacing: '-0.01em' }}>{title}</h3>
-          </div>
-          <button className="ex-icon-btn" onClick={onClose} aria-label="Close">
-            <X size={18} />
-          </button>
-        </header>
-        <div className="ex-detail-body">{children}</div>
-        {footer && <footer style={{ padding: '16px 24px', borderTop: '1px solid var(--border-secondary)', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>{footer}</footer>}
-      </aside>
-    </>
+    <MuiDrawer
+      anchor="right"
+      open={open}
+      onClose={onClose}
+      slotProps={{
+        paper: {
+          sx: {
+            width,
+            display: 'flex',
+            flexDirection: 'column',
+            bgcolor: 'var(--bg-primary)',
+          },
+        },
+      }}
+    >
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '16px 24px', borderBottom: '1px solid var(--border-secondary)', flexShrink: 0,
+      }}>
+        <h3 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--fg-primary)' }}>
+          {title}
+        </h3>
+        <IconButton size="small" onClick={onClose} aria-label="Close" sx={{ color: 'var(--fg-secondary)' }}>
+          <X size={18} />
+        </IconButton>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>{children}</div>
+      {footer && (
+        <div style={{
+          padding: '16px 24px', borderTop: '1px solid var(--border-secondary)',
+          display: 'flex', gap: 8, justifyContent: 'flex-end', flexShrink: 0,
+        }}>
+          {footer}
+        </div>
+      )}
+    </MuiDrawer>
   )
 }

@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
+import MuiChip from '@mui/material/Chip'
 
-// 'warning' is an alias for 'warn'; 'neutral' is an alias for 'gray'
 export type BadgeVariant =
   | 'success' | 'warn' | 'warning'
   | 'error'
@@ -16,6 +16,16 @@ interface BadgeProps {
   className?: string
 }
 
+const VARIANT_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  success: { bg: '#ecfdf3', text: '#027a48', border: '#12b76a' },
+  warn:    { bg: '#fffaeb', text: '#b54708', border: '#f79009' },
+  error:   { bg: '#fef3f2', text: '#b42318', border: '#f04438' },
+  info:    { bg: '#eff8ff', text: '#175cd3', border: '#2e90fa' },
+  gray:    { bg: '#f4f7fa', text: '#505862', border: '#dee4eb' },
+  purple:  { bg: '#f5f0ff', text: '#6929c4', border: '#d2b0ff' },
+  brand:   { bg: '#fff7f0', text: '#c44b1b', border: '#ffb282' },
+}
+
 function resolveVariant(v: BadgeVariant): string {
   if (v === 'warning') return 'warn'
   if (v === 'neutral') return 'gray'
@@ -23,14 +33,38 @@ function resolveVariant(v: BadgeVariant): string {
 }
 
 export function Badge({ variant = 'gray', dot = true, children, style, className }: BadgeProps) {
-  return (
-    <span
-      className={`ex-badge ${resolveVariant(variant)}${className ? ` ${className}` : ''}`}
-      style={style}
-    >
-      {dot && <span className="dot" />}
+  const key = resolveVariant(variant)
+  const colors = VARIANT_COLORS[key] ?? VARIANT_COLORS.gray
+
+  const label = (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+      {dot && (
+        <span style={{
+          width: 6, height: 6, borderRadius: '50%',
+          background: colors.border, flexShrink: 0,
+        }} />
+      )}
       {children}
     </span>
+  )
+
+  return (
+    <MuiChip
+      label={label}
+      size="small"
+      className={className}
+      style={style}
+      sx={{
+        height: 22,
+        borderRadius: '9999px',
+        backgroundColor: colors.bg,
+        color: colors.text,
+        border: `1px solid ${colors.border}`,
+        fontWeight: 500,
+        fontSize: '0.6875rem',
+        '.MuiChip-label': { px: '8px' },
+      }}
+    />
   )
 }
 
@@ -44,7 +78,6 @@ const STATUS_VARIANT_MAP: Record<string, BadgeVariant> = {
   pending: 'warn',
   warning: 'warning',
   failed: 'error',
-  // Surface types — distinct colors for at-a-glance scanning
   standard_crud: 'info',
   advanced_crud: 'purple',
   header_line: 'brand',
@@ -59,9 +92,5 @@ const STATUS_VARIANT_MAP: Record<string, BadgeVariant> = {
 
 export function StatusBadge({ status, label }: { status: string; label?: string }) {
   const variant = STATUS_VARIANT_MAP[status] ?? 'gray'
-  return (
-    <Badge variant={variant}>
-      {label ?? status}
-    </Badge>
-  )
+  return <Badge variant={variant}>{label ?? status}</Badge>
 }

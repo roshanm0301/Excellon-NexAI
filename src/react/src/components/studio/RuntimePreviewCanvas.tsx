@@ -15,6 +15,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { getRenderer } from '../../pages/studio/view-designer/ComponentRenderMap'
 import { applyRuntimeContext } from '../../lib/viewRuntime'
 import { ViewEventEngine, type EventEngineError } from '../../lib/viewEventEngine'
+import { ViewRuntimeProvider } from './ViewRuntimeContext'
 import type { ComponentNode, ViewPayload, EventType, VisibilityRule } from '../../types/viewStudio'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -27,6 +28,10 @@ type OnEventFn = (
 
 export interface RuntimePreviewCanvasProps {
   payload: ViewPayload
+  /** Primary entity type for data-fetching renderers (data_table, etc.). */
+  primaryEntity?: string
+  /** View label used in runtime renderers as the display title. */
+  viewLabel?: string
   /** User role for permission resolution. Defaults to empty (no restrictions). */
   role?: string
   /** Current field values for field_equals visibility conditions. */
@@ -37,6 +42,8 @@ export interface RuntimePreviewCanvasProps {
 
 export function RuntimePreviewCanvas({
   payload,
+  primaryEntity = '',
+  viewLabel = '',
   role = '',
   fieldValues = {},
 }: RuntimePreviewCanvasProps) {
@@ -80,7 +87,8 @@ export function RuntimePreviewCanvas({
   }
 
   return (
-    <div className="prev-canvas">
+    <ViewRuntimeProvider primaryEntity={primaryEntity} viewLabel={viewLabel}>
+      <div className="prev-canvas">
       <div className="prev-canvas__frame" onClick={() => setSelectedKey(null)}>
         <RuntimeRenderNode
           node={runtimeTree}
@@ -91,6 +99,7 @@ export function RuntimePreviewCanvas({
         />
       </div>
     </div>
+    </ViewRuntimeProvider>
   )
 }
 

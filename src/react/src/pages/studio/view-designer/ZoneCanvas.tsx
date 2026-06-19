@@ -12,7 +12,7 @@ import { FIELD_TYPE_TO_COMPONENT, type FieldDragData } from './EntityFieldPicker
 
 // ─── Icon helpers ─────────────────────────────────────────────────────────────
 
-const CATEGORY_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   layout: LayoutGrid,
   input: ToggleLeft,
   display: Type,
@@ -33,6 +33,20 @@ function formatLabel(code: string) {
   return code.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
+// Priority order for deriving a display label from configured props.
+// The first non-empty string value found is used.
+const LABEL_PROPS = ['label', 'text', 'title', 'name', 'heading', 'value']
+
+function getDisplayLabel(node: ComponentNode, registry: ComponentRegistryEntry[]): string {
+  for (const prop of LABEL_PROPS) {
+    const val = node.props?.[prop]
+    if (typeof val === 'string' && val.trim()) return val.trim()
+  }
+  if (node.label?.trim()) return node.label.trim()
+  const entry = registry.find(r => r.component_code === node.component_code)
+  return entry?.component_name ?? formatLabel(node.component_code)
+}
+
 // ─── ZoneCanvas ───────────────────────────────────────────────────────────────
 
 export function ZoneCanvas() {
@@ -40,7 +54,7 @@ export function ZoneCanvas() {
     payload, selectedKey, hoveredKey, primaryEntity,
     select, hover, insertNode, updateNodeBindings, canInsertChild, canInsertChildWithReason,
   } = useCanvasStore()
-  const { addToast } = useToast()
+  const { warning: toastWarning } = useToast()
   const { data: registry = [] } = useComponentRegistry()
 
   // Track which containers are expanded (pre-expand level-1 children of page_root)
@@ -116,7 +130,7 @@ export function ZoneCanvas() {
         const fieldInsertCheck = canInsertChildWithReason(targetKey, componentCode)
         if (!fieldInsertCheck.allowed) {
           if (fieldInsertCheck.reason) {
-            addToast({ type: 'warning', message: `Field "${fieldData.label}": ${fieldInsertCheck.reason}` })
+            toastWarning(`Field "${fieldData.label}": ${fieldInsertCheck.reason}`)
           }
           return
         }
@@ -145,7 +159,7 @@ export function ZoneCanvas() {
       const insertCheck = canInsertChildWithReason(targetKey, code)
       if (!insertCheck.allowed) {
         if (insertCheck.reason) {
-          addToast({ type: 'warning', message: insertCheck.reason })
+          toastWarning(insertCheck.reason)
         }
         return
       }
@@ -264,7 +278,7 @@ function ZoneCard({
         style={{ cursor: 'pointer' }}
         title="Click to select and edit properties"
       >
-        <span className="zc-zone__label">{node.label || formatLabel(node.component_code)}</span>
+        <span className="zc-zone__label">{getDisplayLabel(node, registry)}</span>
         <span className="zc-zone__type">{node.component_code}</span>
       </div>
       <div
@@ -365,7 +379,7 @@ function ComponentBlock({
         )}
         {!isContainer && <span className="zc-block__expand-spacer" />}
         <Icon size={13} className="zc-block__icon" />
-        <span className="zc-block__label">{node.label || formatLabel(node.component_code)}</span>
+        <span className="zc-block__label">{getDisplayLabel(node, registry)}</span>
         <span className="zc-block__key">{node.component_key}</span>
       </div>
 

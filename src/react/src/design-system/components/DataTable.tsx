@@ -1,7 +1,6 @@
-import { useState, type ReactNode } from 'react'
-import { ChevronUp, ChevronDown } from 'lucide-react'
-import { Spinner } from './Spinner'
-import { EmptyState } from './EmptyState'
+import type { ReactNode } from 'react'
+import { DataGridPro, type GridColDef, type GridRowParams, type GridRenderCellParams } from '@mui/x-data-grid-pro'
+import Box from '@mui/material/Box'
 
 export interface Column<T> {
   key: string
@@ -22,70 +21,48 @@ interface DataTableProps<T> {
   keyField?: keyof T
 }
 
-export function DataTable<T extends Record<string, unknown>>({
-  columns, rows, loading, emptyTitle = 'No data', emptyDescription, onRowClick, keyField = 'id' as keyof T,
+export function DataTable<T extends object>({
+  columns, rows, loading, emptyTitle = 'No data', onRowClick, keyField = 'id' as keyof T,
 }: DataTableProps<T>) {
-  const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null)
-
-  // Handle undefined or null rows
   const safeRows = rows ?? []
 
-  const sorted = sort
-    ? [...safeRows].sort((a, b) => {
-        const av = a[sort.key] as string | number; const bv = b[sort.key] as string | number
-        if (av < bv) return sort.dir === 'asc' ? -1 : 1
-        if (av > bv) return sort.dir === 'asc' ? 1 : -1
-        return 0
-      })
-    : safeRows
-
-  const toggleSort = (key: string) => {
-    setSort(s => s?.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' })
-  }
+  const gridColumns: GridColDef[] = columns.map(col => {
+    const colDef: GridColDef = {
+      field: col.key,
+      headerName: col.label,
+      minWidth: 80,
+      sortable: col.sortable ?? true,
+      align: col.align ?? 'left',
+      headerAlign: col.align ?? 'left',
+    }
+    if (typeof col.width === 'number') {
+      colDef.width = col.width
+    } else {
+      colDef.flex = 1
+    }
+    if (col.render) {
+      colDef.renderCell = (params: GridRenderCellParams) => col.render!(params.row as T)
+    }
+    return colDef
+  })
 
   return (
-    <div className="ex-table-wrap">
-      {loading && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
-          <Spinner />
-        </div>
-      )}
-      {!loading && safeRows.length === 0 && (
-        <EmptyState title={emptyTitle} description={emptyDescription} />
-      )}
-      {!loading && safeRows.length > 0 && (
-        <table className="ex-table">
-          <thead>
-            <tr>
-              {columns.map(col => (
-                <th
-                  key={col.key}
-                  style={{ width: col.width, textAlign: col.align ?? 'left', cursor: col.sortable ? 'pointer' : 'default' }}
-                  onClick={() => col.sortable && toggleSort(col.key)}
-                >
-                  {col.label}
-                  {col.sortable && sort?.key === col.key && (
-                    <span className="sort">
-                      {sort.dir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                    </span>
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map(row => (
-              <tr key={String(row[keyField])} onClick={() => onRowClick?.(row)} style={{ cursor: onRowClick ? 'pointer' : 'default' }}>
-                {columns.map(col => (
-                  <td key={col.key} style={{ textAlign: col.align ?? 'left' }}>
-                    {col.render ? col.render(row) : String(row[col.key] ?? '')}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+    <Box sx={{ width: '100%' }}>
+      <DataGridPro
+        rows={safeRows}
+        columns={gridColumns}
+        loading={loading}
+        getRowId={row => String((row as Record<string, unknown>)[keyField as string] ?? (row as Record<string, unknown>).id ?? JSON.stringify(row))}
+        onRowClick={onRowClick ? (params: GridRowParams) => onRowClick(params.row as T) : undefined}
+        autoHeight
+        pageSizeOptions={[10, 25, 50]}
+        initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
+        localeText={{ noRowsLabel: emptyTitle }}
+        sx={{
+          border: 'none',
+          '& .MuiDataGrid-row': { cursor: onRowClick ? 'pointer' : 'default' },
+        }}
+      />
+    </Box>
   )
 }

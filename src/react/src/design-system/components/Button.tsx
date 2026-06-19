@@ -1,4 +1,7 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import MuiButton from '@mui/material/Button'
+import MuiIconButton from '@mui/material/IconButton'
+import CircularProgress from '@mui/material/CircularProgress'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline-brand' | 'brand-link'
 type ButtonSize = 'sm' | 'md' | 'lg'
@@ -12,60 +15,70 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children?: ReactNode
 }
 
-export function Button({
-  variant = 'secondary',
-  size = 'md',
-  icon,
-  iconPosition = 'left',
-  loading = false,
-  children,
-  className,
-  disabled,
-  ...props
-}: ButtonProps) {
-  const classes = ['ex-btn', variant, size, className].filter(Boolean).join(' ')
+const MUI_VARIANT: Record<ButtonVariant, { variant: 'contained' | 'outlined' | 'text'; color: 'primary' | 'error' | 'inherit' }> = {
+  primary:         { variant: 'contained', color: 'primary' },
+  secondary:       { variant: 'outlined',  color: 'primary' },
+  ghost:           { variant: 'text',      color: 'primary' },
+  danger:          { variant: 'contained', color: 'error'   },
+  'outline-brand': { variant: 'outlined',  color: 'primary' },
+  'brand-link':    { variant: 'text',      color: 'primary' },
+}
+
+const MUI_SIZE: Record<ButtonSize, 'small' | 'medium' | 'large'> = {
+  sm: 'small', md: 'medium', lg: 'large',
+}
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { variant = 'secondary', size = 'md', icon, iconPosition = 'left', loading = false, children, disabled, onClick, type, style, className },
+  ref
+) {
+  const { variant: muiVariant, color } = MUI_VARIANT[variant]
+  const muiSize = MUI_SIZE[size]
+
+  const startIcon = !loading && icon && iconPosition === 'left' ? icon : undefined
+  const endIcon   = !loading && icon && iconPosition === 'right' ? icon : undefined
 
   return (
-    <button
-      className={classes}
+    <MuiButton
+      ref={ref}
+      variant={muiVariant}
+      color={color}
+      size={muiSize}
       disabled={disabled || loading}
-      {...props}
+      onClick={onClick as React.MouseEventHandler<HTMLButtonElement>}
+      type={type as 'button' | 'submit' | 'reset' | undefined}
+      startIcon={loading ? <CircularProgress size={14} color="inherit" /> : startIcon}
+      endIcon={endIcon}
+      style={style}
+      className={className}
+      sx={variant === 'brand-link' ? { color: 'var(--fg-brand)', '&:hover': { color: 'var(--fg-brand-strong)' } } : undefined}
     >
-      {loading && <BtnSpinner />}
-      {!loading && icon && iconPosition === 'left' && icon}
       {children}
-      {!loading && icon && iconPosition === 'right' && icon}
-    </button>
+    </MuiButton>
   )
-}
+})
 
 export function IconButton({
   children,
   className,
-  ...props
+  disabled,
+  onClick,
+  type,
+  title,
+  style,
 }: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button className={`ex-icon-btn${className ? ` ${className}` : ''}`} {...props}>
-      {children}
-    </button>
-  )
-}
-
-// Inline spinner — avoids circular import
-function BtnSpinner() {
-  return (
-    <svg
-      width={16}
-      height={16}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      className="ex-spinner"
-      aria-hidden="true"
+    <MuiIconButton
+      size="small"
+      disabled={disabled}
+      onClick={onClick as React.MouseEventHandler<HTMLButtonElement>}
+      type={type as 'button' | 'submit' | 'reset' | undefined}
+      title={title}
+      style={style}
+      className={className}
+      sx={{ color: 'var(--fg-secondary)', '&:hover': { color: 'var(--fg-primary)', bgcolor: 'var(--bg-tertiary)' } }}
     >
-      <path d="M12 2a10 10 0 0 1 10 10" />
-    </svg>
+      {children}
+    </MuiIconButton>
   )
 }

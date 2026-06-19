@@ -7,6 +7,17 @@ import type { ComponentNode } from '../../../types/viewStudio'
 // MIME type for tree-internal reorder drags (distinct from palette → tree drags)
 const TREE_NODE_MIME = 'application/x-tree-node-key'
 
+const LABEL_PROPS = ['label', 'text', 'title', 'name', 'heading', 'value']
+
+function getNodeDisplayLabel(node: ComponentNode): string {
+  for (const prop of LABEL_PROPS) {
+    const val = node.props?.[prop]
+    if (typeof val === 'string' && val.trim()) return val.trim()
+  }
+  if (node.label?.trim()) return node.label.trim()
+  return node.component_code.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
 interface ComponentTreeProps {
   tree: ComponentNode
 }
@@ -211,7 +222,7 @@ function TreeNode({ node, depth }: TreeNodeProps) {
             onClick={(e) => e.stopPropagation()}
           />
         )}
-        <span>{node.label || node.component_code}</span>
+        <span>{getNodeDisplayLabel(node)}</span>
         <span className="ct-node__code">{node.component_code}</span>
 
         {isSelected && node.component_code !== 'page_root' && (

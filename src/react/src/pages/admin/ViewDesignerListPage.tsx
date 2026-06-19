@@ -15,6 +15,7 @@ import {
 } from '../../hooks/useViewStudio'
 import type { View, SurfaceType, CreateViewRequest } from '../../types/viewStudio'
 import { SURFACE_TYPES, SURFACE_TYPE_META } from '../../types/viewStudio'
+import { applyTemplate } from '../../templates'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -240,11 +241,13 @@ export function ViewDesignerListPage() {
       error('Validation', 'View code is required')
       return
     }
+    const template = applyTemplate(newSurface, newEntity.trim() || 'record')
     const req: CreateViewRequest = {
       view_label: newLabel.trim(),
       surface_type: newSurface,
       primary_entity: newEntity.trim() || undefined,
       view_code: newCode.trim(),
+      payload: template,
     }
     createMut.mutate(req, {
       onSuccess: (view) => {

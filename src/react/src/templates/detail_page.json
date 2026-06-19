@@ -1,0 +1,36 @@
+{
+  "component_tree": {
+    "component_key": "page_root_tpl",
+    "component_code": "page_root",
+    "label": "Page Root",
+    "props": { "layout": "full" },
+    "children": [
+      {
+        "component_key": "toolbar_tpl",
+        "component_code": "toolbar",
+        "label": "Toolbar",
+        "props": { "align": "space-between" },
+        "children": [
+          {
+            "component_key": "btn_save_tpl",
+            "component_code": "button",
+            "label": "Save",
+            "props": { "label": "Save __ENTITY__", "variant": "primary", "icon": "Save" }
+          },
+          {
+            "component_key": "btn_cancel_tpl",
+            "component_code": "button",
+            "label": "Cancel",
+            "props": { "label": "Cancel", "variant": "ghost" }
+          }
+        ]
+      },
+      {
+        "component_key": "form_section_tpl",
+        "component_code": "form_section",
+        "label": "__ENTITY__ Details",
+        "props": { "title": "__ENTITY__ Details", "columns": 2, "mode": "edit" }
+      }
+    ]
+  }
+}

@@ -79,6 +79,8 @@ export default function ScreenViewPage() {
       <div className="screen-view-page__body">
         <RuntimePreviewCanvas
           payload={payload}
+          primaryEntity={entity}
+          viewLabel={label}
           role={import.meta.env.VITE_ROLE ?? 'admin'}
         />
       </div>

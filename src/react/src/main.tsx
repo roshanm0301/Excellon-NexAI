@@ -1,8 +1,12 @@
+import { LicenseInfo } from '@mui/x-license'
+LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_X_LICENSE_KEY ?? '')
 import './index.css'
 import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom'
+import { ThemeProvider } from '@mui/material/styles'
+import { nexaiTheme } from './theme/nexaiTheme'
 import { ToastProvider } from './design-system/components/Toast'
 import { Spinner } from './design-system'
 import AppLayout from './components/studio/AppLayout'
@@ -60,11 +64,13 @@ const router = createBrowserRouter(
 function renderApp() {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-          <RouterProvider router={router} />
-        </ToastProvider>
-      </QueryClientProvider>
+      <ThemeProvider theme={nexaiTheme}>
+        <QueryClientProvider client={queryClient}>
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
     </React.StrictMode>,
   )
 }

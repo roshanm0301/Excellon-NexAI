@@ -6,8 +6,13 @@
  * emit events into the engine when in live-preview mode.
  */
 
-import React from 'react'
+import React, { useState, useCallback } from 'react'
+import { Search } from 'lucide-react'
 import type { ComponentNode, EventType } from '../../../types/viewStudio'
+import { useRuntimeViewContext } from '../../../components/studio/ViewRuntimeContext'
+import { useEntityRecords } from '../../../hooks/useEntityRecords'
+import { RuntimeDataTable } from '../runtime/RuntimeDataTable'
+import { RuntimeCreateModal } from '../runtime/RuntimeCreateModal'
 
 export type OnEventFn = (
   eventType: EventType,
@@ -388,55 +393,85 @@ function BadgeRenderer(props: PreviewProps) {
 
 // ─── Data Components ─────────────────────────────────────────────────────────
 
-function DataTableRenderer(props: PreviewProps) {
-  const columns = props.node.props?.columns as Array<{ key: string; label: string; width?: number; type?: string }> | undefined
-  const cols = columns ?? [
-    { key: 'col1', label: 'Column 1' },
-    { key: 'col2', label: 'Column 2' },
-    { key: 'col3', label: 'Column 3' },
-  ]
-  const visibleCols = cols.slice(0, 8)
-  const gridTemplate = visibleCols.map(c => c.width ? `${c.width}px` : '1fr').join(' ')
-  const title = props.node.props?.title as string
-  const entityKey = props.node.bindings?.data?.entity
+function DataTableRenderer({ node, isPreviewMode }: PreviewProps) {
+  const runtimeCtx = useRuntimeViewContext()
+  type ColDef = { key: string; label: string; width?: number; sortable?: boolean; type?: string }
+  const columns = (node.props?.columns as ColDef[]) ?? []
+  const pageSize = (node.props?.page_size as number) ?? 25
+  const title = node.props?.title as string | undefined
 
-  return (
-    <div className="prev-table">
-      {(title || entityKey) && (
-        <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>{title || ''}</span>
-          {entityKey && <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#6366f1', fontWeight: 400 }}>entity: {entityKey}</span>}
+  // Always call the hook (React rules) but disable when not in runtime mode
+  const { data, isLoading } = useEntityRecords(
+    runtimeCtx?.primaryEntity ?? '',
+    {
+      search: runtimeCtx?.debouncedSearch ?? '',
+      sortBy: runtimeCtx?.sortBy,
+      sortDir: runtimeCtx?.sortDir ?? 'asc',
+      filters: runtimeCtx?.filters ?? {},
+      page: runtimeCtx?.page ?? 1,
+      pageSize,
+    },
+  )
+
+  // Design-mode: show column headers + mock rows (original behaviour)
+  if (!isPreviewMode || !runtimeCtx) {
+    const cols = columns.length > 0 ? columns : [
+      { key: 'col1', label: 'Column 1' },
+      { key: 'col2', label: 'Column 2' },
+      { key: 'col3', label: 'Column 3' },
+    ]
+    const visibleCols = cols.slice(0, 8)
+    const gridTemplate = visibleCols.map(c => (c as ColDef).width ? `${(c as ColDef).width}px` : '1fr').join(' ')
+    return (
+      <div className="prev-table">
+        {title && (
+          <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e2e8f0' }}>
+            {title}
+          </div>
+        )}
+        <div className="prev-table__header" style={{ gridTemplateColumns: gridTemplate }}>
+          {visibleCols.map(c => <span key={(c as ColDef).key}>{(c as ColDef).label}</span>)}
         </div>
-      )}
-      {/* Search + pagination bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 0.75rem', borderBottom: '1px solid #f1f5f9', background: '#fafafa' }}>
-        <div style={{ fontSize: '0.72rem', color: '#94a3b8', border: '1px solid #e2e8f0', borderRadius: 4, padding: '0.2rem 0.5rem', width: 120 }}>🔍 Search...</div>
-        <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>25 per page ▾</div>
-      </div>
-      {/* Header row */}
-      <div className="prev-table__header" style={{ gridTemplateColumns: gridTemplate, gap: 0, overflowX: 'hidden' }}>
-        {visibleCols.map(c => (
-          <span key={c.key} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 4 }}>
-            {c.label}
-          </span>
+        {[1, 2, 3].map(r => (
+          <div key={r} className="prev-table__row" style={{ gridTemplateColumns: gridTemplate, background: r % 2 === 0 ? '#fafafa' : '#fff' }}>
+            {visibleCols.map((c, i) => (
+              <span key={(c as ColDef).key} style={{ color: i === 0 ? '#3b82f6' : '#475569', fontSize: '0.77rem' }}>
+                {i === 0 ? `— ${(c as ColDef).label} —` : '—'}
+              </span>
+            ))}
+          </div>
         ))}
-      </div>
-      {/* Sample rows */}
-      {[1, 2, 3].map(r => (
-        <div key={r} className="prev-table__row" style={{ gridTemplateColumns: gridTemplate, gap: 0, background: r % 2 === 0 ? '#fafafa' : '#fff' }}>
-          {visibleCols.map((c, i) => (
-            <span key={c.key} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 4, color: i === 0 ? '#3b82f6' : '#475569', fontSize: '0.77rem' }}>
-              {i === 0 ? `— ${c.label} —` : '—'}
-            </span>
-          ))}
+        <div style={{ padding: '0.4rem 0.75rem', fontSize: '0.7rem', color: '#94a3b8', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between' }}>
+          <span>Design preview — columns: {columns.length}</span>
+          <span>{pageSize} per page</span>
         </div>
-      ))}
-      {/* Footer */}
-      <div style={{ padding: '0.4rem 0.75rem', fontSize: '0.7rem', color: '#94a3b8', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between' }}>
-        <span>Showing 1–3 of N rows</span>
-        <span>‹ 1 2 3 ›</span>
       </div>
-    </div>
+    )
+  }
+
+  // Runtime mode: real entity records from the API
+  return (
+    <>
+      <RuntimeDataTable
+        columns={columns}
+        records={data?.items ?? []}
+        loading={isLoading}
+        total={data?.total ?? 0}
+        page={runtimeCtx.page}
+        pageSize={pageSize}
+        sortBy={runtimeCtx.sortBy}
+        sortDir={runtimeCtx.sortDir}
+        onSort={(key) => { runtimeCtx.setSortBy(key); runtimeCtx.setPage(1) }}
+        onPageChange={runtimeCtx.setPage}
+      />
+      {runtimeCtx.createModalOpen && (
+        <RuntimeCreateModal
+          open={runtimeCtx.createModalOpen}
+          onClose={() => runtimeCtx.setCreateModalOpen(false)}
+          entityType={runtimeCtx.primaryEntity}
+        />
+      )}
+    </>
   )
 }
 
@@ -614,17 +649,48 @@ function ModalContainerRenderer({ node, children }: PreviewProps) {
   )
 }
 
-function DrawerContainerRenderer({ node, children }: PreviewProps) {
+function DrawerContainerRenderer({ node, children, isPreviewMode }: PreviewProps) {
+  const runtimeCtx = useRuntimeViewContext()
   const title = node.props?.title as string | undefined
+  const role = node.props?.role as string | undefined
   const hasChildren = React.Children.count(children) > 0
+
+  // In runtime mode, only show the drawer when its open state is true
+  if (isPreviewMode && runtimeCtx) {
+    const isOpen = role === 'filter_drawer' ? runtimeCtx.filterDrawerOpen : true
+    if (!isOpen) return null
+    return (
+      <div className="prev-drawer" style={{ position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 200, boxShadow: '-4px 0 24px rgba(0,0,0,0.1)' }}>
+        <div className="prev-drawer__header">
+          <span className="prev-drawer__title">{title ?? 'Drawer'}</span>
+          <button
+            className="prev-drawer__close"
+            onClick={() => {
+              if (role === 'filter_drawer') runtimeCtx.setFilterDrawerOpen(false)
+            }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          >✕</button>
+        </div>
+        <div className="prev-drawer__body">
+          {hasChildren ? children : <span className="prev-empty-hint">No filter fields configured</span>}
+        </div>
+        {role === 'filter_drawer' && (
+          <div style={{ padding: '8px 16px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: 8 }}>
+            <button className="prev-button prev-button--primary" style={{ flex: 1 }} onClick={() => runtimeCtx.setFilterDrawerOpen(false)}>Apply</button>
+            <button className="prev-button prev-button--secondary" onClick={() => { runtimeCtx.setFilters({}); runtimeCtx.setFilterDrawerOpen(false) }}>Clear</button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Design mode: always show drawer as a panel
   return (
     <div className="prev-drawer">
-      {/* Drawer header — mimics the real drawer handle */}
       <div className="prev-drawer__header">
         <span className="prev-drawer__title">{title ?? 'Drawer'}</span>
         <span className="prev-drawer__close" aria-label="close">✕</span>
       </div>
-      {/* Drawer body — filter fields go here */}
       <div className="prev-drawer__body">
         {hasChildren ? children : (
           <span className="prev-empty-hint">Add filter fields here</span>
@@ -726,23 +792,24 @@ function KanbanBoardRenderer({ node, children }: PreviewProps) {
 
 // ─── Action Components ───────────────────────────────────────────────────────
 
-function ButtonRenderer(props: PreviewProps) {
-  const label = bindingLabel(props.node, 'label', props.node.props?.label as string || 'Button')
-  const variant = props.node.props?.variant as string ?? 'primary'
+function ButtonRenderer({ node, isPreviewMode, onEvent }: PreviewProps) {
+  const runtimeCtx = useRuntimeViewContext()
+  const label = bindingLabel(node, 'label', node.props?.label as string || 'Button')
+  const variant = node.props?.variant as string ?? 'primary'
+  const action = node.props?.action as string | undefined
 
   function handleClick() {
-    if (props.isPreviewMode && props.onEvent) {
-      props.onEvent('on_click', props.node.component_key, {
-        label,
-        variant,
-      })
-    }
+    if (!isPreviewMode) return
+    // Wire action props to runtime context
+    if (action === 'create_modal' && runtimeCtx) runtimeCtx.setCreateModalOpen(true)
+    if (action === 'open_filter_drawer' && runtimeCtx) runtimeCtx.setFilterDrawerOpen(true)
+    if (onEvent) onEvent('on_click', node.component_key, { label, variant, action })
   }
 
   return (
     <button
       className={`prev-button prev-button--${variant}`}
-      disabled={!props.isPreviewMode}
+      disabled={!isPreviewMode}
       onClick={handleClick}
     >
       {label}
@@ -914,14 +981,40 @@ function TagInputRenderer({ node }: PreviewProps) {
   )
 }
 
-function SearchBarRenderer({ node }: PreviewProps) {
+function SearchBarRenderer({ node, isPreviewMode }: PreviewProps) {
+  const runtimeCtx = useRuntimeViewContext()
   const placeholder = (node.props?.placeholder as string | undefined) ?? 'Search...'
-  return (
-    <div style={{ position: 'relative' }}>
-      <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#94a3b8' }}>🔍</span>
-      <div style={{ paddingLeft: 30, paddingRight: 12, height: 36, border: '1px solid #e2e8f0', borderRadius: 6, background: '#f8fafc', display: 'flex', alignItems: 'center', fontSize: '0.78rem', color: '#94a3b8' }}>
-        {placeholder}
+  const [localValue, setLocalValue] = useState('')
+  const timerRef = { current: 0 as ReturnType<typeof setTimeout> }
+
+  const handleChange = useCallback((v: string) => {
+    setLocalValue(v)
+    if (runtimeCtx && isPreviewMode) {
+      clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(() => runtimeCtx.setSearch(v), 350)
+    }
+  }, [runtimeCtx, isPreviewMode]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (isPreviewMode && runtimeCtx) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, height: 36, border: '1px solid #e2e8f0', borderRadius: 6, background: '#fff', padding: '0 12px', minWidth: 200 }}>
+        <Search size={14} style={{ color: '#94a3b8', flexShrink: 0 }} />
+        <input
+          type="text"
+          value={localValue}
+          onChange={e => handleChange(e.target.value)}
+          placeholder={placeholder}
+          style={{ border: 'none', outline: 'none', fontSize: '0.78rem', color: '#374151', flex: 1, background: 'transparent' }}
+        />
       </div>
+    )
+  }
+
+  // Design-mode: static display
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, height: 36, border: '1px solid #e2e8f0', borderRadius: 6, background: '#f8fafc', padding: '0 12px', minWidth: 160 }}>
+      <Search size={14} style={{ color: '#94a3b8', flexShrink: 0 }} />
+      <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>{placeholder}</span>
     </div>
   )
 }

@@ -1,0 +1,50 @@
+{
+  "component_tree": {
+    "component_key": "page_root_tpl",
+    "component_code": "page_root",
+    "label": "Page Root",
+    "props": { "layout": "full" },
+    "children": [
+      {
+        "component_key": "toolbar_tpl",
+        "component_code": "toolbar",
+        "label": "Toolbar",
+        "props": { "align": "space-between" },
+        "children": [
+          {
+            "component_key": "search_tpl",
+            "component_code": "search_bar",
+            "label": "Search",
+            "props": { "placeholder": "Search __ENTITY__..." }
+          },
+          {
+            "component_key": "btn_new_tpl",
+            "component_code": "button",
+            "label": "New __ENTITY__",
+            "props": { "label": "New __ENTITY__", "variant": "primary", "icon": "Plus", "action": "create_modal" }
+          }
+        ]
+      },
+      {
+        "component_key": "split_tpl",
+        "component_code": "split_pane",
+        "label": "Split View",
+        "props": { "orientation": "horizontal", "initial_ratio": 0.35, "resizable": true },
+        "children": [
+          {
+            "component_key": "list_col_tpl",
+            "component_code": "data_table",
+            "label": "__ENTITY__ List",
+            "props": { "columns": [], "page_size": 25, "sortable": true, "selectable": true, "selection_mode": "single", "empty_message": "No __ENTITY__ records." }
+          },
+          {
+            "component_key": "detail_col_tpl",
+            "component_code": "detail_panel",
+            "label": "__ENTITY__ Detail",
+            "props": { "show_header": true, "show_actions": true }
+          }
+        ]
+      }
+    ]
+  }
+}

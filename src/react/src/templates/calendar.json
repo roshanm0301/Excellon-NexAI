@@ -1,0 +1,40 @@
+{
+  "component_tree": {
+    "component_key": "page_root_tpl",
+    "component_code": "page_root",
+    "label": "Page Root",
+    "props": { "layout": "full" },
+    "children": [
+      {
+        "component_key": "toolbar_tpl",
+        "component_code": "toolbar",
+        "label": "Toolbar",
+        "props": { "align": "space-between" },
+        "children": [
+          {
+            "component_key": "heading_tpl",
+            "component_code": "heading",
+            "label": "__ENTITY__ Calendar",
+            "props": { "text": "__ENTITY__ Calendar", "level": 2 }
+          },
+          {
+            "component_key": "btn_new_tpl",
+            "component_code": "button",
+            "label": "New __ENTITY__",
+            "props": { "label": "New __ENTITY__", "variant": "primary", "icon": "Plus", "action": "create_modal" }
+          }
+        ]
+      },
+      {
+        "component_key": "calendar_tpl",
+        "component_code": "calendar_view",
+        "label": "__ENTITY__ Calendar",
+        "props": {
+          "date_field": "date",
+          "title_field": "name",
+          "default_view": "month"
+        }
+      }
+    ]
+  }
+}

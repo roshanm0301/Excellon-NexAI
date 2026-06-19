@@ -1,0 +1,58 @@
+{
+  "component_tree": {
+    "component_key": "page_root_tpl",
+    "component_code": "page_root",
+    "label": "Page Root",
+    "props": { "layout": "full" },
+    "children": [
+      {
+        "component_key": "toolbar_tpl",
+        "component_code": "toolbar",
+        "label": "Toolbar",
+        "props": { "align": "space-between" },
+        "children": [
+          {
+            "component_key": "btn_save_tpl",
+            "component_code": "button",
+            "label": "Save",
+            "props": { "label": "Save", "variant": "primary", "icon": "Save" }
+          },
+          {
+            "component_key": "btn_cancel_tpl",
+            "component_code": "button",
+            "label": "Cancel",
+            "props": { "label": "Cancel", "variant": "ghost" }
+          }
+        ]
+      },
+      {
+        "component_key": "header_section_tpl",
+        "component_code": "header_line_section",
+        "label": "__ENTITY__ Header",
+        "props": { "title": "__ENTITY__", "section_type": "header", "show_toolbar": false },
+        "children": [
+          {
+            "component_key": "form_header_tpl",
+            "component_code": "form_section",
+            "label": "Header Fields",
+            "props": { "columns": 3, "mode": "edit" }
+          }
+        ]
+      },
+      {
+        "component_key": "line_section_tpl",
+        "component_code": "header_line_section",
+        "label": "Line Items",
+        "props": { "title": "Line Items", "section_type": "line", "show_toolbar": true },
+        "children": [
+          {
+            "component_key": "line_table_tpl",
+            "component_code": "data_table",
+            "label": "Line Items Table",
+            "props": { "columns": [], "page_size": 50, "sortable": false, "empty_message": "No line items added yet." }
+          }
+        ]
+      }
+    ]
+  }
+}

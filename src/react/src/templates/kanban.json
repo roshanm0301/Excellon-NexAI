@@ -1,0 +1,45 @@
+{
+  "component_tree": {
+    "component_key": "page_root_tpl",
+    "component_code": "page_root",
+    "label": "Page Root",
+    "props": { "layout": "full" },
+    "children": [
+      {
+        "component_key": "toolbar_tpl",
+        "component_code": "toolbar",
+        "label": "Toolbar",
+        "props": { "align": "space-between" },
+        "children": [
+          {
+            "component_key": "heading_tpl",
+            "component_code": "heading",
+            "label": "__ENTITY__ Board",
+            "props": { "text": "__ENTITY__ Board", "level": 2 }
+          },
+          {
+            "component_key": "btn_new_tpl",
+            "component_code": "button",
+            "label": "New __ENTITY__",
+            "props": { "label": "New __ENTITY__", "variant": "primary", "icon": "Plus", "action": "create_modal" }
+          }
+        ]
+      },
+      {
+        "component_key": "kanban_tpl",
+        "component_code": "kanban_board",
+        "label": "__ENTITY__ Kanban",
+        "props": {
+          "status_field": "status",
+          "card_title_field": "name",
+          "draggable": true,
+          "columns": [
+            { "value": "open", "label": "Open", "color": "#3b82f6" },
+            { "value": "in_progress", "label": "In Progress", "color": "#f59e0b" },
+            { "value": "done", "label": "Done", "color": "#10b981" }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "component_tree": {
+    "component_key": "page_root_tpl",
+    "component_code": "page_root",
+    "label": "Page Root",
+    "props": { "layout": "full" },
+    "children": [
+      {
+        "component_key": "toolbar_tpl",
+        "component_code": "toolbar",
+        "label": "Toolbar",
+        "props": { "align": "start" },
+        "children": [
+          {
+            "component_key": "heading_tpl",
+            "component_code": "heading",
+            "label": "__ENTITY__",
+            "props": { "text": "__ENTITY__", "level": 2 }
+          }
+        ]
+      },
+      {
+        "component_key": "section_tpl",
+        "component_code": "section",
+        "label": "Content",
+        "props": { "title": "Content", "columns": 1 }
+      }
+    ]
+  }
+}

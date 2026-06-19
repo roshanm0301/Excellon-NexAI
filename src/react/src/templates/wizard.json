@@ -1,0 +1,71 @@
+{
+  "component_tree": {
+    "component_key": "page_root_tpl",
+    "component_code": "page_root",
+    "label": "Page Root",
+    "props": { "layout": "centered" },
+    "children": [
+      {
+        "component_key": "stepper_tpl",
+        "component_code": "stepper",
+        "label": "Steps",
+        "props": {
+          "orientation": "horizontal",
+          "steps": [
+            { "label": "Step 1", "description": "Basic information" },
+            { "label": "Step 2", "description": "Details" },
+            { "label": "Step 3", "description": "Review" }
+          ]
+        }
+      },
+      {
+        "component_key": "step1_tpl",
+        "component_code": "wizard_step_container",
+        "label": "Step 1 – Basic Info",
+        "props": { "step_label": "Basic Info", "step_description": "Enter basic __ENTITY__ information", "validation_required": true },
+        "children": [
+          {
+            "component_key": "step1_form_tpl",
+            "component_code": "form_section",
+            "label": "Step 1 Fields",
+            "props": { "columns": 2, "mode": "create" }
+          }
+        ]
+      },
+      {
+        "component_key": "step2_tpl",
+        "component_code": "wizard_step_container",
+        "label": "Step 2 – Details",
+        "props": { "step_label": "Details", "step_description": "Provide additional details", "validation_required": false },
+        "children": [
+          {
+            "component_key": "step2_form_tpl",
+            "component_code": "form_section",
+            "label": "Step 2 Fields",
+            "props": { "columns": 1, "mode": "create" }
+          }
+        ]
+      },
+      {
+        "component_key": "wizard_toolbar_tpl",
+        "component_code": "toolbar",
+        "label": "Wizard Actions",
+        "props": { "align": "end" },
+        "children": [
+          {
+            "component_key": "btn_back_tpl",
+            "component_code": "button",
+            "label": "Back",
+            "props": { "label": "Back", "variant": "ghost" }
+          },
+          {
+            "component_key": "btn_next_tpl",
+            "component_code": "button",
+            "label": "Next",
+            "props": { "label": "Next", "variant": "primary" }
+          }
+        ]
+      }
+    ]
+  }
+}

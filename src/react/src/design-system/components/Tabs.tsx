@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import MuiTabs from '@mui/material/Tabs'
+import MuiTab from '@mui/material/Tab'
 
 interface Tab {
   id: string
@@ -14,19 +16,38 @@ interface TabGroupProps {
 
 export function TabGroup({ tabs, active, onChange }: TabGroupProps) {
   return (
-    <div className="ex-tabs">
+    <MuiTabs
+      value={active}
+      onChange={(_e, newValue: string) => onChange(newValue)}
+      variant="scrollable"
+      scrollButtons="auto"
+      sx={{ minHeight: 36, borderBottom: '1px solid var(--border-secondary)' }}
+    >
       {tabs.map(tab => (
-        <button
+        <MuiTab
           key={tab.id}
-          className={`ex-tab${active === tab.id ? ' active' : ''}`}
-          onClick={() => onChange(tab.id)}
-        >
-          {tab.label}
-          {tab.count != null && (
-            <span className="ex-count gray">{tab.count}</span>
-          )}
-        </button>
+          value={tab.id}
+          label={
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              {tab.label}
+              {tab.count != null && (
+                <span style={{
+                  background: 'var(--neutral-100)',
+                  color: 'var(--fg-tertiary)',
+                  borderRadius: 9999,
+                  fontSize: '0.6875rem',
+                  fontWeight: 500,
+                  padding: '1px 6px',
+                  minWidth: 18,
+                  textAlign: 'center',
+                }}>
+                  {tab.count}
+                </span>
+              )}
+            </span>
+          }
+        />
       ))}
-    </div>
+    </MuiTabs>
   )
 }

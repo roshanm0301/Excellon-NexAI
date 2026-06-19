@@ -1,5 +1,8 @@
 import type { SelectHTMLAttributes } from 'react'
-import { ChevronDown } from 'lucide-react'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import NativeSelect from '@mui/material/NativeSelect'
+import FormHelperText from '@mui/material/FormHelperText'
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string
@@ -9,41 +12,39 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   placeholder?: string
 }
 
-export function Select({ label, hint, error, options, placeholder, id, ...props }: SelectProps) {
-  const selectId = id ?? `select-${Math.random().toString(36).slice(2)}`
+let _idCounter = 0
+
+export function Select({ label, hint, error, options, placeholder, id, disabled, ...props }: SelectProps) {
+  const selectId = id ?? `sel-${++_idCounter}`
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-      {label && <label htmlFor={selectId} className="label">{label}</label>}
-      <div style={{ position: 'relative' }}>
-        <select
-          id={selectId}
-          style={{
-            width: '100%', height: 40, padding: '0 36px 0 12px',
-            border: `1px solid ${error ? 'var(--border-error)' : 'var(--border-primary)'}`,
-            borderRadius: 'var(--radius-lg)', background: 'var(--bg-primary)',
-            color: 'var(--fg-primary)', fontSize: 'var(--text-sm)',
-            fontFamily: 'var(--font-sans)', appearance: 'none', outline: 'none',
-            cursor: 'pointer', boxSizing: 'border-box',
-          }}
-          {...props}
-        >
-          {placeholder && <option value="">{placeholder}</option>}
-          {options.map(opt => (
-            <option key={opt.value} value={opt.value} disabled={opt.disabled}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown
-          size={16}
-          style={{
-            position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-            color: 'var(--fg-tertiary)', pointerEvents: 'none',
-          }}
-        />
-      </div>
-      {error && <span style={{ fontSize: 'var(--text-xs)', color: 'var(--error-600)' }}>{error}</span>}
-      {hint && !error && <span style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-tertiary)' }}>{hint}</span>}
-    </div>
+    <FormControl fullWidth size="small" error={!!error} disabled={disabled}>
+      {label && <InputLabel htmlFor={selectId}>{label}</InputLabel>}
+      <NativeSelect
+        inputProps={{ id: selectId, ...props }}
+        sx={{
+          '&:before': { borderColor: error ? 'var(--border-error)' : 'var(--border-primary)' },
+          '& select': {
+            fontSize: '0.8125rem',
+            color: 'var(--fg-primary)',
+            fontFamily: 'var(--font-sans)',
+            bgcolor: 'var(--bg-primary)',
+            py: '8px',
+          },
+        }}
+      >
+        {placeholder && <option value="">{placeholder}</option>}
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+            {opt.label}
+          </option>
+        ))}
+      </NativeSelect>
+      {(error || hint) && (
+        <FormHelperText sx={{ color: error ? 'var(--error-600)' : 'var(--fg-tertiary)' }}>
+          {error ?? hint}
+        </FormHelperText>
+      )}
+    </FormControl>
   )
 }

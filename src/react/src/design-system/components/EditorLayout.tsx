@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box'
 import { Button } from './Button'
 
 export interface EditorLayoutProps {
@@ -14,27 +16,21 @@ export interface EditorLayoutProps {
 }
 
 export function EditorLayout({
-  title,
-  statusBadge,
-  isDirty,
-  onSaveDraft,
-  onPublish,
-  saving,
-  publishing,
-  extraActions,
-  children,
+  title, statusBadge, isDirty, onSaveDraft, onPublish, saving, publishing, extraActions, children,
 }: EditorLayoutProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      {/* Sticky editor bar */}
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
       <div className="ex-editor-bar">
-        <h2 className="ex-editor-bar-title">{title}</h2>
+        <Typography
+          variant="subtitle1"
+          className="ex-editor-bar-title"
+          sx={{ fontWeight: 600, color: 'var(--fg-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+        >
+          {title}
+        </Typography>
 
         {statusBadge && <div>{statusBadge}</div>}
-
-        {extraActions && (
-          <div className="ex-editor-bar-actions">{extraActions}</div>
-        )}
+        {extraActions && <div className="ex-editor-bar-actions">{extraActions}</div>}
 
         {isDirty && (
           <span className="ex-unsaved-pill">
@@ -44,32 +40,21 @@ export function EditorLayout({
         )}
 
         {onSaveDraft && (
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={!isDirty || saving}
-            onClick={onSaveDraft}
-          >
+          <Button variant="secondary" size="sm" disabled={!isDirty || saving} onClick={onSaveDraft}>
             {saving ? 'Saving…' : 'Save Draft'}
           </Button>
         )}
 
         {onPublish && (
-          <Button
-            variant="primary"
-            size="sm"
-            disabled={publishing}
-            onClick={onPublish}
-          >
+          <Button variant="primary" size="sm" disabled={publishing} onClick={onPublish}>
             {publishing ? 'Publishing…' : 'Publish'}
           </Button>
         )}
       </div>
 
-      {/* Content area */}
-      <div style={{ flex: 1, background: 'var(--bg-secondary)', minHeight: 0 }}>
+      <Box sx={{ flex: 1, bgcolor: 'var(--bg-secondary)', minHeight: 0 }}>
         {children}
-      </div>
-    </div>
+      </Box>
+    </Box>
   )
 }

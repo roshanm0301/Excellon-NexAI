@@ -1,0 +1,110 @@
+{
+  "component_tree": {
+    "component_key": "page_root_tpl",
+    "component_code": "page_root",
+    "label": "Page Root",
+    "props": { "layout": "full" },
+    "children": [
+      {
+        "component_key": "toolbar_tpl",
+        "component_code": "toolbar",
+        "label": "Toolbar",
+        "props": { "align": "space-between" },
+        "children": [
+          {
+            "component_key": "heading_tpl",
+            "component_code": "heading",
+            "label": "__ENTITY__ Dashboard",
+            "props": { "text": "__ENTITY__ Dashboard", "level": 2 }
+          }
+        ]
+      },
+      {
+        "component_key": "kpi_row_tpl",
+        "component_code": "grid_row",
+        "label": "KPI Row",
+        "props": { "gap": "md" },
+        "children": [
+          {
+            "component_key": "kpi1_col_tpl",
+            "component_code": "grid_column",
+            "label": "KPI 1",
+            "props": { "span": 3 },
+            "children": [
+              {
+                "component_key": "kpi1_tpl",
+                "component_code": "metric_comparison",
+                "label": "Total __ENTITY__",
+                "props": { "label": "Total __ENTITY__", "format": "number" }
+              }
+            ]
+          },
+          {
+            "component_key": "kpi2_col_tpl",
+            "component_code": "grid_column",
+            "label": "KPI 2",
+            "props": { "span": 3 },
+            "children": [
+              {
+                "component_key": "kpi2_tpl",
+                "component_code": "metric_comparison",
+                "label": "This Month",
+                "props": { "label": "This Month", "format": "number" }
+              }
+            ]
+          },
+          {
+            "component_key": "kpi3_col_tpl",
+            "component_code": "grid_column",
+            "label": "KPI 3",
+            "props": { "span": 3 },
+            "children": [
+              {
+                "component_key": "kpi3_tpl",
+                "component_code": "metric_comparison",
+                "label": "Active",
+                "props": { "label": "Active", "format": "number" }
+              }
+            ]
+          },
+          {
+            "component_key": "kpi4_col_tpl",
+            "component_code": "grid_column",
+            "label": "KPI 4",
+            "props": { "span": 3 },
+            "children": [
+              {
+                "component_key": "kpi4_tpl",
+                "component_code": "metric_comparison",
+                "label": "Pending",
+                "props": { "label": "Pending", "format": "number" }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "component_key": "data_row_tpl",
+        "component_code": "grid_row",
+        "label": "Data Row",
+        "props": { "gap": "md" },
+        "children": [
+          {
+            "component_key": "table_col_tpl",
+            "component_code": "grid_column",
+            "label": "Table",
+            "props": { "span": 12 },
+            "children": [
+              {
+                "component_key": "data_table_tpl",
+                "component_code": "data_table",
+                "label": "Recent __ENTITY__",
+                "props": { "columns": [], "page_size": 10, "sortable": true, "title": "Recent __ENTITY__" }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

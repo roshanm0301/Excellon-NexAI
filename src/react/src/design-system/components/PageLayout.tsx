@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box'
 
 export interface PageLayoutProps {
   title: string
@@ -10,8 +12,7 @@ export interface PageLayoutProps {
 
 export function PageLayout({ title, subtitle, breadcrumb, headerActions, children }: PageLayoutProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      {/* Sticky page header */}
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
       <div className="ex-page-sticky-header">
         {breadcrumb && (
           <div className="ex-breadcrumbs" style={{ paddingTop: 16, paddingBottom: 4 }}>
@@ -20,19 +21,27 @@ export function PageLayout({ title, subtitle, breadcrumb, headerActions, childre
         )}
         <div className="ex-page-head-row">
           <div>
-            <h1 className="ex-h1">{title}</h1>
-            {subtitle && <p className="ex-page-sub">{subtitle}</p>}
+            <Typography
+              variant="h5"
+              className="ex-h1"
+              sx={{ fontWeight: 700, color: 'var(--fg-primary)' }}
+            >
+              {title}
+            </Typography>
+            {subtitle && (
+              <Typography
+                variant="body2"
+                className="ex-page-sub"
+                sx={{ color: 'var(--fg-secondary)' }}
+              >
+                {subtitle}
+              </Typography>
+            )}
           </div>
-          {headerActions && (
-            <div className="ex-page-actions">{headerActions}</div>
-          )}
+          {headerActions && <div className="ex-page-actions">{headerActions}</div>}
         </div>
       </div>
-
-      {/* Body */}
-      <div className="ex-page-body">
-        {children}
-      </div>
-    </div>
+      <div className="ex-page-body">{children}</div>
+    </Box>
   )
 }

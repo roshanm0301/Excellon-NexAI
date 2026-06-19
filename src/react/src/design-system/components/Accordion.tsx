@@ -1,4 +1,7 @@
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import MuiAccordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
 import { ChevronDown } from 'lucide-react'
 
 interface AccordionRowProps {
@@ -11,29 +14,34 @@ interface AccordionRowProps {
 }
 
 export function AccordionRow({ title, subtitle, right, children, defaultOpen = false, dragHandle = false }: AccordionRowProps) {
-  const [open, setOpen] = useState(defaultOpen)
   return (
-    <div style={{ border: '1px solid var(--border-secondary)', borderRadius: 'var(--radius-lg)', marginBottom: 8, background: 'var(--bg-primary)' }}>
-      <div
-        style={{
-          display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px',
-          cursor: 'pointer', userSelect: 'none',
-        }}
-        onClick={() => setOpen(v => !v)}
+    <MuiAccordion
+      defaultExpanded={defaultOpen}
+      disableGutters
+      elevation={0}
+      sx={{
+        border: '1px solid var(--border-secondary)',
+        borderRadius: '8px !important',
+        mb: 1,
+        bgcolor: 'var(--bg-primary)',
+        '&:before': { display: 'none' },
+      }}
+    >
+      <AccordionSummary
+        expandIcon={<ChevronDown size={16} style={{ color: 'var(--fg-tertiary)' }} />}
+        sx={{ minHeight: 44, px: 2, '& .MuiAccordionSummary-content': { m: '10px 0', alignItems: 'center', gap: 1 } }}
       >
         {dragHandle && <DragHandle />}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 500, fontSize: 'var(--text-sm)', color: 'var(--fg-primary)' }}>{title}</div>
-          {subtitle && <div style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-tertiary)', marginTop: 2 }}>{subtitle}</div>}
+          <div style={{ fontWeight: 500, fontSize: '0.8125rem', color: 'var(--fg-primary)' }}>{title}</div>
+          {subtitle && <div style={{ fontSize: '0.75rem', color: 'var(--fg-tertiary)', marginTop: 2 }}>{subtitle}</div>}
         </div>
-        {right}
-        <ChevronDown
-          size={16}
-          style={{ color: 'var(--fg-tertiary)', transition: 'transform 180ms', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}
-        />
-      </div>
-      {open && <div style={{ padding: '0 16px 16px' }}>{children}</div>}
-    </div>
+        {right && <div onClick={e => e.stopPropagation()}>{right}</div>}
+      </AccordionSummary>
+      <AccordionDetails sx={{ px: 2, pb: 2, pt: 0 }}>
+        {children}
+      </AccordionDetails>
+    </MuiAccordion>
   )
 }
 

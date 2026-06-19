@@ -1,0 +1,48 @@
+{
+  "component_tree": {
+    "component_key": "page_root_tpl",
+    "component_code": "page_root",
+    "label": "Page Root",
+    "props": { "layout": "full" },
+    "children": [
+      {
+        "component_key": "toolbar_tpl",
+        "component_code": "toolbar",
+        "label": "Toolbar",
+        "props": { "align": "space-between" },
+        "children": [
+          {
+            "component_key": "btn_new_tpl",
+            "component_code": "button",
+            "label": "New __ENTITY__",
+            "props": { "label": "New __ENTITY__", "variant": "primary", "icon": "Plus", "action": "create_modal" }
+          },
+          {
+            "component_key": "search_tpl",
+            "component_code": "search_bar",
+            "label": "Search",
+            "props": { "placeholder": "Search __ENTITY__..." }
+          },
+          {
+            "component_key": "btn_filter_tpl",
+            "component_code": "button",
+            "label": "Filter",
+            "props": { "label": "Filter", "variant": "secondary", "icon": "SlidersHorizontal", "action": "open_filter_drawer" }
+          }
+        ]
+      },
+      {
+        "component_key": "drawer_tpl",
+        "component_code": "drawer_panel",
+        "label": "Filter Drawer",
+        "props": { "title": "Filters", "position": "right", "role": "filter_drawer" }
+      },
+      {
+        "component_key": "data_table_tpl",
+        "component_code": "data_table",
+        "label": "Data Table",
+        "props": { "columns": [], "page_size": 25, "sortable": true, "empty_message": "No __ENTITY__ records found." }
+      }
+    ]
+  }
+}
