@@ -42,6 +42,7 @@ func (h *Handler) SetRuntimePolicy(policy *RuntimePolicy) {
 func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Post("/", h.create)
 	r.Get("/", h.list)
+	r.Get("/distinct/{fieldKey}", h.distinct)
 	r.Get("/{id}", h.get)
 	r.Put("/{id}", h.update)
 	r.Delete("/{id}", h.delete)
@@ -108,7 +109,19 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 		limit = 50
 	}
 
-	records, total, err := h.repo.List(r.Context(), tenantID, entityType, limit, offset)
+	params := ListParams{
+		Search:  r.URL.Query().Get("search"),
+		SortBy:  r.URL.Query().Get("sort_by"),
+		SortDir: r.URL.Query().Get("sort_dir"),
+		Filters: map[string]string{},
+	}
+	for key, vals := range r.URL.Query() {
+		if strings.HasPrefix(key, "filter_") && len(vals) > 0 {
+			params.Filters[strings.TrimPrefix(key, "filter_")] = vals[0]
+		}
+	}
+
+	records, total, err := h.repo.ListWithParams(r.Context(), tenantID, entityType, limit, offset, params)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to list records")
 		return
@@ -117,6 +130,25 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 		records = []EntityRecord{}
 	}
 	writeJSON(w, http.StatusOK, EntityListResponse{Items: records, Total: total})
+}
+
+func (h *Handler) distinct(w http.ResponseWriter, r *http.Request) {
+	tenantID, _, _ := tenantUserRole(r)
+	entityType := chi.URLParam(r, "entityType")
+	fieldKey := chi.URLParam(r, "fieldKey")
+	if fieldKey == "" {
+		writeError(w, http.StatusBadRequest, "fieldKey is required")
+		return
+	}
+	values, err := h.repo.DistinctFieldValues(r.Context(), tenantID, entityType, fieldKey)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to get distinct values")
+		return
+	}
+	if values == nil {
+		values = []string{}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"values": values})
 }
 
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {

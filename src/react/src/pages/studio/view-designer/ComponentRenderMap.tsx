@@ -78,8 +78,40 @@ function RuntimeMessages({ messages }: { messages: string[] }) {
 
 // ─── Layout ──────────────────────────────────────────────────────────────────
 
-function PageRoot({ children }: PreviewProps) {
-  return <div className="prev-page-root">{children}</div>
+// Overlay component codes that should NOT be in the main vertical flow
+const OVERLAY_CODES = new Set([
+  'drawer_panel', 'drawer_container', 'modal_container', 'side_panel',
+])
+
+function PageRoot({ node, children }: PreviewProps) {
+  // Separate flow children from overlay children so drawers don't stack vertically
+  const childNodes = node.children ?? []
+  const flowChildren: React.ReactNode[] = []
+  const overlayChildren: React.ReactNode[] = []
+
+  React.Children.forEach(children, (child, i) => {
+    const childCode = childNodes[i]?.component_code ?? ''
+    if (OVERLAY_CODES.has(childCode)) {
+      overlayChildren.push(child)
+    } else {
+      flowChildren.push(child)
+    }
+  })
+
+  return (
+    <div className="prev-page-root">
+      {/* Main content flow: toolbar, data table, etc. */}
+      <div className="prev-page-root__flow">
+        {flowChildren}
+      </div>
+      {/* Overlay panels (drawer, modal, side panel) float on the right */}
+      {overlayChildren.length > 0 && (
+        <div className="prev-page-root__overlays">
+          {overlayChildren}
+        </div>
+      )}
+    </div>
+  )
 }
 
 function SectionRenderer({ node, children }: PreviewProps) {
@@ -108,9 +140,12 @@ function ColumnRenderer({ children }: PreviewProps) {
 }
 
 function ToolbarRenderer({ children }: PreviewProps) {
+  const hasChildren = React.Children.count(children) > 0
   return (
     <div className="prev-toolbar">
-      {children}
+      {hasChildren ? children : (
+        <span className="prev-empty-hint">Add buttons, search, or actions here</span>
+      )}
     </div>
   )
 }
@@ -581,15 +616,19 @@ function ModalContainerRenderer({ node, children }: PreviewProps) {
 
 function DrawerContainerRenderer({ node, children }: PreviewProps) {
   const title = node.props?.title as string | undefined
-  const position = node.props?.position as string | undefined
+  const hasChildren = React.Children.count(children) > 0
   return (
-    <div style={{ border: '2px solid #8b5cf6', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
-      <div style={{ padding: '0.5rem 0.75rem', background: '#8b5cf6', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', fontWeight: 600 }}>
-        <span>{title ?? 'Drawer'}</span>
-        <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>{position ?? 'right'} panel</span>
+    <div className="prev-drawer">
+      {/* Drawer header — mimics the real drawer handle */}
+      <div className="prev-drawer__header">
+        <span className="prev-drawer__title">{title ?? 'Drawer'}</span>
+        <span className="prev-drawer__close" aria-label="close">✕</span>
       </div>
-      <div style={{ padding: '0.75rem' }}>
-        {children}
+      {/* Drawer body — filter fields go here */}
+      <div className="prev-drawer__body">
+        {hasChildren ? children : (
+          <span className="prev-empty-hint">Add filter fields here</span>
+        )}
       </div>
     </div>
   )
@@ -713,6 +752,560 @@ function ButtonRenderer(props: PreviewProps) {
 
 // ─── Fallback ────────────────────────────────────────────────────────────────
 
+// ─── Missing Renderers — Group A: Simple display-only ────────────────────────
+
+function SpacerRenderer({ node }: PreviewProps) {
+  const h = (node.props?.height as number | undefined) ?? 24
+  return <div style={{ height: h, flexShrink: 0 }} aria-hidden />
+}
+
+function IconRenderer({ node }: PreviewProps) {
+  const name = (node.props?.icon as string | undefined) ?? (node.props?.name as string | undefined) ?? 'star'
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 6, background: '#f1f5f9', fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+      {name.slice(0, 2).toUpperCase()}
+    </div>
+  )
+}
+
+function ImageRenderer({ node }: PreviewProps) {
+  const alt = (node.props?.alt as string | undefined) ?? 'Image'
+  const aspect = (node.props?.aspect_ratio as string | undefined) ?? '16/9'
+  return (
+    <div style={{ background: '#f1f5f9', border: '1px dashed #cbd5e1', borderRadius: 6, aspectRatio: aspect, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4 }}>
+      <span style={{ fontSize: '1.4rem', color: '#94a3b8' }}>🖼</span>
+      <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{alt}</span>
+    </div>
+  )
+}
+
+function CopyFieldRenderer({ node }: PreviewProps) {
+  const label = bindingLabel(node, 'value', 'Value')
+  return (
+    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+      <div style={{ ...fieldBoxStyle(node), flex: 1 }}>{label}</div>
+      <div style={{ padding: '0.35rem 0.5rem', border: '1px solid #e2e8f0', borderRadius: 4, background: '#f8fafc', fontSize: '0.72rem', color: '#94a3b8', cursor: 'pointer' }}>⧉</div>
+    </div>
+  )
+}
+
+function LinkRenderer({ node }: PreviewProps) {
+  const text = (node.props?.text as string | undefined) ?? (node.props?.label as string | undefined) ?? 'Link'
+  return <span style={{ color: '#3b82f6', fontSize: '0.78rem', textDecoration: 'underline', cursor: 'pointer' }}>{text}</span>
+}
+
+// ─── Missing Renderers — Group B: Status / Indicator ─────────────────────────
+
+function AlertBannerRenderer({ node }: PreviewProps) {
+  const msg = (node.props?.message as string | undefined) ?? (node.props?.title as string | undefined) ?? 'Alert message'
+  const variant = (node.props?.variant as string | undefined) ?? 'info'
+  const COLORS: Record<string, { bg: string; border: string; icon: string; text: string }> = {
+    info:    { bg: '#eff6ff', border: '#bfdbfe', icon: 'ℹ', text: '#1d4ed8' },
+    success: { bg: '#f0fdf4', border: '#bbf7d0', icon: '✓', text: '#15803d' },
+    warning: { bg: '#fffbeb', border: '#fde68a', icon: '⚠', text: '#b45309' },
+    error:   { bg: '#fef2f2', border: '#fecaca', icon: '✕', text: '#b91c1c' },
+  }
+  const c = COLORS[variant] ?? COLORS.info
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '0.6rem 0.75rem', background: c.bg, border: `1px solid ${c.border}`, borderRadius: 6 }}>
+      <span style={{ color: c.text, fontWeight: 700, fontSize: '0.85rem', flexShrink: 0 }}>{c.icon}</span>
+      <span style={{ fontSize: '0.78rem', color: c.text, lineHeight: 1.4 }}>{msg}</span>
+    </div>
+  )
+}
+
+function EmptyStateRenderer({ node }: PreviewProps) {
+  const title = (node.props?.title as string | undefined) ?? 'No items found'
+  const desc = (node.props?.description as string | undefined) ?? 'Add your first record to get started.'
+  const icon = (node.props?.icon as string | undefined) ?? '📭'
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1.5rem 1rem', gap: 8, textAlign: 'center' }}>
+      <span style={{ fontSize: '2rem' }}>{icon}</span>
+      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#374151' }}>{title}</span>
+      <span style={{ fontSize: '0.75rem', color: '#94a3b8', maxWidth: 220 }}>{desc}</span>
+    </div>
+  )
+}
+
+function ColorIndicatorRenderer({ node }: PreviewProps) {
+  const color = (node.props?.color as string | undefined) ?? '#22c55e'
+  const label = (node.props?.label as string | undefined) ?? ''
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: color, flexShrink: 0 }} />
+      {label && <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{label}</span>}
+    </div>
+  )
+}
+
+// ─── Missing Renderers — Group C: Input components ───────────────────────────
+
+function PhoneInputRenderer({ node }: PreviewProps) {
+  const { required, readonly } = runtimeFlags(node)
+  const label = bindingLabel(node, 'value', node.props?.label as string || 'Phone')
+  return (
+    <div className="prev-input">
+      <label className="prev-input__label">{label}<RequiredMark show={required} /></label>
+      <div style={{ display: 'flex', gap: 0 }}>
+        <div style={{ padding: '0.35rem 0.5rem', border: '1px solid #e2e8f0', borderRight: 'none', borderRadius: '4px 0 0 4px', background: readonly ? '#f8fafc' : '#f1f5f9', fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 3 }}>
+          🇮🇳 +91
+        </div>
+        <div style={{ ...fieldBoxStyle(node), flex: 1, borderRadius: '0 4px 4px 0', borderLeft: 'none' }}>
+          {node.props?.placeholder as string || '000 0000 0000'}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ColorPickerRenderer({ node }: PreviewProps) {
+  const label = (node.props?.label as string | undefined) ?? 'Color'
+  const color = (node.props?.default_color as string | undefined) ?? '#3b82f6'
+  return (
+    <div className="prev-input">
+      <label className="prev-input__label">{label}</label>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div style={{ width: 28, height: 28, borderRadius: 4, background: color, border: '1px solid #e2e8f0', flexShrink: 0 }} />
+        <div style={{ ...fieldBoxStyle(node), flex: 1, fontFamily: 'monospace', fontSize: '0.72rem' }}>{color}</div>
+      </div>
+    </div>
+  )
+}
+
+function SliderRangeRenderer({ node }: PreviewProps) {
+  const label = (node.props?.label as string | undefined) ?? 'Range'
+  const min = (node.props?.min as number | undefined) ?? 0
+  const max = (node.props?.max as number | undefined) ?? 100
+  const val = Math.round((max - min) * 0.4 + min)
+  const pct = ((val - min) / (max - min)) * 100
+  return (
+    <div className="prev-input">
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+        <label className="prev-input__label" style={{ marginBottom: 0 }}>{label}</label>
+        <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>{val}</span>
+      </div>
+      <div style={{ position: 'relative', height: 6, background: '#e2e8f0', borderRadius: 3 }}>
+        <div style={{ position: 'absolute', left: 0, width: `${pct}%`, height: '100%', background: '#3b82f6', borderRadius: 3 }} />
+        <div style={{ position: 'absolute', left: `${pct}%`, top: '50%', transform: 'translate(-50%, -50%)', width: 14, height: 14, borderRadius: '50%', background: '#3b82f6', border: '2px solid #fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+        <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{min}</span>
+        <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{max}</span>
+      </div>
+    </div>
+  )
+}
+
+function TagInputRenderer({ node }: PreviewProps) {
+  const label = (node.props?.label as string | undefined) ?? 'Tags'
+  const placeholder = (node.props?.placeholder as string | undefined) ?? 'Add tag...'
+  return (
+    <div className="prev-input">
+      <label className="prev-input__label">{label}</label>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '0.3rem', border: '1px solid #e2e8f0', borderRadius: 4, background: '#fff', minHeight: 34, alignItems: 'center' }}>
+        {['Tag 1', 'Tag 2'].map(t => (
+          <span key={t} style={{ padding: '2px 8px', background: '#eff6ff', color: '#3b82f6', borderRadius: 99, fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 3 }}>
+            {t} <span style={{ cursor: 'pointer', opacity: 0.5 }}>×</span>
+          </span>
+        ))}
+        <span style={{ fontSize: '0.72rem', color: '#94a3b8', paddingLeft: 4 }}>{placeholder}</span>
+      </div>
+    </div>
+  )
+}
+
+function SearchBarRenderer({ node }: PreviewProps) {
+  const placeholder = (node.props?.placeholder as string | undefined) ?? 'Search...'
+  return (
+    <div style={{ position: 'relative' }}>
+      <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#94a3b8' }}>🔍</span>
+      <div style={{ paddingLeft: 30, paddingRight: 12, height: 36, border: '1px solid #e2e8f0', borderRadius: 6, background: '#f8fafc', display: 'flex', alignItems: 'center', fontSize: '0.78rem', color: '#94a3b8' }}>
+        {placeholder}
+      </div>
+    </div>
+  )
+}
+
+function CodeEditorRenderer({ node }: PreviewProps) {
+  const lang = (node.props?.language as string | undefined) ?? 'javascript'
+  return (
+    <div style={{ background: '#1e1e2e', borderRadius: 6, padding: '0.6rem 0.75rem', fontFamily: 'monospace', fontSize: '0.72rem', color: '#cdd6f4', lineHeight: 1.6 }}>
+      <div style={{ color: '#89b4fa', marginBottom: 2 }}>// {lang}</div>
+      <div><span style={{ color: '#cba6f7' }}>const</span> <span style={{ color: '#89dceb' }}>result</span> <span style={{ color: '#94e2d5' }}>= </span><span style={{ color: '#a6e3a1' }}>true</span><span>;</span></div>
+      <div style={{ opacity: 0.3 }}>…</div>
+    </div>
+  )
+}
+
+// ─── Missing Renderers — Group D: Navigation ─────────────────────────────────
+
+function BreadcrumbNavRenderer({ node }: PreviewProps) {
+  const items = (node.props?.items as string[] | undefined) ?? ['Home', 'Section', 'Current Page']
+  return (
+    <nav style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem' }}>
+      {items.map((item, i) => (
+        <React.Fragment key={i}>
+          {i > 0 && <span style={{ color: '#cbd5e1' }}>›</span>}
+          <span style={{ color: i === items.length - 1 ? '#374151' : '#3b82f6', fontWeight: i === items.length - 1 ? 600 : 400 }}>
+            {item}
+          </span>
+        </React.Fragment>
+      ))}
+    </nav>
+  )
+}
+
+function PaginationRenderer({ node }: PreviewProps) {
+  const pageSize = (node.props?.page_size as number | undefined) ?? 10
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '0.4rem 0' }}>
+      <div style={{ padding: '0.25rem 0.5rem', border: '1px solid #e2e8f0', borderRadius: 4, fontSize: '0.72rem', color: '#94a3b8', cursor: 'pointer' }}>← Prev</div>
+      {[1, 2, 3].map(p => (
+        <div key={p} style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${p === 1 ? '#3b82f6' : '#e2e8f0'}`, borderRadius: 4, fontSize: '0.72rem', color: p === 1 ? '#3b82f6' : '#64748b', background: p === 1 ? '#eff6ff' : '#fff' }}>{p}</div>
+      ))}
+      <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>…</span>
+      <div style={{ padding: '0.25rem 0.5rem', border: '1px solid #e2e8f0', borderRadius: 4, fontSize: '0.72rem', color: '#64748b', cursor: 'pointer' }}>Next →</div>
+      {pageSize && <span style={{ fontSize: '0.68rem', color: '#94a3b8', marginLeft: 4 }}>{pageSize}/page</span>}
+    </div>
+  )
+}
+
+function StepperRenderer({ node }: PreviewProps) {
+  const steps = (node.props?.steps as string[] | undefined) ?? ['Step 1', 'Step 2', 'Step 3']
+  const current = (node.props?.current_step as number | undefined) ?? 0
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+      {steps.map((step, i) => (
+        <React.Fragment key={i}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+            <div style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${i <= current ? '#3b82f6' : '#e2e8f0'}`, background: i < current ? '#3b82f6' : i === current ? '#eff6ff' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700, color: i < current ? '#fff' : i === current ? '#3b82f6' : '#94a3b8' }}>
+              {i < current ? '✓' : i + 1}
+            </div>
+            <span style={{ fontSize: '0.65rem', color: i <= current ? '#374151' : '#94a3b8', whiteSpace: 'nowrap', maxWidth: 60, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis' }}>{step}</span>
+          </div>
+          {i < steps.length - 1 && <div style={{ flex: 1, height: 2, background: i < current ? '#3b82f6' : '#e2e8f0', margin: '0 2px', marginBottom: 18 }} />}
+        </React.Fragment>
+      ))}
+    </div>
+  )
+}
+
+function TabGroupRenderer({ node }: PreviewProps) {
+  const tabs = (node.props?.tabs as string[] | undefined) ?? ['Tab 1', 'Tab 2', 'Tab 3']
+  const active = (node.props?.default_tab as number | undefined) ?? 0
+  return (
+    <div style={{ borderBottom: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', gap: 0 }}>
+        {tabs.map((tab, i) => (
+          <div key={i} style={{ padding: '0.4rem 0.75rem', fontSize: '0.78rem', fontWeight: i === active ? 600 : 400, color: i === active ? '#3b82f6' : '#64748b', borderBottom: `2px solid ${i === active ? '#3b82f6' : 'transparent'}`, cursor: 'pointer' }}>
+            {tab}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Missing Renderers — Group E: Layout / Container ─────────────────────────
+
+function FormSectionRenderer({ node, children }: PreviewProps) {
+  const title = (node.props?.title as string | undefined) ?? 'Section'
+  const hasChildren = Array.isArray(children) && children.length > 0
+  return (
+    <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden' }}>
+      <div style={{ padding: '0.5rem 0.75rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.78rem', fontWeight: 700, color: '#374151' }}>
+        {title}
+      </div>
+      <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {hasChildren ? children : (
+          <>
+            {['Field 1', 'Field 2', 'Field 3'].map(f => (
+              <div key={f} style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: 8, alignItems: 'center' }}>
+                <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{f}</span>
+                <div style={{ ...fieldBoxStyle(node), padding: '0.25rem 0.4rem', minHeight: 24 }} />
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function RepeaterRenderer({ node, children }: PreviewProps) {
+  const minRows = (node.props?.min_rows as number | undefined) ?? 2
+  const hasChildren = Array.isArray(children) && children.length > 0
+  return (
+    <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden' }}>
+      {[...Array(minRows)].map((_, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.5rem 0.75rem', borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+          {hasChildren ? children : (
+            <div style={{ flex: 1, height: 24, background: '#f1f5f9', borderRadius: 4 }} />
+          )}
+          <span style={{ color: '#94a3b8', cursor: 'pointer', fontSize: '0.85rem' }}>✕</span>
+        </div>
+      ))}
+      <div style={{ padding: '0.4rem 0.75rem' }}>
+        <span style={{ fontSize: '0.72rem', color: '#3b82f6', cursor: 'pointer' }}>+ Add row</span>
+      </div>
+    </div>
+  )
+}
+
+function DetailPanelRenderer({ node }: PreviewProps) {
+  const title = (node.props?.title as string | undefined) ?? 'Details'
+  const fields = (node.props?.fields as string[] | undefined) ?? ['Field A', 'Field B', 'Field C', 'Field D']
+  return (
+    <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden' }}>
+      {title && <div style={{ padding: '0.4rem 0.75rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.78rem', fontWeight: 600, color: '#374151' }}>{title}</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '0.5rem' }}>
+        {fields.slice(0, 6).map((f, i) => (
+          <div key={i} style={{ padding: '0.3rem 0.5rem', borderBottom: '1px solid #f1f5f9' }}>
+            <div style={{ fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{f}</div>
+            <div style={{ fontSize: '0.78rem', color: '#374151', marginTop: 1 }}>—</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Missing Renderers — Group F: Data / Composite ───────────────────────────
+
+function CalendarViewRenderer({ node }: PreviewProps) {
+  const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+  const today = new Date()
+  const month = today.toLocaleString('default', { month: 'long', year: 'numeric' })
+  return (
+    <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden', fontSize: '0.72rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+        <span style={{ color: '#94a3b8', cursor: 'pointer' }}>‹</span>
+        <span style={{ fontWeight: 600, color: '#374151' }}>{month}</span>
+        <span style={{ color: '#94a3b8', cursor: 'pointer' }}>›</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0 }}>
+        {days.map(d => (
+          <div key={d} style={{ textAlign: 'center', padding: '0.3rem 0', fontWeight: 600, color: '#94a3b8', background: '#fafafa', borderBottom: '1px solid #f1f5f9' }}>{d}</div>
+        ))}
+        {[...Array(35)].map((_, i) => {
+          const day = i - 3 + 1
+          const isToday = day === today.getDate()
+          const valid = day >= 1 && day <= 31
+          return (
+            <div key={i} style={{ textAlign: 'center', padding: '0.3rem 0', color: !valid ? '#e2e8f0' : isToday ? '#3b82f6' : '#374151', background: isToday ? '#eff6ff' : 'transparent', fontWeight: isToday ? 700 : 400 }}>
+              {valid ? day : ''}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function TimelineRenderer({ node }: PreviewProps) {
+  const items = (node.props?.items as Array<{ label: string; date: string }> | undefined) ?? [
+    { label: 'Order Created', date: '10 Jan' },
+    { label: 'Payment Received', date: '10 Jan' },
+    { label: 'Dispatched', date: '12 Jan' },
+  ]
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      {items.slice(0, 5).map((item, i) => (
+        <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: i === 0 ? '#3b82f6' : '#cbd5e1', flexShrink: 0, marginTop: 3 }} />
+            {i < items.length - 1 && <div style={{ width: 2, flex: 1, background: '#e2e8f0', minHeight: 20 }} />}
+          </div>
+          <div style={{ paddingBottom: 12 }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 500, color: '#374151' }}>{item.label}</div>
+            <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{item.date}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function TreeViewRenderer({ node }: PreviewProps) {
+  const items = [
+    { label: 'Category A', depth: 0 },
+    { label: 'Sub-category 1', depth: 1 },
+    { label: 'Sub-category 2', depth: 1 },
+    { label: 'Category B', depth: 0 },
+    { label: 'Sub-category 3', depth: 1 },
+  ]
+  return (
+    <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: '0.4rem', fontSize: '0.75rem' }}>
+      {items.map((item, i) => (
+        <div key={i} style={{ paddingLeft: item.depth * 16, padding: `2px 4px 2px ${item.depth * 16 + 4}px`, display: 'flex', alignItems: 'center', gap: 4, color: '#374151', borderRadius: 3 }}>
+          <span style={{ color: '#94a3b8', fontSize: '0.65rem' }}>{item.depth === 0 ? '▸' : '·'}</span>
+          {item.label}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function CommentThreadRenderer({ node }: PreviewProps) {
+  const comments = [
+    { author: 'Alice M.', text: 'Noted — will follow up with supplier.', time: '2h ago' },
+    { author: 'Bob K.', text: 'Payment terms confirmed.', time: '1h ago' },
+  ]
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {comments.map((c, i) => (
+        <div key={i} style={{ display: 'flex', gap: 8 }}>
+          <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#eff6ff', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0 }}>
+            {c.author.split(' ').map(w => w[0]).join('')}
+          </div>
+          <div style={{ flex: 1, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, padding: '0.4rem 0.6rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#374151' }}>{c.author}</span>
+              <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{c.time}</span>
+            </div>
+            <p style={{ margin: 0, fontSize: '0.75rem', color: '#475569' }}>{c.text}</p>
+          </div>
+        </div>
+      ))}
+      <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
+        <div style={{ flex: 1, padding: '0.35rem 0.5rem', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: '0.72rem', color: '#94a3b8', background: '#fff' }}>Write a comment…</div>
+        <div style={{ padding: '0.35rem 0.6rem', background: '#3b82f6', color: '#fff', borderRadius: 6, fontSize: '0.72rem', cursor: 'pointer' }}>Send</div>
+      </div>
+    </div>
+  )
+}
+
+function FilePreviewRenderer({ node }: PreviewProps) {
+  const fileName = (node.props?.label as string | undefined) ?? 'Document.pdf'
+  const ext = fileName.split('.').pop()?.toUpperCase() ?? 'FILE'
+  const size = (node.props?.file_size as string | undefined) ?? '128 KB'
+  const ICON: Record<string, string> = { PDF: '📄', XLSX: '📊', DOCX: '📝', CSV: '📊', PNG: '🖼', JPG: '🖼' }
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.5rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: 6, background: '#fafafa' }}>
+      <span style={{ fontSize: '1.4rem' }}>{ICON[ext] ?? '📎'}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: '0.78rem', fontWeight: 500, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fileName}</div>
+        <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{ext} • {size}</div>
+      </div>
+      <span style={{ fontSize: '0.72rem', color: '#3b82f6', cursor: 'pointer', flexShrink: 0 }}>↓</span>
+    </div>
+  )
+}
+
+function ActionMenuRenderer({ node }: PreviewProps) {
+  const label = (node.props?.label as string | undefined) ?? 'Actions'
+  const items = (node.props?.items as string[] | undefined) ?? ['Edit', 'Duplicate', 'Delete']
+  return (
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.35rem 0.6rem', border: '1px solid #e2e8f0', borderRadius: 6, background: '#fff', fontSize: '0.78rem', color: '#374151', cursor: 'pointer' }}>
+        {label} <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>▾</span>
+      </div>
+      <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 2, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', minWidth: 120, zIndex: 10, pointerEvents: 'none' }}>
+        {items.slice(0, 4).map((item, i) => (
+          <div key={i} style={{ padding: '0.4rem 0.75rem', fontSize: '0.78rem', color: item === 'Delete' ? '#ef4444' : '#374151', borderBottom: i < items.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+            {item}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Fallback ─────────────────────────────────────────────────────────────────
+
+// ─── Group G: Previously-missing renderers ───────────────────────────────────
+
+function IconButtonRenderer({ node }: PreviewProps) {
+  const variant = node.props?.variant as string ?? 'ghost'
+  const icon = node.props?.icon as string
+  return (
+    <button
+      className={`prev-button prev-button--${variant}`}
+      style={{ padding: '0.3rem', minWidth: 32, minHeight: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+      disabled
+    >
+      {icon
+        ? <span style={{ fontSize: 13, fontFamily: 'monospace' }}>{icon.slice(0, 2)}</span>
+        : <span style={{ fontSize: 13 }}>●</span>}
+    </button>
+  )
+}
+
+function ProgressBarRenderer({ node }: PreviewProps) {
+  const label = node.props?.label as string ?? node.label
+  const value = node.props?.value as number ?? 65
+  const max = node.props?.max as number ?? 100
+  const pct = Math.min(100, Math.max(0, (value / max) * 100))
+  const color = node.props?.color as string ?? '#3b82f6'
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {label && <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#374151' }}>{label}</span>}
+      <div style={{ height: 8, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 4 }} />
+      </div>
+      <span style={{ fontSize: '0.65rem', color: '#64748b' }}>{Math.round(pct)}%</span>
+    </div>
+  )
+}
+
+function StepperInputRenderer({ node }: PreviewProps) {
+  const { required, readonly, messages } = runtimeFlags(node)
+  const label = node.props?.label as string ?? node.label ?? 'Quantity'
+  const value = node.props?.value as number ?? 1
+  const btnStyle: React.CSSProperties = {
+    width: 28, height: 28, border: '1px solid #d1d5db', borderRadius: 4,
+    background: '#f8fafc', cursor: 'default', fontSize: 14, lineHeight: '1',
+  }
+  return (
+    <div className="prev-input">
+      <span className="prev-input__label">{label}<RequiredMark show={required} /></span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <button style={btnStyle} disabled>−</button>
+        <div style={{ ...fieldBoxStyle(node, { minWidth: 40, textAlign: 'center', fontWeight: 600 }), opacity: readonly ? 0.7 : 1 }}>
+          {value}
+        </div>
+        <button style={btnStyle} disabled>+</button>
+      </div>
+      <RuntimeMessages messages={messages} />
+    </div>
+  )
+}
+
+function AddressBlockRenderer({ node }: PreviewProps) {
+  const { required, readonly } = runtimeFlags(node)
+  const label = node.props?.label as string ?? node.label ?? 'Address'
+  return (
+    <div className="prev-input">
+      <span className="prev-input__label">{label}<RequiredMark show={required} /></span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={fieldBoxStyle(node)}>Street line 1{readonly ? ' (read-only)' : ''}</div>
+        <div style={fieldBoxStyle(node)}>Street line 2 (optional)</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 4 }}>
+          <div style={fieldBoxStyle(node)}>City</div>
+          <div style={fieldBoxStyle(node)}>State</div>
+          <div style={fieldBoxStyle(node)}>ZIP</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TimerCountdownRenderer({ node }: PreviewProps) {
+  const label = node.props?.label as string ?? node.label
+  const hours = node.props?.hours as number ?? 0
+  const minutes = node.props?.minutes as number ?? 5
+  const seconds = node.props?.seconds as number ?? 0
+  const display = [hours, minutes, seconds].map(n => String(n).padStart(2, '0')).join(':')
+  return (
+    <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
+      {label && <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: 4 }}>{label}</div>}
+      <div style={{ fontFamily: 'monospace', fontSize: '1.4rem', fontWeight: 700, color: '#1e293b', letterSpacing: '0.08em' }}>
+        {display}
+      </div>
+    </div>
+  )
+}
+
 function FallbackComponent({ node, children }: PreviewProps) {
   return (
     <div className="prev-fallback">
@@ -822,6 +1415,7 @@ export const COMPONENT_RENDER_MAP: Record<string, PreviewRenderer> = {
   // Modal / Drawer / Side Panel
   modal_container: ModalContainerRenderer,
   drawer_container: DrawerContainerRenderer,
+  drawer_panel: DrawerContainerRenderer,
   side_panel: SidePanelRenderer,
   // Dashboard / Wizard / Split / Kanban
   dashboard_grid: DashboardGridRenderer,
@@ -830,6 +1424,53 @@ export const COMPONENT_RENDER_MAP: Record<string, PreviewRenderer> = {
   split_panel: SplitPanelRenderer,
   split_pane: SplitPanelRenderer,
   kanban_board: KanbanBoardRenderer,
+
+  // ── Group A: Simple display-only ──────────────────────────────────────────
+  spacer: SpacerRenderer,
+  icon: IconRenderer,
+  image: ImageRenderer,
+  copy_field: CopyFieldRenderer,
+  link: LinkRenderer,
+
+  // ── Group B: Status / Indicator ───────────────────────────────────────────
+  alert_banner: AlertBannerRenderer,
+  empty_state: EmptyStateRenderer,
+  color_indicator: ColorIndicatorRenderer,
+
+  // ── Group C: Input components ─────────────────────────────────────────────
+  phone_input: PhoneInputRenderer,
+  color_picker: ColorPickerRenderer,
+  slider_range: SliderRangeRenderer,
+  tag_input: TagInputRenderer,
+  search_bar: SearchBarRenderer,
+  code_editor: CodeEditorRenderer,
+
+  // ── Group D: Navigation ───────────────────────────────────────────────────
+  breadcrumb_nav: BreadcrumbNavRenderer,
+  pagination: PaginationRenderer,
+  stepper: StepperRenderer,
+  tab_group: TabGroupRenderer,
+
+  // ── Group E: Layout / Container ───────────────────────────────────────────
+  form_section: FormSectionRenderer,
+  repeater: RepeaterRenderer,
+  detail_panel: DetailPanelRenderer,
+
+  // ── Group F: Data / Composite ─────────────────────────────────────────────
+  calendar_view: CalendarViewRenderer,
+  timeline: TimelineRenderer,
+  tree_view: TreeViewRenderer,
+  comment_thread: CommentThreadRenderer,
+  file_preview: FilePreviewRenderer,
+  action_menu: ActionMenuRenderer,
+
+  // ── Group G: Previously-missing renderers (72 → 76 + reference alias) ─────
+  icon_button: IconButtonRenderer,
+  progress_bar: ProgressBarRenderer,
+  stepper_input: StepperInputRenderer,
+  address_block: AddressBlockRenderer,
+  timer_countdown: TimerCountdownRenderer,
+  reference_select: ReferenceSelectRenderer,
 }
 
 /** Get renderer for a component code, with fallback */

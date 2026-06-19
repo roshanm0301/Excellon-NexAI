@@ -296,6 +296,9 @@ Views seeded in `db/seeds/test_views.sql`: 14 views across 5 surface types (stan
 3. Check `docs/adr/` for prior decisions
 4. If the answer isn't in docs and you're about to invent something new â€” stop, document the decision in a new ADR first
 
+
+# Compact Context
+1. Automatically compact the context when it reaches 70%
 ---
 
 *This file is read by Claude Code at the start of every session. Keep it accurate and current.*

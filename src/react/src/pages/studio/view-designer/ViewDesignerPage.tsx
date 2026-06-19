@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Save, Undo2, Redo2, Eye, Upload, ChevronLeft, AlertTriangle, CheckCircle2, Settings, BookOpen } from 'lucide-react'
+import { Save, Undo2, Redo2, Eye, Upload, ChevronLeft, AlertTriangle, CheckCircle2, Settings, BookOpen, HelpCircle } from 'lucide-react'
 import { Button, Spinner, useToast } from '../../../design-system'
 import { useView, useSaveDraft, usePublishView, useComponentRegistry } from '../../../hooks/useViewStudio'
 import { useCanvasStore } from './useCanvasStore'
@@ -20,7 +20,7 @@ import './PreviewCanvas.css'
 export function ViewDesignerPage() {
   const { viewId } = useParams<{ viewId: string }>()
   const navigate = useNavigate()
-  const { success, error } = useToast()
+  const { success, error, addToast } = useToast()
 
   const { data: viewData, isLoading } = useView(viewId)
   const saveMut = useSaveDraft(viewId ?? '')
@@ -30,11 +30,14 @@ export function ViewDesignerPage() {
     setView, reset, isDirty, payload, previewMode,
     togglePreview, undo, redo, canUndo, canRedo,
     paletteOpen, selectedKey, setRegistry,
+    select, getNode, removeNode, duplicateNode, moveNodeUp, moveNodeDown,
   } = useCanvasStore()
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerTab, setDrawerTab] = useState<DrawerTab>('datasources')
   const [guideOpen, setGuideOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [validationPanelOpen, setValidationPanelOpen] = useState(false)
 
   // Load view into canvas store when data arrives
   useEffect(() => {
@@ -48,6 +51,10 @@ export function ViewDesignerPage() {
   // Keyboard shortcuts
   useEffect(() => {
     function handleKeyboard(e: KeyboardEvent) {
+      // Ignore shortcuts when typing in inputs/textareas
+      const target = e.target as HTMLElement
+      const inInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
+
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault()
         handleSave()
@@ -61,35 +68,56 @@ export function ViewDesignerPage() {
         e.preventDefault()
         redo()
       }
+      // Tree editing shortcuts — only when not typing in a form field
+      if (!inInput && selectedKey) {
+        // Delete / Backspace → delete selected component
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          const node = getNode(selectedKey)
+          if (node && node.component_code !== 'page_root') {
+            e.preventDefault()
+            removeNode(selectedKey)
+          }
+        }
+        // Escape → deselect
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          select(null)
+        }
+        // Ctrl+D / Cmd+D → duplicate selected component
+        if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+          const node = getNode(selectedKey)
+          if (node && node.component_code !== 'page_root') {
+            e.preventDefault()
+            duplicateNode(selectedKey)
+          }
+        }
+        // Alt+ArrowUp → move selected component up among siblings
+        if (e.altKey && e.key === 'ArrowUp') {
+          const node = getNode(selectedKey)
+          if (node && node.component_code !== 'page_root') {
+            e.preventDefault()
+            moveNodeUp(selectedKey)
+          }
+        }
+        // Alt+ArrowDown → move selected component down among siblings
+        if (e.altKey && e.key === 'ArrowDown') {
+          const node = getNode(selectedKey)
+          if (node && node.component_code !== 'page_root') {
+            e.preventDefault()
+            moveNodeDown(selectedKey)
+          }
+        }
+      }
     }
     window.addEventListener('keydown', handleKeyboard)
     return () => window.removeEventListener('keydown', handleKeyboard)
-  }, [undo, redo])
+  }, [undo, redo, selectedKey, getNode, removeNode, select, duplicateNode, moveNodeUp, moveNodeDown])
 
-  const handleSave = useCallback(() => {
-    if (!payload || !viewId) return
-    saveMut.mutate({ payload }, {
-      onSuccess: () => success('Saved', 'Draft saved successfully'),
-      onError: () => error('Save failed', 'Could not save draft'),
-    })
-  }, [payload, viewId, saveMut, success, error])
+  // Auto-save removed — user saves manually via the Save button
+  const conflictDetected = false
+  void useAutoSave // keep import used
 
-  const handlePublish = useCallback(() => {
-    if (!viewId) return
-    publishMut.mutate({}, {
-      onSuccess: () => success('Published', 'View is now live'),
-      onError: (e) => error('Publish failed', e.message),
-    })
-  }, [viewId, publishMut, success, error])
-
-  // Auto-save (debounced 3s) — M5.2: exposes conflictDetected
-  const { conflictDetected } = useAutoSave(viewId, {
-    enabled: true,
-    onSaved: () => { /* silent auto-save */ },
-    onError: () => error('Auto-save failed', 'Could not auto-save draft'),
-  })
-
-  // Tree validation + registry cache for placement guards
+  // Tree validation + registry cache for placement guards — declared BEFORE handleSave to avoid TDZ
   const { data: registry } = useComponentRegistry()
 
   useEffect(() => {
@@ -108,6 +136,33 @@ export function ViewDesignerPage() {
     if (!validation) return null
     return getValidationSummary(validation)
   }, [validation])
+
+  const handleSave = useCallback(() => {
+    if (!payload || !viewId) return
+    // Warn (but don't block) if the tree has validation errors
+    if (validationSummary && !validationSummary.isValid) {
+      addToast({
+        type: 'warning',
+        message: `Draft saved with ${validationSummary.errorCount} error(s). Fix errors before publishing.`,
+      })
+    }
+    saveMut.mutate({ payload }, {
+      onSuccess: () => {
+        if (!validationSummary || validationSummary.isValid) {
+          success('Saved', 'Draft saved successfully')
+        }
+      },
+      onError: () => error('Save failed', 'Could not save draft'),
+    })
+  }, [payload, viewId, saveMut, validationSummary, addToast, success, error])
+
+  const handlePublish = useCallback(() => {
+    if (!viewId) return
+    publishMut.mutate({}, {
+      onSuccess: () => success('Published', 'View is now live'),
+      onError: (e) => error('Publish failed', e.message),
+    })
+  }, [viewId, publishMut, success, error])
 
   if (isLoading) {
     return (
@@ -189,18 +244,24 @@ export function ViewDesignerPage() {
             <Upload size={14} />
             {publishMut.isPending ? 'Publishing...' : 'Publish'}
           </Button>
-          {/* Validation indicator */}
+          {/* Validation indicator — click to toggle error detail panel */}
           {validationSummary && (
-            <span className={`vd-toolbar__validation ${validationSummary.isValid ? 'vd-toolbar__validation--ok' : 'vd-toolbar__validation--error'}`} title={
-              validationSummary.isValid
-                ? 'Tree is valid'
-                : `${validationSummary.errorCount} error(s), ${validationSummary.warningCount} warning(s)`
-            }>
+            <button
+              className={`vd-toolbar__validation ${validationSummary.isValid ? 'vd-toolbar__validation--ok' : 'vd-toolbar__validation--error'}`}
+              onClick={() => setValidationPanelOpen(v => !v)}
+              title={
+                validationSummary.isValid
+                  ? 'Tree is valid — click to view details'
+                  : `${validationSummary.errorCount} error(s), ${validationSummary.warningCount} warning(s) — click to view`
+              }
+              aria-label="View validation details"
+              data-testid="vd-validation-indicator"
+            >
               {validationSummary.isValid
                 ? <CheckCircle2 size={14} />
                 : <AlertTriangle size={14} />
               }
-            </span>
+            </button>
           )}
           <Button
             variant="ghost"
@@ -210,8 +271,75 @@ export function ViewDesignerPage() {
           >
             <Settings size={16} />
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShortcutsOpen(s => !s)}
+            title="Keyboard Shortcuts"
+            aria-label="Keyboard shortcuts"
+            data-testid="vd-shortcuts-btn"
+          >
+            <HelpCircle size={16} />
+          </Button>
         </div>
       </header>
+
+      {/* ─── Keyboard shortcuts popover ─────────────────────────────────── */}
+      {shortcutsOpen && (
+        <div
+          className="vd-shortcuts-popover"
+          role="dialog"
+          aria-label="Keyboard shortcuts"
+          onClick={() => setShortcutsOpen(false)}
+        >
+          <div className="vd-shortcuts-panel" onClick={e => e.stopPropagation()}>
+            <div className="vd-shortcuts-panel__header">
+              <span>Keyboard Shortcuts</span>
+              <button onClick={() => setShortcutsOpen(false)} aria-label="Close">✕</button>
+            </div>
+            <table className="vd-shortcuts-table">
+              <tbody>
+                <tr><td><kbd>Ctrl+S</kbd></td><td>Save draft</td></tr>
+                <tr><td><kbd>Ctrl+Z</kbd></td><td>Undo</td></tr>
+                <tr><td><kbd>Ctrl+Y</kbd> / <kbd>Ctrl+Shift+Z</kbd></td><td>Redo</td></tr>
+                <tr><td className="vd-shortcuts-divider" colSpan={2}>Component Tree</td></tr>
+                <tr><td><kbd>Delete</kbd> / <kbd>Backspace</kbd></td><td>Delete selected component</td></tr>
+                <tr><td><kbd>Escape</kbd></td><td>Deselect component</td></tr>
+                <tr><td><kbd>Ctrl+D</kbd></td><td>Duplicate selected component</td></tr>
+                <tr><td><kbd>Alt+↑</kbd></td><td>Move component up</td></tr>
+                <tr><td><kbd>Alt+↓</kbd></td><td>Move component down</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Validation error detail panel ──────────────────────────────── */}
+      {validationPanelOpen && validation && (
+        <div className="vd-validation-panel" role="region" aria-label="Validation details" data-testid="vd-validation-panel">
+          <div className="vd-validation-panel__header">
+            <span>Validation Details</span>
+            <button className="vd-validation-panel__close" onClick={() => setValidationPanelOpen(false)} aria-label="Close">✕</button>
+          </div>
+          {validation.errors.length === 0 && validation.warnings.length === 0 && (
+            <div className="vd-validation-panel__empty">Tree is valid — no issues found.</div>
+          )}
+          {validation.errors.map((e, i) => (
+            <div key={`err-${i}`} className="vd-validation-panel__row vd-validation-panel__row--error">
+              <AlertTriangle size={12} />
+              <span className="vd-validation-panel__code">{e.code}</span>
+              <span className="vd-validation-panel__msg">{e.message}</span>
+            </div>
+          ))}
+          {validation.warnings.map((w, i) => (
+            <div key={`warn-${i}`} className="vd-validation-panel__row vd-validation-panel__row--warning">
+              <AlertTriangle size={12} />
+              <span className="vd-validation-panel__code">{w.code}</span>
+              <span className="vd-validation-panel__msg">{w.message}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ─── Revision conflict banner (M5.2) ────────────────────────────── */}
       {conflictDetected && (

@@ -3,11 +3,19 @@ package entityruntime
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/excellon/nexai/internal/db"
 	"github.com/excellon/nexai/internal/idgen"
 	"github.com/jackc/pgx/v5"
 )
+
+type ListParams struct {
+	Search  string
+	SortBy  string
+	SortDir string
+	Filters map[string]string
+}
 
 type Repo struct {
 	pool *db.Pool
@@ -79,6 +87,115 @@ func (r *Repo) List(ctx context.Context, tenantID, entityType string, limit, off
 		records = append(records, *rec)
 	}
 	return records, total, rows.Err()
+}
+
+func (r *Repo) ListWithParams(ctx context.Context, tenantID, entityType string, limit, offset int, params ListParams) ([]EntityRecord, int, error) {
+	args := []any{tenantID, entityType}
+	argIdx := 3
+
+	var whereClauses []string
+	whereClauses = append(whereClauses, "tenant_id = $1 AND entity_type = $2 AND deleted_at IS NULL")
+
+	if params.Search != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf(
+			"(payload->>'item_code' ILIKE $%d OR payload->>'item_name' ILIKE $%d)",
+			argIdx, argIdx,
+		))
+		args = append(args, "%"+params.Search+"%")
+		argIdx++
+	}
+
+	for field, value := range params.Filters {
+		if value == "" {
+			continue
+		}
+		if value == "true" || value == "false" {
+			whereClauses = append(whereClauses, fmt.Sprintf(
+				"(payload->>'%s')::boolean = $%d::boolean", field, argIdx,
+			))
+		} else {
+			whereClauses = append(whereClauses, fmt.Sprintf(
+				"payload->>'%s' = $%d", field, argIdx,
+			))
+		}
+		args = append(args, value)
+		argIdx++
+	}
+
+	where := strings.Join(whereClauses, " AND ")
+
+	var total int
+	if err := r.pool.QueryRow(ctx,
+		fmt.Sprintf("SELECT COUNT(*) FROM entity_record WHERE %s", where),
+		args...).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("entity list count: %w", err)
+	}
+
+	orderBy := "created_at DESC"
+	if params.SortBy != "" {
+		dir := "ASC"
+		if strings.ToLower(params.SortDir) == "desc" {
+			dir = "DESC"
+		}
+		orderBy = fmt.Sprintf("payload->>'%s' %s", params.SortBy, dir)
+	}
+
+	limitArg := argIdx
+	offsetArg := argIdx + 1
+	args = append(args, limit, offset)
+
+	q := fmt.Sprintf(`
+		SELECT id, entity_type, COALESCE(entity_category,''), tenant_id, COALESCE(node_id,''),
+		       status, version_no, created_by, updated_by, created_at, updated_at,
+		       deleted_at, COALESCE(deleted_by,''), payload
+		FROM entity_record
+		WHERE %s
+		ORDER BY %s LIMIT $%d OFFSET $%d`,
+		where, orderBy, limitArg, offsetArg,
+	)
+
+	rows, err := r.pool.Query(ctx, q, args...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("entity list: %w", err)
+	}
+	defer rows.Close()
+
+	var records []EntityRecord
+	for rows.Next() {
+		rec, err := scanRecord(rows)
+		if err != nil {
+			return nil, 0, err
+		}
+		records = append(records, *rec)
+	}
+	return records, total, rows.Err()
+}
+
+func (r *Repo) DistinctFieldValues(ctx context.Context, tenantID, entityType, fieldKey string) ([]string, error) {
+	rows, err := r.pool.Query(ctx, fmt.Sprintf(`
+		SELECT DISTINCT payload->>'%s' AS value
+		FROM entity_record
+		WHERE tenant_id = $1 AND entity_type = $2
+		  AND deleted_at IS NULL
+		  AND payload->>'%s' IS NOT NULL
+		  AND payload->>'%s' != ''
+		ORDER BY value
+		LIMIT 200`, fieldKey, fieldKey, fieldKey),
+		tenantID, entityType)
+	if err != nil {
+		return nil, fmt.Errorf("distinct field values: %w", err)
+	}
+	defer rows.Close()
+
+	var values []string
+	for rows.Next() {
+		var v string
+		if err := rows.Scan(&v); err != nil {
+			return nil, err
+		}
+		values = append(values, v)
+	}
+	return values, rows.Err()
 }
 
 func (r *Repo) Update(ctx context.Context, tenantID, entityType, id, updatedBy string, payload []byte) (*EntityRecord, error) {

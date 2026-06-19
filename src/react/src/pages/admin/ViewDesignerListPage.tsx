@@ -286,6 +286,10 @@ export function ViewDesignerListPage() {
         onClick: () => navigate(`/studio/views/${row.artifact_id}/edit`),
       },
       {
+        label: 'Open',
+        onClick: () => navigate(`/studio/views/${row.artifact_id}/run`),
+      },
+      {
         label: 'Duplicate',
         onClick: () => duplicateMut.mutate(row.artifact_id, {
           onSuccess: () => success('Duplicated', `${row.view_label} (Copy) created`),

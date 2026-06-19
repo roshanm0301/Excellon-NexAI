@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { ComponentNode, ViewPayload, EventDefinition, DataSourceConfig, FieldBinding, VisibilityRule, ComponentRegistryEntry, SurfaceType } from '../../../types/viewStudio'
-import { canInsert } from '../../../lib/viewTreeValidator'
+import { canInsert, canInsertChild as canInsertChildValidator } from '../../../lib/viewTreeValidator'
 
 // ─── Canvas State Types ──────────────────────────────────────────────────────
 
@@ -19,7 +19,7 @@ export interface CanvasState {
   hoveredKey: string | null
 
   // UI state
-  panelMode: 'properties' | 'events' | 'bindings' | 'visibility'
+  panelMode: 'properties' | 'events' | 'bindings' | 'visibility' | 'permissions'
   paletteOpen: boolean
   previewMode: boolean
   insertTarget: InsertTarget | null
@@ -43,6 +43,7 @@ export interface CanvasState {
   setInsertTarget: (target: InsertTarget | null) => void
   setRegistry: (entries: ComponentRegistryEntry[]) => void
   canInsertChild: (parentKey: string, childCode: string) => boolean
+  canInsertChildWithReason: (parentKey: string, childCode: string) => { allowed: boolean; reason?: string }
 
   // Tree mutations
   updateTree: (tree: ComponentNode) => void
@@ -57,7 +58,7 @@ export interface CanvasState {
   // Context menu actions
   moveNodeUp: (key: string) => void
   moveNodeDown: (key: string) => void
-  wrapInSection: (key: string) => void
+  wrapInSection: (key: string) => boolean
 
   // Events / datasources
   setEvents: (events: EventDefinition[]) => void
@@ -173,7 +174,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
   setRevision: (revision) => set({ revision }),
 
-  reset: () => set({
+  reset: () => set(state => ({
     viewId: null,
     viewCode: null,
     primaryEntity: null,
@@ -188,8 +189,11 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     insertTarget: null,
     history: [],
     historyIndex: -1,
-    registry: [],
-  }),
+    // Preserve registry across resets — the component registry doesn't change
+    // when the view changes. Clearing it causes a window where canInsertChild
+    // returns false for all components (e.g. after auto-save triggers a refetch).
+    registry: state.registry,
+  })),
 
   select: (key) => set({ selectedKey: key }),
   hover: (key) => set({ hoveredKey: key }),
@@ -206,6 +210,14 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     const parentNode = findNode(state.payload.component_tree, parentKey)
     if (!parentNode) return false
     return canInsert(parentNode.component_code, childCode, state.registry)
+  },
+
+  canInsertChildWithReason: (parentKey, childCode) => {
+    const state = get()
+    if (!state.payload) return { allowed: false, reason: 'No view loaded' }
+    const parentNode = findNode(state.payload.component_tree, parentKey)
+    if (!parentNode) return { allowed: false, reason: 'Parent component not found' }
+    return canInsertChildValidator(parentNode.component_code, childCode, state.registry)
   },
 
   updateTree: (tree) => {
@@ -262,6 +274,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   removeNode: (key) => {
     const state = get()
     if (!state.payload) return
+    // Guard: page_root is the tree anchor and cannot be removed
+    if (state.payload.component_tree?.component_key === key) return
     const newTree = removeFromTree(state.payload.component_tree, key)
     set(s => ({ selectedKey: s.selectedKey === key ? null : s.selectedKey }))
     get().updateTree(newTree)
@@ -270,6 +284,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   moveNode: (key, newParentKey, index) => {
     const state = get()
     if (!state.payload) return
+    // Guard: cannot move page_root
+    if (state.payload.component_tree?.component_key === key) return
     const node = findNode(state.payload.component_tree, key)
     if (!node) return
     const treeWithout = removeFromTree(state.payload.component_tree, key)
@@ -295,6 +311,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   moveNodeUp: (key) => {
     const state = get()
     if (!state.payload) return
+    // Guard: cannot move page_root
+    if (state.payload.component_tree?.component_key === key) return
     const parentKey = findParentKey(state.payload.component_tree, key)
     if (!parentKey) return
     const parent = findNode(state.payload.component_tree, parentKey)
@@ -310,6 +328,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   moveNodeDown: (key) => {
     const state = get()
     if (!state.payload) return
+    // Guard: cannot move page_root
+    if (state.payload.component_tree?.component_key === key) return
     const parentKey = findParentKey(state.payload.component_tree, key)
     if (!parentKey) return
     const parent = findNode(state.payload.component_tree, parentKey)
@@ -324,18 +344,18 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
   wrapInSection: (key) => {
     const state = get()
-    if (!state.payload) return
+    if (!state.payload) return false
     const { registry } = state
     const node = findNode(state.payload.component_tree, key)
-    if (!node) return
-    if (node.component_code === 'page_root' || node.component_code === 'section') return
+    if (!node) return false
+    if (node.component_code === 'page_root' || node.component_code === 'section') return false
     const parentKey = findParentKey(state.payload.component_tree, key)
-    if (!parentKey) return
+    if (!parentKey) return false
     const parent = findNode(state.payload.component_tree, parentKey)
-    if (!parent) return
+    if (!parent) return false
     // Validate placement: section allowed in parent, and original node allowed in section
-    if (!canInsert(parent.component_code, 'section', registry)) return
-    if (!canInsert('section', node.component_code, registry)) return
+    if (!canInsert(parent.component_code, 'section', registry)) return false
+    if (!canInsert('section', node.component_code, registry)) return false
     const idx = (parent.children ?? []).findIndex(c => c.component_key === key)
     const sectionKey = `section_${generateSuffix()}`
     const section: ComponentNode = {
@@ -349,6 +369,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     const newTree = insertInTree(treeWithout, parentKey, section, idx)
     get().updateTree(newTree)
     set({ selectedKey: sectionKey })
+    return true
   },
 
   setEvents: (events) => {

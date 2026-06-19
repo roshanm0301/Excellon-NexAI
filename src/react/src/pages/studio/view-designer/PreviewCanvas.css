@@ -34,11 +34,124 @@
   border-radius: 4px;
 }
 
+/* Conditional visibility — node has a role/field/expression visibility rule.
+   Shown with amber dashed border + small badge so designers can identify it. */
+.prev-node--conditional {
+  outline: 1.5px dashed #f59e0b;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+.prev-node--conditional::after {
+  content: 'conditional';
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f59e0b;
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 0 3px 0 3px;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.9;
+}
+
+/* Read-only — runtime context applied readonly permission.
+   Reduced opacity + lock icon overlay in top-right corner. */
+.prev-node--read-only {
+  opacity: 0.8;
+}
+.prev-node--read-only::before {
+  content: '🔒';
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.6rem;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.6;
+}
+
 /* ─── Layout ─────────────────────────────────────────────────────────────── */
 
 .prev-page-root {
   display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  min-height: 400px;
+  position: relative;
+}
+
+/* Main content area: toolbar, data table, and other flow components */
+.prev-page-root__flow {
+  display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Overlay area: drawer, modal, side panel — rendered on the right side */
+.prev-page-root__overlays {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-left: 1px solid #e2e8f0;
+  background: #fafafa;
+  flex-shrink: 0;
+}
+
+/* ─── Drawer Panel Preview ───────────────────────────────────────────────── */
+
+.prev-drawer {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  border-left: 2px solid #8b5cf6;
+  background: #fff;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.08);
+  min-height: 300px;
+}
+
+.prev-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #f5f3ff;
+  border-bottom: 1px solid #ede9fe;
+}
+
+.prev-drawer__title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #5b21b6;
+}
+
+.prev-drawer__close {
+  font-size: 0.7rem;
+  color: #8b5cf6;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.prev-drawer__body {
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+/* ─── Empty state hint (toolbar with no children, drawer with no fields) ─── */
+
+.prev-empty-hint {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 0.25rem 0;
 }
 
 .prev-section {

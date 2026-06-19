@@ -460,6 +460,7 @@ export interface EntityFieldDef {
   read_only: boolean;
   is_relation: boolean;
   related_entity?: string;
+  options?: string[];
 }
 
 // ─── Runtime Context (M3.1) ──────────────────────────────────────────────────

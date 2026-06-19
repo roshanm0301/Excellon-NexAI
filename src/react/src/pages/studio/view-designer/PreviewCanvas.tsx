@@ -28,7 +28,7 @@ export type OnEventFn = (
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function PreviewCanvas() {
-  const { payload, selectedKey, previewMode } = useCanvasStore()
+  const { payload, selectedKey, previewMode, select } = useCanvasStore()
   const tree = payload?.component_tree
 
   // Instantiate a per-session event engine; recreate when event definitions change
@@ -63,12 +63,11 @@ export function PreviewCanvas() {
     void engineRef.current.emit({ type: eventType, source_key: sourceKey, data })
   }, [])
 
-  // Preview uses a neutral context (no role, no field values).
-  // Visibility rules that depend on role or field values are shown with a
-  // dimmed indicator rather than hidden, because the designer needs to see all
-  // nodes regardless of runtime context.
+  // Preview uses designMode: true so all nodes remain visible to the designer.
+  // Nodes with role_in / field_equals / expression conditions are kept in the
+  // tree and marked __is_conditional so they render with a dimmed indicator.
   const runtimeTree = useMemo(
-    () => tree ? applyRuntimeContext(tree, {}) : null,
+    () => tree ? applyRuntimeContext(tree, { designMode: true }) : null,
     [tree],
   )
 
@@ -82,12 +81,14 @@ export function PreviewCanvas() {
 
   return (
     <div className="prev-canvas">
-      <div className="prev-canvas__frame">
+      {/* Click canvas background to deselect */}
+      <div className="prev-canvas__frame" onClick={() => select(null)}>
         <RenderNode
           node={runtimeTree}
           selectedKey={selectedKey}
           onEvent={onEvent}
           isPreviewMode={previewMode}
+          onSelect={select}
         />
       </div>
     </div>
@@ -101,22 +102,29 @@ interface RenderNodeProps {
   selectedKey: string | null
   onEvent: OnEventFn
   isPreviewMode: boolean
+  onSelect?: (key: string) => void
 }
 
-function RenderNode({ node, selectedKey, onEvent, isPreviewMode }: RenderNodeProps) {
+function RenderNode({ node, selectedKey, onEvent, isPreviewMode, onSelect }: RenderNodeProps) {
   const Renderer = useMemo(() => getRenderer(node.component_code), [node.component_code])
   const isSelected = node.component_key === selectedKey
 
-  // Nodes returned by applyRuntimeContext have already had hidden/permission
-  // nodes removed. The __runtime_hidden flag is the legacy path kept for
-  // backwards compatibility with payloads that pre-date the shared runtime.
+  // Legacy hidden flag (kept for backwards compatibility with payloads that
+  // pre-date the shared runtime helper).
   if (node.props?.__runtime_hidden === true) {
     return null
   }
 
-  // Visibility rule indicator for preview (role_in / field_equals nodes are
-  // visible in the canvas but dimmed so the designer can select and configure them).
-  const hasConditionalVisibility = !!(node.visibility as VisibilityRule | undefined)?.condition
+  // CSS-hidden nodes: remove_from_dom=false — render as display:none so they
+  // stay in the DOM but are invisible at runtime.
+  const isVisibilityHidden = node.props?.__visibility_hidden === true
+
+  // Conditional indicator: applyRuntimeContext marks nodes __is_conditional
+  // when designMode=true. Fall back to checking node.visibility.condition.
+  const hasConditionalVisibility =
+    node.props?.__is_conditional === true ||
+    node.props?.__is_permission_hidden === true ||
+    !!(node.visibility as VisibilityRule | undefined)?.condition
 
   const children = (node.children ?? []).map(child => (
     <RenderNode
@@ -125,6 +133,7 @@ function RenderNode({ node, selectedKey, onEvent, isPreviewMode }: RenderNodePro
       selectedKey={selectedKey}
       onEvent={onEvent}
       isPreviewMode={isPreviewMode}
+      onSelect={onSelect}
     />
   ))
 
@@ -137,6 +146,15 @@ function RenderNode({ node, selectedKey, onEvent, isPreviewMode }: RenderNodePro
         node.props?.__read_only ? 'prev-node--read-only' : '',
       ].filter(Boolean).join(' ')}
       data-component-key={node.component_key}
+      style={{
+        cursor: onSelect ? 'pointer' : undefined,
+        ...(isVisibilityHidden ? { display: 'none' } : {}),
+      }}
+      onClick={(e) => {
+        // Click a component in preview to select it for property editing
+        e.stopPropagation()
+        onSelect?.(node.component_key)
+      }}
     >
       <Renderer
         node={node}

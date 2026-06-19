@@ -82,12 +82,12 @@ export function validateTree(
       return
     }
 
-    // Surface compatibility
+    // Surface compatibility — ERROR: publishing with surface-incompatible components is blocked
     const surfaces = entry.supported_surfaces as string[]
     if (!surfaces.includes('all') && !surfaces.includes(surfaceType)) {
-      warnings.push({
+      errors.push({
         code: 'SURFACE_INCOMPATIBLE',
-        message: `Component "${node.component_code}" does not support surface "${surfaceType}"`,
+        message: `"${node.component_code}" does not support surface "${surfaceType}". Supported: ${surfaces.join(', ')}`,
         field: node.component_key,
       })
     }

@@ -11,4 +11,8 @@ echo "Applying view seeds..."
 docker compose -f "$REPO/docker-compose.yml" exec -T postgres \
   psql -U nexai -d nexai < "$SEEDS_DIR/test_views.sql"
 
+echo "Applying product data..."
+docker compose -f "$REPO/docker-compose.yml" exec -T postgres \
+  psql -U nexai -d nexai < "$SEEDS_DIR/test_product_data.sql"
+
 echo "Seeds applied successfully."

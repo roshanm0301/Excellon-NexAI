@@ -146,6 +146,46 @@ type ComponentEntry struct {
 	CreatedAt          time.Time       `json:"created_at"`
 }
 
+// ─── Component Registry Write Types ──────────────────────────────────────────
+
+// UpdateComponentRequest allows patching the mutable fields of a registry entry.
+// component_code and source are immutable PKs — omitted intentionally.
+type UpdateComponentRequest struct {
+	SupportedSurfaces  json.RawMessage `json:"supported_surfaces,omitempty"`
+	SupportedBindings  json.RawMessage `json:"supported_bindings,omitempty"`
+	AllowedParents     json.RawMessage `json:"allowed_parents,omitempty"`
+	AllowedChildren    json.RawMessage `json:"allowed_children,omitempty"`
+	ConfigSchema       json.RawMessage `json:"config_schema,omitempty"`
+	DefaultProps       json.RawMessage `json:"default_props,omitempty"`
+	EventSupport       json.RawMessage `json:"event_support,omitempty"`
+	ValidationRules    json.RawMessage `json:"validation_rules,omitempty"`
+	IsContainer        *bool           `json:"is_container,omitempty"`
+	RuntimeRenderer    *string         `json:"runtime_renderer,omitempty"`
+	DesignerPanel      *string         `json:"designer_panel,omitempty"`
+	PreviewSupport     *bool           `json:"preview_support,omitempty"`
+}
+
+// CreateComponentRequest defines all fields for inserting a new registry entry.
+type CreateComponentRequest struct {
+	ComponentCode     string          `json:"component_code"`
+	ComponentName     string          `json:"component_name"`
+	Category          string          `json:"category"`
+	Version           string          `json:"version"`
+	Source            string          `json:"source"`
+	SupportedSurfaces json.RawMessage `json:"supported_surfaces"`
+	SupportedBindings json.RawMessage `json:"supported_bindings"`
+	IsContainer       bool            `json:"is_container"`
+	AllowedParents    json.RawMessage `json:"allowed_parents"`
+	AllowedChildren   json.RawMessage `json:"allowed_children"`
+	ConfigSchema      json.RawMessage `json:"config_schema"`
+	DefaultProps      json.RawMessage `json:"default_props"`
+	EventSupport      json.RawMessage `json:"event_support"`
+	ValidationRules   json.RawMessage `json:"validation_rules"`
+	RuntimeRenderer   string          `json:"runtime_renderer"`
+	DesignerPanel     string          `json:"designer_panel"`
+	PreviewSupport    bool            `json:"preview_support"`
+}
+
 // ─── Plugin ──────────────────────────────────────────────────────────────────
 
 type Plugin struct {
@@ -259,13 +299,14 @@ type EntityTypeSummary struct {
 
 // EntityFieldDef is returned by GET /studio/entities/:entityType/fields
 type EntityFieldDef struct {
-	FieldKey      string `json:"field_key"`
-	Label         string `json:"label"`
-	FieldType     string `json:"field_type"`
-	Required      bool   `json:"required"`
-	ReadOnly      bool   `json:"read_only"`
-	IsRelation    bool   `json:"is_relation"`
-	RelatedEntity string `json:"related_entity,omitempty"`
+	FieldKey      string   `json:"field_key"`
+	Label         string   `json:"label"`
+	FieldType     string   `json:"field_type"`
+	Required      bool     `json:"required"`
+	ReadOnly      bool     `json:"read_only"`
+	IsRelation    bool     `json:"is_relation"`
+	RelatedEntity string   `json:"related_entity,omitempty"`
+	Options       []string `json:"options,omitempty"`
 }
 
 type EntityTypeListResponse struct {

@@ -15,7 +15,9 @@ const NodeTreePage = lazy(() => import('./pages/admin/NodeTreePage'))
 const ExpressionStudioPage = lazy(() => import('./pages/studio/ExpressionStudioPage'))
 const ViewDesignerListPage = lazy(() => import('./pages/admin/ViewDesignerListPage'))
 const ViewDesignerPage = lazy(() => import('./pages/studio/view-designer/ViewDesignerPage'))
+const RuntimeViewPage = lazy(() => import('./pages/studio/runtime/RuntimeViewPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
+const ScreenViewPage = lazy(() => import('./pages/screens/ScreenViewPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +48,8 @@ const router = createBrowserRouter(
         { path: 'admin/expressions', element: wrap(<ExpressionStudioPage />) },
         { path: 'studio/views', element: wrap(<ViewDesignerListPage />) },
         { path: 'studio/views/:viewId/edit', element: wrap(<ViewDesignerPage />) },
+        { path: 'studio/views/:viewId/run', element: wrap(<RuntimeViewPage />) },
+        { path: 'screens/:viewId', element: wrap(<ScreenViewPage />) },
         { path: '*', element: wrap(<NotFoundPage />) },
       ],
     },

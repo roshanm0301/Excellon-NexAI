@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Copy, Trash2, ArrowUp, ArrowDown, SquareStack } from 'lucide-react'
 import { useCanvasStore } from './useCanvasStore'
+import { useToast } from '../../../design-system'
 
 interface TreeContextMenuProps {
   nodeKey: string
@@ -13,6 +14,7 @@ interface TreeContextMenuProps {
 
 export function TreeContextMenu({ nodeKey, nodeCode, anchorX, anchorY, onClose }: TreeContextMenuProps) {
   const { duplicateNode, removeNode, moveNodeUp, moveNodeDown, wrapInSection, payload } = useCanvasStore()
+  const { addToast } = useToast()
   const menuRef = useRef<HTMLDivElement>(null)
 
   const isRoot = nodeCode === 'page_root'
@@ -113,7 +115,12 @@ export function TreeContextMenu({ nodeKey, nodeCode, anchorX, anchorY, onClose }
       <div
         className={`tree-ctx-item${isRoot || isSection ? ' tree-ctx-item--disabled' : ''}`}
         role="menuitem"
-        onClick={isRoot || isSection ? undefined : action(() => wrapInSection(nodeKey))}
+        onClick={isRoot || isSection ? undefined : action(() => {
+          const ok = wrapInSection(nodeKey)
+          if (!ok) {
+            addToast({ type: 'warning', message: 'Cannot wrap — section not allowed in this position.' })
+          }
+        })}
         aria-disabled={isRoot || isSection}
       >
         <SquareStack size={13} /> Wrap in Section

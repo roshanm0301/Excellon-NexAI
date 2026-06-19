@@ -143,6 +143,12 @@
   background: rgba(59, 130, 246, 0.04);
 }
 
+.ct-node--drag-over {
+  border-color: var(--color-primary, #3b82f6);
+  background: rgba(59, 130, 246, 0.08);
+  border-style: dashed;
+}
+
 .ct-node__header {
   display: flex;
   align-items: center;
@@ -230,6 +236,7 @@
   cursor: grabbing;
   background: var(--color-primary-bg, #eff6ff);
 }
+
 
 .cp-item__icon {
   width: 14px;
@@ -545,6 +552,14 @@
   align-items: center;
   padding: 0.25rem;
   border-radius: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.vd-toolbar__validation:hover {
+  background: var(--color-bg-hover, #f1f5f9);
 }
 
 .vd-toolbar__validation--ok {
@@ -553,6 +568,92 @@
 
 .vd-toolbar__validation--error {
   color: var(--color-error, #ef4444);
+}
+
+/* ─── Validation Detail Panel ──────────────────────────────────────────────── */
+
+.vd-validation-panel {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  background: var(--color-bg-primary, #fff);
+  max-height: 180px;
+  overflow-y: auto;
+  font-size: 0.78rem;
+}
+
+.vd-validation-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.375rem 1rem;
+  background: var(--color-bg-secondary, #f8fafc);
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #475569);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.vd-validation-panel__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted, #94a3b8);
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0 0.25rem;
+}
+
+.vd-validation-panel__close:hover {
+  color: var(--color-text-secondary, #475569);
+}
+
+.vd-validation-panel__empty {
+  padding: 0.5rem 1rem;
+  color: var(--color-success, #22c55e);
+  font-size: 0.78rem;
+}
+
+.vd-validation-panel__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.3rem 1rem;
+  border-bottom: 1px solid var(--color-border, #f1f5f9);
+}
+
+.vd-validation-panel__row:last-child {
+  border-bottom: none;
+}
+
+.vd-validation-panel__row svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.vd-validation-panel__row--error {
+  color: var(--color-error, #ef4444);
+  background: rgba(239, 68, 68, 0.03);
+}
+
+.vd-validation-panel__row--warning {
+  color: var(--color-warning, #f59e0b);
+  background: rgba(245, 158, 11, 0.03);
+}
+
+.vd-validation-panel__code {
+  font-family: monospace;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  font-weight: 600;
+  min-width: 160px;
+}
+
+.vd-validation-panel__msg {
+  color: var(--color-text-secondary, #475569);
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
 
 /* ─── Binding Editor ───────────────────────────────────────────────────────── */
@@ -1292,4 +1393,270 @@
   font-size: 0.78rem;
   color: var(--color-text-muted, #94a3b8);
   line-height: 1.4;
+}
+
+/* ─── Property Panel — full-width field (for array editors) ─────────────────── */
+
+.pp-field--full {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-secondary, rgba(148,163,184,0.12));
+}
+
+/* ─── Column Array Editor ────────────────────────────────────────────────────── */
+
+.pp-col-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.pp-col-row {
+  background: var(--bg-secondary, #f8fafc);
+  border: 1px solid var(--border-secondary, rgba(148,163,184,0.2));
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pp-col-row__fields {
+  display: flex;
+  gap: 4px;
+}
+
+.pp-col-row__key {
+  flex: 2;
+  font-size: 0.72rem !important;
+  padding: 3px 6px !important;
+}
+
+.pp-col-row__label {
+  flex: 3;
+  font-size: 0.72rem !important;
+  padding: 3px 6px !important;
+}
+
+.pp-col-row__type {
+  flex: 2;
+  font-size: 0.72rem !important;
+  padding: 3px 6px !important;
+}
+
+.pp-col-row__flags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pp-col-flag {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.7rem;
+  color: var(--fg-secondary, #64748b);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pp-col-flag input[type="checkbox"] {
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
+}
+
+.pp-col-row__delete {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--fg-tertiary, #94a3b8);
+  padding: 2px 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.pp-col-row__delete:hover {
+  color: var(--error-fg, #ef4444);
+  background: var(--error-bg, rgba(239,68,68,0.08));
+}
+
+.pp-col-add {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px dashed var(--border-primary, rgba(148,163,184,0.3));
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  color: var(--brand-primary, #3b82f6);
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+  margin-top: 2px;
+}
+
+.pp-col-add:hover {
+  background: var(--brand-alpha, rgba(59,130,246,0.06));
+  border-color: var(--brand-primary, #3b82f6);
+}
+
+/* ─── String Array Editor ────────────────────────────────────────────────────── */
+
+.pp-str-editor {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pp-str-editor__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 24px;
+}
+
+.pp-str-editor__item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--brand-alpha, rgba(59,130,246,0.1));
+  border: 1px solid var(--brand-primary, #3b82f6);
+  border-radius: 12px;
+  padding: 2px 8px 2px 10px;
+  font-size: 0.72rem;
+  color: var(--brand-primary, #3b82f6);
+  font-weight: 500;
+}
+
+.pp-str-editor__add {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.pp-str-editor__add .pp-field__input {
+  flex: 1;
+}
+
+.pp-str-editor__add .pp-col-add {
+  flex-shrink: 0;
+  width: auto;
+  padding: 5px 8px;
+  margin-top: 0;
+}
+
+/* ─── Object Editor ──────────────────────────────────────────────────────────── */
+
+.pp-obj-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.pp-obj-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pp-obj-row__key {
+  flex: 2;
+  font-size: 0.72rem !important;
+  padding: 3px 6px !important;
+}
+
+.pp-obj-row__val {
+  flex: 3;
+  font-size: 0.72rem !important;
+  padding: 3px 6px !important;
+}
+
+/* ─── Keyboard Shortcuts Popover ─────────────────────────────────────────────── */
+
+.vd-shortcuts-popover {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 3.5rem 1rem 0;
+  background: transparent;
+}
+
+.vd-shortcuts-panel {
+  background: var(--bg-primary, #fff);
+  border: 1px solid var(--border-secondary, #e2e8f0);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  min-width: 320px;
+  overflow: hidden;
+}
+
+.vd-shortcuts-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.875rem;
+  background: var(--bg-secondary, #f8fafc);
+  border-bottom: 1px solid var(--border-secondary, #e2e8f0);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--fg-primary, #1e293b);
+}
+
+.vd-shortcuts-panel__header button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--fg-tertiary, #94a3b8);
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0 0.25rem;
+}
+
+.vd-shortcuts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.77rem;
+}
+
+.vd-shortcuts-table td {
+  padding: 0.35rem 0.875rem;
+  color: var(--fg-secondary, #475569);
+  border-bottom: 1px solid var(--border-secondary, #f1f5f9);
+}
+
+.vd-shortcuts-table td:first-child {
+  white-space: nowrap;
+  color: var(--fg-tertiary, #64748b);
+}
+
+.vd-shortcuts-divider {
+  padding: 0.4rem 0.875rem 0.25rem !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: var(--fg-tertiary, #94a3b8) !important;
+  background: var(--bg-tertiary, #f8fafc) !important;
+}
+
+.vd-shortcuts-table kbd {
+  display: inline-block;
+  padding: 0.1rem 0.35rem;
+  background: var(--bg-secondary, #f1f5f9);
+  border: 1px solid var(--border-primary, #cbd5e1);
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.72rem;
+  color: var(--fg-primary, #334155);
 }

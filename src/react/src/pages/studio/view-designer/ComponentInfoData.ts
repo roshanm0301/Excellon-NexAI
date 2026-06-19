@@ -541,4 +541,190 @@ export const COMPONENT_INFO: Record<string, ComponentInfoEntry> = {
     keyProps: ['label', 'maxFiles', 'accept'],
     previewTemplate: 'section',
   },
+
+  // ── Newly added: missing info entries ──────────────────────────────────────
+
+  action_menu: {
+    tagline: 'Contextual dropdown with record actions',
+    description: 'A button that opens a dropdown menu with context-sensitive actions for the current record — edit, duplicate, delete, change status, etc.',
+    useCases: ['Row-level actions on a list', 'Record header action menu', 'Bulk operation dropdown'],
+    keyProps: ['label', 'items', 'variant'],
+    previewTemplate: 'button',
+  },
+
+  alert_banner: {
+    tagline: 'Inline system message or notification',
+    description: 'Displays informational, warning, success, or error messages inline within a view. Used for validation summaries, save confirmations, and policy alerts.',
+    useCases: ['Form validation error summary', 'Save/submit confirmation', 'Credit limit warning'],
+    keyProps: ['message', 'variant', 'dismissible'],
+    previewTemplate: 'section',
+  },
+
+  calendar_view: {
+    tagline: 'Monthly or weekly appointment calendar',
+    description: 'Renders entity records as calendar events on a month or week grid. Ideal for scheduling, appointments, and date-driven workflows.',
+    useCases: ['Service appointment calendar', 'Delivery schedule', 'Holiday calendar'],
+    keyProps: ['date_field', 'title_field', 'color_field', 'view_mode'],
+    previewTemplate: 'section',
+  },
+
+  code_editor: {
+    tagline: 'Structured text entry for expressions or scripts',
+    description: 'A syntax-highlighted code editor for entering JSONata expressions, SQL snippets, or other structured text. Used in advanced configuration and automation fields.',
+    useCases: ['Business rule expression', 'Computed field formula', 'Custom filter expression'],
+    keyProps: ['language', 'label', 'read_only', 'min_height'],
+    previewTemplate: 'textarea',
+  },
+
+  color_indicator: {
+    tagline: 'Traffic-light or RAG status dot',
+    description: 'A small coloured dot or pill that communicates status at a glance — green for active, amber for at-risk, red for overdue.',
+    useCases: ['Payment status indicator', 'SLA breach indicator', 'Stock availability dot'],
+    keyProps: ['color', 'label', 'size'],
+    previewTemplate: 'badge',
+  },
+
+  color_picker: {
+    tagline: 'Visual colour selection input',
+    description: 'Lets users pick or enter a hex colour value for custom fields, category colours, or visual labels.',
+    useCases: ['Category colour assignment', 'Brand colour field', 'Custom label colour'],
+    keyProps: ['label', 'default_color', 'format'],
+    previewTemplate: 'text_input',
+  },
+
+  comment_thread: {
+    tagline: 'Threaded notes on a record',
+    description: 'Shows a conversation thread of comments or notes attached to the current record. Users can add replies and tag colleagues.',
+    useCases: ['Service order notes', 'Customer query thread', 'Vehicle inspection remarks'],
+    keyProps: ['max_visible', 'allow_attachments', 'placeholder'],
+    previewTemplate: 'section',
+  },
+
+  detail_panel: {
+    tagline: 'Read-only key-value summary panel',
+    description: 'Displays a grid of field labels and their values in a compact read-only panel — ideal for record headers, summary cards, and sidebars.',
+    useCases: ['Customer summary on sale order', 'Vehicle details sidebar', 'Supplier contact info'],
+    keyProps: ['title', 'fields', 'columns'],
+    previewTemplate: 'section',
+  },
+
+  file_preview: {
+    tagline: 'Attachment preview with download link',
+    description: 'Shows a file name, extension, and size with a download button. Suitable for invoice attachments, photos, and document previews.',
+    useCases: ['Invoice PDF attachment', 'Vehicle photo', 'Insurance certificate'],
+    keyProps: ['label', 'show_size', 'allow_download'],
+    previewTemplate: 'section',
+  },
+
+  form_section: {
+    tagline: 'Labelled group of input fields',
+    description: 'A bordered container with a title that groups related input fields together. Provides visual structure to complex forms.',
+    useCases: ['Customer details section', 'Vehicle specification group', 'Billing address block'],
+    keyProps: ['title', 'collapsible', 'columns'],
+    previewTemplate: 'section',
+  },
+
+  icon: {
+    tagline: 'Standalone decorative or semantic icon',
+    description: 'Renders a single icon from the design system icon set. Used for visual cues, status indicators, and decorative accents in layouts.',
+    useCases: ['Warning icon before a label', 'Section header icon', 'Status icon in a badge'],
+    keyProps: ['icon', 'size', 'color'],
+    previewTemplate: 'section',
+  },
+
+  image: {
+    tagline: 'Photo or logo display block',
+    description: 'Displays an image from a URL or entity field — vehicle photos, customer logos, product images, or document thumbnails.',
+    useCases: ['Vehicle photo on stock card', 'Customer company logo', 'Product image on catalogue'],
+    keyProps: ['src', 'alt', 'aspect_ratio', 'fit'],
+    previewTemplate: 'section',
+  },
+
+  link: {
+    tagline: 'Inline hyperlink to a record or URL',
+    description: 'Renders an anchor link — to a related record, an external website, or a navigation target. Can open in the same tab or a new tab.',
+    useCases: ['Customer record link', 'Vehicle VIN lookup link', 'Supplier website link'],
+    keyProps: ['text', 'href', 'target', 'icon'],
+    previewTemplate: 'label',
+  },
+
+  pagination: {
+    tagline: 'Page navigation for large lists',
+    description: 'Provides previous/next and page number controls for navigating through paginated data sets. Pairs with data tables and card grids.',
+    useCases: ['Parts list pagination', 'Customer search results', 'Transaction history pages'],
+    keyProps: ['page_size', 'show_total', 'position'],
+    previewTemplate: 'section',
+  },
+
+  phone_input: {
+    tagline: 'International phone number with dial code',
+    description: 'A text input prefixed with a country flag and dial-code selector — ensures correctly formatted international phone numbers.',
+    useCases: ['Customer mobile number', 'Emergency contact', 'Supplier phone field'],
+    keyProps: ['label', 'default_country', 'required', 'placeholder'],
+    previewTemplate: 'text_input',
+  },
+
+  repeater: {
+    tagline: 'Repeating rows for multi-value entry',
+    description: 'Renders a configurable set of identical input rows — ideal for line items, contact lists, and address entries where users need to add or remove rows.',
+    useCases: ['Purchase order line items', 'Multiple contacts on a record', 'Vehicle accessories list'],
+    keyProps: ['min_rows', 'max_rows', 'add_label', 'remove_label'],
+    previewTemplate: 'section',
+  },
+
+  search_bar: {
+    tagline: 'Prominent entity search input',
+    description: 'A standalone search bar with real-time suggestions — more prominent than an inline text_input search field. Suitable for global lookups within a view.',
+    useCases: ['Vehicle VIN lookup', 'Customer quick search', 'Part number search bar'],
+    keyProps: ['placeholder', 'entity', 'display_field', 'value_field'],
+    previewTemplate: 'text_input',
+  },
+
+  slider_range: {
+    tagline: 'Numeric range selector with draggable thumb',
+    description: 'A horizontal slider that lets users select a numeric value between a minimum and maximum. Useful for discount rates, age filters, and quantity entry.',
+    useCases: ['Discount percentage slider', 'Credit limit slider', 'Age range filter'],
+    keyProps: ['label', 'min', 'max', 'step', 'default_value'],
+    previewTemplate: 'number_input',
+  },
+
+  spacer: {
+    tagline: 'Vertical whitespace between sections',
+    description: 'Adds a configurable amount of empty vertical space between components to improve visual breathing room in a layout.',
+    useCases: ['Gap between form sections', 'Spacing before action buttons', 'Visual separator in sidebar'],
+    keyProps: ['height'],
+    previewTemplate: 'divider',
+  },
+
+  stepper: {
+    tagline: 'Numbered progress indicator for multi-stage flows',
+    description: 'Displays a horizontal or vertical progress bar with numbered steps — showing which stage of a process is current, completed, or upcoming.',
+    useCases: ['Sale order stages', 'Service repair progress', 'Onboarding checklist'],
+    keyProps: ['steps', 'current_step', 'orientation'],
+    previewTemplate: 'wizard_step',
+  },
+
+  tab_group: {
+    tagline: 'Tab strip for section navigation within a page',
+    description: 'Renders clickable tab labels that switch which content section is visible. Unlike tab_container, tab_group does not own the content panels.',
+    useCases: ['Details / History / Documents tabs', 'Financial summary tabs', 'Vehicle spec tab navigation'],
+    keyProps: ['tabs', 'default_tab', 'variant'],
+    previewTemplate: 'tab_container',
+  },
+
+  tag_input: {
+    tagline: 'Multi-value keyword or label entry',
+    description: 'An input that allows users to add multiple free-text tags or select from a list of options. Values are displayed as removable pill chips.',
+    useCases: ['Vehicle feature tags', 'Customer interest labels', 'Part keyword tags'],
+    keyProps: ['label', 'placeholder', 'max_tags', 'options_source'],
+    previewTemplate: 'multi_select',
+  },
+
+  tree_view: {
+    tagline: 'Hierarchical category or org structure browser',
+    description: 'Displays data in a collapsible tree structure — ideal for browsing categories, departments, or nested records with parent-child relationships.',
+    useCases: ['Part category hierarchy', 'Dealer branch org chart', 'Document folder tree'],
+    keyProps: ['entity', 'label_field', 'parent_field', 'expanded_depth'],
+    previewTemplate: 'section',
+  },
 }

@@ -2,18 +2,19 @@
  * BindingEditor — Interactive field binding configuration panel
  *
  * Allows users to bind component properties to:
- * - Entity fields (field)
- * - Computed expressions (computed)
- * - Static values (static)
- * - JSONata expressions (expression)
+ * - Entity fields (field) — dropdown shows label (field_key) + type badge
+ * - Computed expressions (computed) — Monaco editor
+ * - Static values (static) — text input with auto-parse
+ * - JSONata expressions (expression) — Monaco editor
  */
 
 import { useState, useCallback } from 'react'
 import { Plus, Trash2, Link2 } from 'lucide-react'
 import { Button } from '../../../design-system'
+import { ExpressionEditor } from '../../../components/expression/ExpressionEditor'
 import { useCanvasStore } from './useCanvasStore'
-import { useEntityFields } from '../../../hooks/useViewStudio'
-import type { FieldBinding, ComponentRegistryEntry } from '../../../types/viewStudio'
+import { useEntityFields, useEntityTypes } from '../../../hooks/useViewStudio'
+import type { FieldBinding, ComponentRegistryEntry, EntityFieldDef } from '../../../types/viewStudio'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -36,7 +37,12 @@ export function BindingEditor({ registryEntry }: { registryEntry?: ComponentRegi
   const [addingProp, setAddingProp] = useState<string | null>(null)
 
   const { data: fieldsData } = useEntityFields(primaryEntity)
-  const entityFields = fieldsData?.items?.map(f => f.field_key) ?? []
+  const entityFieldDefs: EntityFieldDef[] = fieldsData?.items ?? []
+
+  const { data: entityTypesData } = useEntityTypes()
+  const entityTypes: string[] = (entityTypesData?.items ?? []).map(
+    (e: { entity_type: string }) => e.entity_type
+  )
 
   if (!node) return null
 
@@ -90,7 +96,9 @@ export function BindingEditor({ registryEntry }: { registryEntry?: ComponentRegi
           key={prop}
           prop={prop}
           binding={binding as FieldBinding}
-          entityFields={entityFields}
+          entityFieldDefs={entityFieldDefs}
+          entityTypes={entityTypes}
+          primaryEntity={primaryEntity}
           onUpdate={(b) => handleUpdateBinding(prop, b)}
           onRemove={() => handleRemoveBinding(prop)}
         />
@@ -139,13 +147,17 @@ export function BindingEditor({ registryEntry }: { registryEntry?: ComponentRegi
 function BindingRow({
   prop,
   binding,
-  entityFields,
+  entityFieldDefs,
+  entityTypes,
+  primaryEntity,
   onUpdate,
   onRemove,
 }: {
   prop: string
   binding: FieldBinding
-  entityFields: string[]
+  entityFieldDefs: EntityFieldDef[]
+  entityTypes: string[]
+  primaryEntity: string | null
   onUpdate: (b: FieldBinding) => void
   onRemove: () => void
 }) {
@@ -174,7 +186,13 @@ function BindingRow({
 
       {/* Source-specific fields */}
       {binding.source === 'field' && (
-        <FieldSourceInputs binding={binding} entityFields={entityFields} onUpdate={onUpdate} />
+        <FieldSourceInputs
+          binding={binding}
+          entityFieldDefs={entityFieldDefs}
+          entityTypes={entityTypes}
+          primaryEntity={primaryEntity}
+          onUpdate={onUpdate}
+        />
       )}
       {binding.source === 'computed' && (
         <ComputedSourceInputs binding={binding} onUpdate={onUpdate} />
@@ -191,29 +209,88 @@ function BindingRow({
 
 // ─── Source Input Variants ───────────────────────────────────────────────────
 
-function FieldSourceInputs({ binding, entityFields, onUpdate }: { binding: FieldBinding; entityFields: string[]; onUpdate: (b: FieldBinding) => void }) {
+function FieldSourceInputs({
+  binding,
+  entityFieldDefs,
+  entityTypes,
+  primaryEntity,
+  onUpdate,
+}: {
+  binding: FieldBinding
+  entityFieldDefs: EntityFieldDef[]
+  entityTypes: string[]
+  primaryEntity: string | null
+  onUpdate: (b: FieldBinding) => void
+}) {
+  const [overrideOpen, setOverrideOpen] = useState(!!binding.entity)
+
+  const selectedFieldDef = entityFieldDefs.find(f => f.field_key === binding.field_key)
+
+  const handleToggleOverride = () => {
+    if (overrideOpen) {
+      // Collapsing: clear entity override
+      onUpdate({ ...binding, entity: undefined })
+    }
+    setOverrideOpen(v => !v)
+  }
+
   return (
     <>
+      {/* Entity — collapsed by default; shows primary entity as a hint */}
       <div className="pp-field">
-        <label className="pp-field__label">Entity</label>
-        <input
-          type="text"
-          className="pp-field__input"
-          value={binding.entity ?? ''}
-          onChange={e => onUpdate({ ...binding, entity: e.target.value || undefined })}
-          placeholder="e.g., customer"
-        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+          <label className="pp-field__label" style={{ marginBottom: 0 }}>Entity</label>
+          <button
+            type="button"
+            style={{
+              fontSize: '0.68rem',
+              color: 'var(--color-text-muted)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0 2px',
+              textDecoration: 'underline',
+            }}
+            onClick={handleToggleOverride}
+          >
+            {overrideOpen ? '✕ Use primary' : `Override →`}
+          </button>
+        </div>
+        {overrideOpen ? (
+          <select
+            className="pp-field__input"
+            value={binding.entity ?? ''}
+            onChange={e => onUpdate({ ...binding, entity: e.target.value || undefined })}
+            data-testid="binding-entity-select"
+          >
+            <option value="">Primary ({primaryEntity ?? 'entity'})</option>
+            {entityTypes.map(et => (
+              <option key={et} value={et}>{et}</option>
+            ))}
+          </select>
+        ) : (
+          <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
+            Primary: {binding.entity ?? primaryEntity ?? '—'}
+          </p>
+        )}
       </div>
+
+      {/* Field key — shows label + field_key + relation indicator */}
       <div className="pp-field">
-        <label className="pp-field__label">Field Key</label>
-        {entityFields.length > 0 ? (
+        <label className="pp-field__label">Field</label>
+        {entityFieldDefs.length > 0 ? (
           <select
             className="pp-field__input"
             value={binding.field_key ?? ''}
             onChange={e => onUpdate({ ...binding, field_key: e.target.value || undefined })}
+            data-testid="binding-field-select"
           >
             <option value="">Select field…</option>
-            {entityFields.map(f => <option key={f} value={f}>{f}</option>)}
+            {entityFieldDefs.map(f => (
+              <option key={f.field_key} value={f.field_key}>
+                {f.label} ({f.field_key}){f.is_relation ? ' · relation' : ''}
+              </option>
+            ))}
           </select>
         ) : (
           <input
@@ -222,7 +299,18 @@ function FieldSourceInputs({ binding, entityFields, onUpdate }: { binding: Field
             value={binding.field_key ?? ''}
             onChange={e => onUpdate({ ...binding, field_key: e.target.value || undefined })}
             placeholder="e.g., first_name"
+            data-testid="binding-field-input"
           />
+        )}
+        {/* Field type badge */}
+        {selectedFieldDef && (
+          <span style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)', marginTop: 2, display: 'block' }}>
+            {selectedFieldDef.field_type}
+            {selectedFieldDef.read_only ? ' · computed' : ''}
+            {selectedFieldDef.is_relation && selectedFieldDef.related_entity
+              ? ` → ${selectedFieldDef.related_entity}`
+              : ''}
+          </span>
         )}
       </div>
     </>
@@ -231,14 +319,12 @@ function FieldSourceInputs({ binding, entityFields, onUpdate }: { binding: Field
 
 function ComputedSourceInputs({ binding, onUpdate }: { binding: FieldBinding; onUpdate: (b: FieldBinding) => void }) {
   return (
-    <div className="pp-field">
-      <label className="pp-field__label">Expression</label>
-      <textarea
-        className="pp-field__input pp-field__textarea"
-        rows={2}
+    <div className="pp-field pp-field--full">
+      <label className="pp-field__label">JSONata Expression</label>
+      <ExpressionEditor
         value={binding.expression ?? ''}
-        onChange={e => onUpdate({ ...binding, expression: e.target.value || undefined })}
-        placeholder="JSONata expression…"
+        onChange={v => onUpdate({ ...binding, expression: v || undefined })}
+        height="80px"
       />
     </div>
   )
@@ -257,14 +343,14 @@ function StaticSourceInputs({ binding, onUpdate }: { binding: FieldBinding; onUp
         value={strVal}
         onChange={e => {
           const raw = e.target.value
-          // Try to parse as number or boolean
           let parsed: unknown = raw
           if (raw === 'true') parsed = true
           else if (raw === 'false') parsed = false
           else if (raw !== '' && !isNaN(Number(raw))) parsed = Number(raw)
           onUpdate({ ...binding, static_value: raw === '' ? undefined : parsed })
         }}
-        placeholder="Static value"
+        placeholder="Static value (string, number, or true/false)"
+        data-testid="binding-static-input"
       />
     </div>
   )
@@ -272,14 +358,12 @@ function StaticSourceInputs({ binding, onUpdate }: { binding: FieldBinding; onUp
 
 function ExpressionSourceInputs({ binding, onUpdate }: { binding: FieldBinding; onUpdate: (b: FieldBinding) => void }) {
   return (
-    <div className="pp-field">
+    <div className="pp-field pp-field--full">
       <label className="pp-field__label">JSONata Expression</label>
-      <textarea
-        className="pp-field__input pp-field__textarea"
-        rows={3}
+      <ExpressionEditor
         value={binding.expression ?? ''}
-        onChange={e => onUpdate({ ...binding, expression: e.target.value || undefined })}
-        placeholder="$sum(line_items.amount)"
+        onChange={v => onUpdate({ ...binding, expression: v || undefined })}
+        height="80px"
       />
     </div>
   )

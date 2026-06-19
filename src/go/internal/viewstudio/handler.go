@@ -66,6 +66,13 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 	// ─── Component Registry ──────────────────────────────────────────────────
 	r.Get("/component-registry", h.listComponents)
 	r.Get("/component-registry/{code}", h.getComponent)
+	// Write operations require designer role
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.RequireRole("designer"))
+		r.Post("/component-registry", h.createComponent)
+		r.Put("/component-registry/{code}", h.updateComponent)
+		r.Delete("/component-registry/{code}", h.deprecateComponent)
+	})
 
 	// ─── Plugins ─────────────────────────────────────────────────────────────
 	r.Group(func(r chi.Router) {
@@ -422,6 +429,59 @@ func (h *Handler) getComponent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, entry)
+}
+
+func (h *Handler) createComponent(w http.ResponseWriter, r *http.Request) {
+	var req CreateComponentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, r, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if req.ComponentCode == "" || req.ComponentName == "" || req.Category == "" {
+		writeError(w, r, http.StatusBadRequest, "component_code, component_name, and category are required")
+		return
+	}
+	entry, err := h.repo.CreateComponent(r.Context(), req)
+	if err != nil {
+		slog.Error("viewstudio: create component", "error", err)
+		writeError(w, r, http.StatusInternalServerError, "failed to create component")
+		return
+	}
+	writeJSON(w, http.StatusCreated, entry)
+}
+
+func (h *Handler) updateComponent(w http.ResponseWriter, r *http.Request) {
+	code := chi.URLParam(r, "code")
+	if code == "" {
+		writeError(w, r, http.StatusBadRequest, "missing component code")
+		return
+	}
+	var req UpdateComponentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, r, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	entry, err := h.repo.UpdateComponent(r.Context(), code, req)
+	if err != nil {
+		writeError(w, r, http.StatusNotFound, "component not found or update failed")
+		return
+	}
+	writeJSON(w, http.StatusOK, entry)
+}
+
+func (h *Handler) deprecateComponent(w http.ResponseWriter, r *http.Request) {
+	code := chi.URLParam(r, "code")
+	if code == "" {
+		writeError(w, r, http.StatusBadRequest, "missing component code")
+		return
+	}
+	// Optional: read successor_code from query param or body
+	successorCode := r.URL.Query().Get("successor")
+	if err := h.repo.DeprecateComponent(r.Context(), code, successorCode); err != nil {
+		writeError(w, r, http.StatusNotFound, "component not found")
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // ─── Plugins ─────────────────────────────────────────────────────────────────

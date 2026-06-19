@@ -28,7 +28,8 @@ VALUES
     ('00000000-0000-0000-0003-000000000009', 'entity_schema.sale_order',      'entity_schema', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001'),
     ('00000000-0000-0000-0003-000000000010', 'entity_schema.service_order',   'entity_schema', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001'),
     ('00000000-0000-0000-0003-000000000011', 'entity_schema.purchase_order',  'entity_schema', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001'),
-    ('00000000-0000-0000-0003-000000000012', 'entity_schema.parts_request',   'entity_schema', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001')
+    ('00000000-0000-0000-0003-000000000012', 'entity_schema.parts_request',   'entity_schema', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001'),
+    ('00000000-0000-0000-0003-000000000013', 'entity_schema.product',         'entity_schema', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001')
 ON CONFLICT DO NOTHING;
 
 -- ============================================================================
@@ -290,6 +291,26 @@ VALUES
         "relationships": []
     }',
     true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
+),
+-- product
+(
+    '00000000-0000-0000-0006-000000000013',
+    '00000000-0000-0000-0003-000000000013',
+    1,
+    '{
+        "entity_key": "product",
+        "entity_label": "Product",
+        "fields": [
+            {"key": "item_code",  "label": "Item Code",  "type": "string",  "required": true},
+            {"key": "item_name",  "label": "Item Name",  "type": "string",  "required": true},
+            {"key": "item_type",  "label": "Item Type",  "type": "enum",    "required": false, "options": ["Consumable","Spare Part","Accessory","Lubricant","Tool"]},
+            {"key": "brand",      "label": "Brand",      "type": "string",  "required": false},
+            {"key": "category",   "label": "Category",   "type": "string",  "required": false},
+            {"key": "is_active",  "label": "Is Active",  "type": "boolean", "required": false}
+        ],
+        "relationships": []
+    }',
+    true, false, '00000000-0000-0000-0000-000000000001', NOW(), '00000000-0000-0000-0000-000000000001'
 )
 ON CONFLICT DO NOTHING;
 
@@ -504,6 +525,22 @@ VALUES
         "relationships": []
     }',
     'active', md5('parts_request:entity_schema:v1')
+),
+-- product
+(
+    'product', 'entity_schema', '00000000-0000-0000-0000-000000000001',
+    '{
+        "fields": [
+            {"key": "item_code",  "label": "Item Code",  "compiled_type": "string",  "required": true},
+            {"key": "item_name",  "label": "Item Name",  "compiled_type": "string",  "required": true},
+            {"key": "item_type",  "label": "Item Type",  "compiled_type": "enum",    "required": false, "options": ["Consumable","Spare Part","Accessory","Lubricant","Tool"]},
+            {"key": "brand",      "label": "Brand",      "compiled_type": "string",  "required": false},
+            {"key": "category",   "label": "Category",   "compiled_type": "string",  "required": false},
+            {"key": "is_active",  "label": "Is Active",  "compiled_type": "boolean", "required": false}
+        ],
+        "relationships": []
+    }',
+    'active', md5('product:entity_schema:v1')
 )
 ON CONFLICT DO NOTHING;
 

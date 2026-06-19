@@ -1,11 +1,13 @@
-import { useCallback } from 'react'
-import { Trash2, MousePointer2 } from 'lucide-react'
+import { useState, useCallback } from 'react'
+import { Trash2, MousePointer2, Plus, X } from 'lucide-react'
 import { Button } from '../../../design-system'
 import { useCanvasStore } from './useCanvasStore'
 import { useComponentRegistry } from '../../../hooks/useViewStudio'
+import { ExpressionEditor } from '../../../components/expression/ExpressionEditor'
 import { BindingEditor } from './BindingEditor'
 import { EventEditor } from './EventEditor'
 import { VisibilityRuleBuilder } from './VisibilityRuleBuilder'
+import { PermissionEditor } from './PermissionEditor'
 import type { ComponentNode } from '../../../types/viewStudio'
 
 function countNodes(node: ComponentNode | undefined | null): number {
@@ -22,7 +24,7 @@ export function PropertyPanel() {
   // ALL hooks must be called unconditionally — before any conditional return
   const node = selectedKey ? getNode(selectedKey) : null
   const registryEntry = node ? (registry ?? []).find(c => c.component_code === node.component_code) : undefined
-  const configSchema = registryEntry?.config_schema as { properties?: Record<string, SchemaProperty> } | undefined
+  const configSchema = registryEntry?.config_schema as { properties?: Record<string, SchemaProperty>; required?: string[] } | undefined
   const properties = configSchema?.properties ?? {}
 
   const handlePropChange = useCallback((key: string, value: unknown) => {
@@ -79,19 +81,31 @@ export function PropertyPanel() {
           className={`pp-tab ${panelMode === 'bindings' ? 'pp-tab--active' : ''}`}
           onClick={() => setPanelMode('bindings')}
         >
-          Bindings
+          {(() => {
+            const count = Object.keys(node.bindings ?? {}).length
+            return count > 0 ? `Bindings (${count})` : 'Bindings'
+          })()}
         </div>
         <div
           className={`pp-tab ${panelMode === 'events' ? 'pp-tab--active' : ''}`}
           onClick={() => setPanelMode('events')}
         >
-          Events
+          {(() => {
+            const count = (payload?.events ?? []).filter(e => e.source_field === selectedKey).length
+            return count > 0 ? `Events (${count})` : 'Events'
+          })()}
         </div>
         <div
           className={`pp-tab ${panelMode === 'visibility' ? 'pp-tab--active' : ''}`}
           onClick={() => setPanelMode('visibility')}
         >
           Visibility
+        </div>
+        <div
+          className={`pp-tab ${panelMode === 'permissions' ? 'pp-tab--active' : ''}`}
+          onClick={() => setPanelMode('permissions')}
+        >
+          Permissions
         </div>
       </div>
 
@@ -101,6 +115,7 @@ export function PropertyPanel() {
           properties={properties}
           currentProps={node.props ?? {}}
           onChange={handlePropChange}
+          configSchema={configSchema}
         />
       )}
       {panelMode === 'bindings' && (
@@ -111,6 +126,9 @@ export function PropertyPanel() {
       )}
       {panelMode === 'visibility' && (
         <VisibilityRuleBuilder />
+      )}
+      {panelMode === 'permissions' && (
+        <PermissionEditor />
       )}
     </div>
   )
@@ -123,7 +141,10 @@ interface SchemaProperty {
   enum?: string[]
   minimum?: number
   maximum?: number
-  items?: { type: string; enum?: string[] }
+  items?: { type: string; enum?: string[]; properties?: Record<string, unknown> }
+  description?: string
+  required?: boolean   // per-property required flag (mirrors x-required from validator)
+  pattern?: string     // HTML pattern attribute for text inputs
 }
 
 // ─── Properties Tab ──────────────────────────────────────────────────────────
@@ -132,14 +153,19 @@ function PropertiesTab({
   properties,
   currentProps,
   onChange,
+  configSchema,
 }: {
   properties: Record<string, SchemaProperty>
   currentProps: Record<string, unknown>
   onChange: (key: string, value: unknown) => void
+  configSchema?: { required?: string[] }
 }) {
   if (Object.keys(properties).length === 0) {
-    return <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>No configurable properties.</p>
+    return <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', padding: '8px 0' }}>No configurable properties.</p>
   }
+
+  // Merge top-level required array with per-property required flags
+  const topLevelRequired = new Set(configSchema?.required ?? [])
 
   return (
     <div className="pp-section">
@@ -148,7 +174,7 @@ function PropertiesTab({
         <PropertyField
           key={key}
           name={key}
-          schema={schema}
+          schema={{ ...schema, required: schema.required || topLevelRequired.has(key) }}
           value={currentProps[key]}
           onChange={(v) => onChange(key, v)}
         />
@@ -156,6 +182,22 @@ function PropertiesTab({
     </div>
   )
 }
+
+// ─── Common icon names from lucide-react ─────────────────────────────────────
+const COMMON_ICONS = [
+  'AlertTriangle', 'AlertCircle', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown',
+  'Bell', 'BellOff', 'Bookmark', 'BookOpen', 'Calendar', 'Check', 'CheckCircle',
+  'ChevronDown', 'ChevronRight', 'ChevronLeft', 'ChevronUp', 'Clock', 'Copy',
+  'CreditCard', 'Database', 'Download', 'Edit', 'Edit2', 'Eye', 'EyeOff',
+  'File', 'FileText', 'Filter', 'Flag', 'Globe', 'Grid', 'Heart', 'Home',
+  'Image', 'Info', 'Link', 'Link2', 'List', 'Lock', 'LogOut', 'Mail',
+  'Map', 'MapPin', 'Menu', 'MessageCircle', 'Moon', 'MoreHorizontal', 'MoreVertical',
+  'Package', 'Phone', 'Plus', 'PlusCircle', 'Print', 'RefreshCw', 'Save',
+  'Search', 'Settings', 'Share', 'Shield', 'ShoppingCart', 'Sliders', 'Star',
+  'Sun', 'Tag', 'Target', 'Trash', 'Trash2', 'TrendingUp', 'TrendingDown',
+  'Upload', 'User', 'UserPlus', 'Users', 'Wifi', 'X', 'XCircle',
+  'Zap', 'ZoomIn', 'ZoomOut',
+]
 
 function PropertyField({
   name,
@@ -169,15 +211,208 @@ function PropertyField({
   onChange: (v: unknown) => void
 }) {
   const label = name.replace(/_/g, ' ')
+  const requiredMark = schema.required
+    ? <span style={{ color: 'var(--error-fg, #ef4444)', marginLeft: 2 }} title="Required">*</span>
+    : null
 
+  // Render the field content based on type, then wrap with hint if description exists
+  const fieldContent = renderFieldContent(name, schema, label, requiredMark, value, onChange)
+
+  if (schema.description) {
+    return (
+      <>
+        {fieldContent}
+        <p className="pp-field__hint">{schema.description}</p>
+      </>
+    )
+  }
+  return fieldContent
+}
+
+function renderFieldContent(
+  name: string,
+  schema: SchemaProperty,
+  label: string,
+  requiredMark: React.ReactNode,
+  value: unknown,
+  onChange: (v: unknown) => void,
+): React.ReactElement {
+
+  // ── columns_array → ColumnArrayEditor ───────────────────────────────────
+  if (schema.type === 'columns_array') {
+    return (
+      <div className="pp-field pp-field--full">
+        <label className="pp-field__label">{label}{requiredMark}</label>
+        <ColumnArrayEditor
+          value={value as ColumnDef[] | undefined}
+          onChange={onChange}
+        />
+      </div>
+    )
+  }
+
+  // ── string_array → StringArrayEditor ────────────────────────────────────
+  if (schema.type === 'string_array') {
+    return (
+      <div className="pp-field pp-field--full">
+        <label className="pp-field__label">{label}{requiredMark}</label>
+        <StringArrayEditor
+          value={value as string[] | undefined}
+          onChange={onChange}
+        />
+      </div>
+    )
+  }
+
+  // ── object → ObjectEditor (key-value pairs, e.g. status_map) ─────────────
+  if (schema.type === 'object') {
+    return (
+      <div className="pp-field pp-field--full">
+        <label className="pp-field__label">{label}{requiredMark}</label>
+        <ObjectEditor
+          value={value as Record<string, string> | undefined}
+          onChange={onChange}
+          valuePlaceholder={schema.description ?? 'value'}
+        />
+      </div>
+    )
+  }
+
+  // ── structured_array → StructuredArrayEditor (array of objects) ───────────
+  if (schema.type === 'structured_array') {
+    const subProps = schema.items
+      ? (schema.items.properties
+          ? Object.keys(schema.items.properties)
+          : Object.keys(schema.items as Record<string, unknown>))
+      : ['label', 'value']
+    return (
+      <div className="pp-field pp-field--full">
+        <label className="pp-field__label">{label}{requiredMark}</label>
+        <StructuredArrayEditor
+          value={value as Array<Record<string, string>> | undefined}
+          fields={subProps}
+          onChange={onChange}
+        />
+      </div>
+    )
+  }
+
+  // ── array (generic) → StringArrayEditor or StructuredArrayEditor ──────────
+  if (schema.type === 'array') {
+    // If items has nested properties, use StructuredArrayEditor
+    if (schema.items && typeof schema.items === 'object' && schema.items.properties) {
+      const subProps = Object.keys(schema.items.properties)
+      return (
+        <div className="pp-field pp-field--full">
+          <label className="pp-field__label">{label}{requiredMark}</label>
+          <StructuredArrayEditor
+            value={value as Array<Record<string, string>> | undefined}
+            fields={subProps.length > 0 ? subProps : ['label', 'value']}
+            onChange={onChange}
+          />
+        </div>
+      )
+    }
+    // Otherwise use StringArrayEditor for simple string lists
+    return (
+      <div className="pp-field pp-field--full">
+        <label className="pp-field__label">{label}{requiredMark}</label>
+        <StringArrayEditor
+          value={value as string[] | undefined}
+          onChange={onChange}
+        />
+      </div>
+    )
+  }
+
+  // ── date → date input ─────────────────────────────────────────────────────
+  if (schema.type === 'date') {
+    return (
+      <div className="pp-field">
+        <label className="pp-field__label">{label}{requiredMark}</label>
+        <input
+          type="date"
+          className="pp-field__input"
+          value={(value as string) ?? ''}
+          onChange={e => onChange(e.target.value || undefined)}
+          data-testid={`prop-${name}`}
+        />
+      </div>
+    )
+  }
+
+  // ── color → color picker + hex input ─────────────────────────────────────
+  if (schema.type === 'color') {
+    const colorVal = (value as string) || '#000000'
+    return (
+      <div className="pp-field">
+        <label className="pp-field__label">{label}{requiredMark}</label>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <input
+            type="color"
+            value={colorVal.startsWith('#') ? colorVal : '#000000'}
+            onChange={e => onChange(e.target.value)}
+            data-testid={`prop-${name}-swatch`}
+            style={{ width: 36, height: 28, padding: 2, border: '1px solid var(--border-primary)', borderRadius: 4, cursor: 'pointer', background: 'none' }}
+          />
+          <input
+            type="text"
+            className="pp-field__input"
+            value={(value as string) ?? ''}
+            onChange={e => onChange(e.target.value || undefined)}
+            placeholder="#000000"
+            data-testid={`prop-${name}`}
+            style={{ flex: 1, fontFamily: 'monospace', fontSize: '0.75rem' }}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  // ── expression → Monaco expression editor ────────────────────────────────
+  if (schema.type === 'expression') {
+    return (
+      <div className="pp-field pp-field--full">
+        <label className="pp-field__label">{label}{requiredMark}</label>
+        <ExpressionEditor
+          value={(value as string) || ''}
+          onChange={v => onChange(v || undefined)}
+          height="80px"
+        />
+      </div>
+    )
+  }
+
+  // ── icon → icon name picker ───────────────────────────────────────────────
+  if (schema.type === 'icon') {
+    return (
+      <div className="pp-field">
+        <label className="pp-field__label">{label}{requiredMark}</label>
+        <select
+          className="pp-field__input"
+          value={(value as string) || ''}
+          onChange={e => onChange(e.target.value || undefined)}
+          data-testid={`prop-${name}`}
+        >
+          <option value="">— No icon —</option>
+          {COMMON_ICONS.map(icon => (
+            <option key={icon} value={icon}>{icon}</option>
+          ))}
+        </select>
+      </div>
+    )
+  }
+
+  // ── enum → select ────────────────────────────────────────────────────────
   if (schema.enum) {
     return (
       <div className="pp-field">
-        <label className="pp-field__label">{label}</label>
+        <label className="pp-field__label">{label}{requiredMark}</label>
         <select
           className="pp-field__input"
           value={(value as string) ?? ''}
-          onChange={e => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value || undefined)}
+          data-testid={`prop-${name}`}
         >
           <option value="">—</option>
           {schema.enum.map(opt => (
@@ -188,6 +423,7 @@ function PropertyField({
     )
   }
 
+  // ── boolean → checkbox ───────────────────────────────────────────────────
   if (schema.type === 'boolean') {
     return (
       <div className="pp-field" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -196,16 +432,20 @@ function PropertyField({
           checked={!!value}
           onChange={e => onChange(e.target.checked)}
           id={`prop-${name}`}
+          data-testid={`prop-${name}`}
         />
-        <label htmlFor={`prop-${name}`} className="pp-field__label" style={{ marginBottom: 0 }}>{label}</label>
+        <label htmlFor={`prop-${name}`} className="pp-field__label" style={{ marginBottom: 0 }}>
+          {label}{requiredMark}
+        </label>
       </div>
     )
   }
 
+  // ── integer / number ─────────────────────────────────────────────────────
   if (schema.type === 'integer' || schema.type === 'number') {
     return (
       <div className="pp-field">
-        <label className="pp-field__label">{label}</label>
+        <label className="pp-field__label">{label}{requiredMark}</label>
         <input
           type="number"
           className="pp-field__input"
@@ -213,21 +453,333 @@ function PropertyField({
           min={schema.minimum}
           max={schema.maximum}
           onChange={e => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+          data-testid={`prop-${name}`}
         />
       </div>
     )
   }
 
-  // Default: string input
+  // ── Default: string input ────────────────────────────────────────────────
   return (
     <div className="pp-field">
-      <label className="pp-field__label">{label}</label>
+      <label className="pp-field__label">{label}{requiredMark}</label>
       <input
         type="text"
         className="pp-field__input"
         value={(value as string) ?? ''}
         onChange={e => onChange(e.target.value || undefined)}
+        data-testid={`prop-${name}`}
+        pattern={schema.pattern}
+        title={schema.pattern ? `Must match pattern: ${schema.pattern}` : undefined}
       />
+    </div>
+  )
+}
+
+// ─── Object Editor (key → value map, e.g. status_map) ───────────────────────
+
+function ObjectEditor({
+  value,
+  onChange,
+  valuePlaceholder = 'value',
+}: {
+  value: Record<string, string> | undefined
+  onChange: (v: unknown) => void
+  valuePlaceholder?: string
+}) {
+  const entries = Object.entries(value ?? {})
+
+  function updateEntry(oldKey: string, newKey: string, val: string) {
+    const next: Record<string, string> = {}
+    for (const [k, v] of Object.entries(value ?? {})) {
+      if (k === oldKey) next[newKey] = val
+      else next[k] = v
+    }
+    onChange(Object.keys(next).length ? next : undefined)
+  }
+
+  function removeEntry(key: string) {
+    const next = { ...(value ?? {}) }
+    delete next[key]
+    onChange(Object.keys(next).length ? next : undefined)
+  }
+
+  function addEntry() {
+    onChange({ ...(value ?? {}), '': '' })
+  }
+
+  return (
+    <div className="pp-obj-editor" data-testid="object-editor">
+      {entries.length === 0 && (
+        <p style={{ fontSize: '0.75rem', color: 'var(--fg-tertiary)', marginBottom: 6 }}>No entries.</p>
+      )}
+      {entries.map(([k, v], i) => (
+        <div key={i} className="pp-obj-row" data-testid={`obj-row-${i}`}>
+          <input
+            className="pp-field__input pp-obj-row__key"
+            placeholder="key"
+            value={k}
+            onChange={e => updateEntry(k, e.target.value, v)}
+            data-testid={`obj-key-${i}`}
+          />
+          <span style={{ color: 'var(--fg-tertiary)', fontSize: '0.72rem' }}>→</span>
+          <input
+            className="pp-field__input pp-obj-row__val"
+            placeholder={valuePlaceholder}
+            value={v}
+            onChange={e => updateEntry(k, k, e.target.value)}
+            data-testid={`obj-val-${i}`}
+          />
+          <button
+            className="pp-col-row__delete"
+            onClick={() => removeEntry(k)}
+            title="Remove entry"
+            data-testid={`obj-delete-${i}`}
+          >
+            <X size={12} />
+          </button>
+        </div>
+      ))}
+      <button className="pp-col-add" onClick={addEntry} data-testid="obj-add">
+        <Plus size={13} /> Add Entry
+      </button>
+    </div>
+  )
+}
+
+// ─── Structured Array Editor (array of objects) ───────────────────────────────
+
+function StructuredArrayEditor({
+  value,
+  fields,
+  onChange,
+}: {
+  value: Array<Record<string, string>> | undefined
+  fields: string[]
+  onChange: (v: unknown) => void
+}) {
+  const rows = value ?? []
+
+  function updateRow(i: number, field: string, val: string) {
+    const next = rows.map((r, ri) => ri === i ? { ...r, [field]: val } : r)
+    onChange(next.length ? next : undefined)
+  }
+
+  function removeRow(i: number) {
+    const next = rows.filter((_, ri) => ri !== i)
+    onChange(next.length ? next : undefined)
+  }
+
+  function addRow() {
+    const empty: Record<string, string> = {}
+    fields.forEach(f => { empty[f] = '' })
+    onChange([...rows, empty])
+  }
+
+  return (
+    <div className="pp-col-editor" data-testid="structured-array-editor">
+      {rows.length === 0 && (
+        <p style={{ fontSize: '0.75rem', color: 'var(--fg-tertiary)', marginBottom: 6 }}>No items.</p>
+      )}
+      {rows.map((row, i) => (
+        <div key={i} className="pp-col-row" data-testid={`sarr-row-${i}`}>
+          <div className="pp-col-row__fields" style={{ flex: 1 }}>
+            {fields.slice(0, 3).map(f => (
+              <input
+                key={f}
+                className="pp-field__input pp-col-row__key"
+                placeholder={f}
+                value={row[f] ?? ''}
+                onChange={e => updateRow(i, f, e.target.value)}
+              />
+            ))}
+          </div>
+          <button
+            className="pp-col-row__delete"
+            onClick={() => removeRow(i)}
+            title="Remove"
+            data-testid={`sarr-delete-${i}`}
+          >
+            <X size={12} />
+          </button>
+        </div>
+      ))}
+      <button className="pp-col-add" onClick={addRow} data-testid="sarr-add">
+        <Plus size={13} /> Add Item
+      </button>
+    </div>
+  )
+}
+
+// ─── Column Array Editor ─────────────────────────────────────────────────────
+
+interface ColumnDef {
+  key: string
+  label: string
+  sortable?: boolean
+  filterable?: boolean
+  type?: string
+}
+
+const COLUMN_TYPES = ['string', 'boolean', 'number', 'date']
+
+function ColumnArrayEditor({
+  value,
+  onChange,
+}: {
+  value: ColumnDef[] | undefined
+  onChange: (v: unknown) => void
+}) {
+  const cols: ColumnDef[] = value ?? []
+
+  function updateCol(i: number, patch: Partial<ColumnDef>) {
+    const next = cols.map((c, idx) => idx === i ? { ...c, ...patch } : c)
+    onChange(next)
+  }
+
+  function addCol() {
+    onChange([...cols, { key: '', label: '', sortable: true, filterable: true, type: 'string' }])
+  }
+
+  function removeCol(i: number) {
+    onChange(cols.filter((_, idx) => idx !== i))
+  }
+
+  return (
+    <div className="pp-col-editor" data-testid="columns-editor">
+      {cols.length === 0 && (
+        <p style={{ fontSize: '0.75rem', color: 'var(--fg-tertiary)', marginBottom: 8 }}>
+          No columns configured. Click Add Column to start.
+        </p>
+      )}
+      {cols.map((col, i) => (
+        <div key={i} className="pp-col-row" data-testid={`col-row-${i}`}>
+          <div className="pp-col-row__fields">
+            <input
+              className="pp-field__input pp-col-row__key"
+              placeholder="field key"
+              value={col.key}
+              onChange={e => updateCol(i, { key: e.target.value })}
+              data-testid={`col-key-${i}`}
+            />
+            <input
+              className="pp-field__input pp-col-row__label"
+              placeholder="label"
+              value={col.label}
+              onChange={e => updateCol(i, { label: e.target.value })}
+              data-testid={`col-label-${i}`}
+            />
+            <select
+              className="pp-field__input pp-col-row__type"
+              value={col.type ?? 'string'}
+              onChange={e => updateCol(i, { type: e.target.value })}
+              data-testid={`col-type-${i}`}
+            >
+              {COLUMN_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div className="pp-col-row__flags">
+            <label className="pp-col-flag">
+              <input
+                type="checkbox"
+                checked={!!col.sortable}
+                onChange={e => updateCol(i, { sortable: e.target.checked })}
+                data-testid={`col-sortable-${i}`}
+              />
+              sort
+            </label>
+            <label className="pp-col-flag">
+              <input
+                type="checkbox"
+                checked={!!col.filterable}
+                onChange={e => updateCol(i, { filterable: e.target.checked })}
+                data-testid={`col-filterable-${i}`}
+              />
+              filter
+            </label>
+            <button
+              className="pp-col-row__delete"
+              onClick={() => removeCol(i)}
+              title="Remove column"
+              data-testid={`col-delete-${i}`}
+            >
+              <X size={12} />
+            </button>
+          </div>
+        </div>
+      ))}
+      <button
+        className="pp-col-add"
+        onClick={addCol}
+        data-testid="col-add"
+      >
+        <Plus size={13} /> Add Column
+      </button>
+    </div>
+  )
+}
+
+// ─── String Array Editor ──────────────────────────────────────────────────────
+
+function StringArrayEditor({
+  value,
+  onChange,
+}: {
+  value: string[] | undefined
+  onChange: (v: unknown) => void
+}) {
+  const [draft, setDraft] = useState('')
+  const items: string[] = value ?? []
+
+  function addItem() {
+    const trimmed = draft.trim()
+    if (!trimmed || items.includes(trimmed)) return
+    onChange([...items, trimmed])
+    setDraft('')
+  }
+
+  function removeItem(i: number) {
+    onChange(items.filter((_, idx) => idx !== i))
+  }
+
+  return (
+    <div className="pp-str-editor" data-testid="string-array-editor">
+      <div className="pp-str-editor__list">
+        {items.map((item, i) => (
+          <div key={i} className="pp-str-editor__item" data-testid={`str-item-${i}`}>
+            <span className="pp-str-editor__value">{item}</span>
+            <button
+              className="pp-col-row__delete"
+              onClick={() => removeItem(i)}
+              title="Remove"
+              data-testid={`str-delete-${i}`}
+            >
+              <X size={11} />
+            </button>
+          </div>
+        ))}
+        {items.length === 0 && (
+          <p style={{ fontSize: '0.75rem', color: 'var(--fg-tertiary)', marginBottom: 4 }}>No items.</p>
+        )}
+      </div>
+      <div className="pp-str-editor__add">
+        <input
+          type="text"
+          className="pp-field__input"
+          placeholder="field key or value"
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addItem() } }}
+          data-testid="str-add-input"
+        />
+        <button
+          className="pp-col-add"
+          onClick={addItem}
+          data-testid="str-add-btn"
+        >
+          <Plus size={13} />
+        </button>
+      </div>
     </div>
   )
 }

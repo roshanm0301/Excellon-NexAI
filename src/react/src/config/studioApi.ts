@@ -155,6 +155,9 @@ export interface EntityListResponse {
 export const listEntityRecords = (type: string, params?: Record<string, string>) =>
   studioFetch<EntityListResponse>(`/entities/${type}?${new URLSearchParams(params).toString()}`)
 
+export const getDistinctFieldValues = (type: string, fieldKey: string) =>
+  studioFetch<{ values: string[] }>(`/entities/${type}/distinct/${fieldKey}`)
+
 export const getEntityRecord = (type: string, id: string) =>
   studioFetch<EntityRecord>(`/entities/${type}/${id}`)
 

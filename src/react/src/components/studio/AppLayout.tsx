@@ -2,8 +2,9 @@ import { useState, type ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutGrid, Shield, Search, Bell, ChevronDown,
-  Menu, HelpCircle, Network, Layers, Code2, PanelTop,
+  Menu, HelpCircle, Network, Layers, Code2, PanelTop, Monitor,
 } from 'lucide-react'
+import { useViews } from '../../hooks/useViewStudio'
 
 interface NavItem {
   path: string
@@ -31,7 +32,17 @@ export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const active = ALL_NAV.find(n => location.pathname.startsWith(n.path))?.path ?? '/admin/entities'
+  // Fetch views for the SCREENS section.
+  // Double-filter: API status=published + client-side is_active guard so that
+  // views which were once published but are now archived/inactive never appear.
+  const { data: publishedViewsData } = useViews({ status: 'published', limit: 30 })
+  const publishedViews = (publishedViewsData?.items ?? []).filter(v => v.is_active === true)
+
+  // Active detection: handles both static nav items and dynamic /screens/:id paths
+  const isScreenActive = location.pathname.startsWith('/screens/')
+  const active = isScreenActive
+    ? location.pathname
+    : ALL_NAV.find(n => location.pathname.startsWith(n.path))?.path ?? '/admin/entities'
 
   function renderNavItem(item: NavItem) {
     const isActive = active === item.path
@@ -80,6 +91,32 @@ export function AppLayout() {
           {!collapsed && <div className="ex-nav-h" style={{ marginTop: 16 }}>Admin</div>}
           {collapsed && <div style={{ height: 8 }} />}
           {ADMIN_NAV.map(renderNavItem)}
+
+          {/* ── Screens section — dynamic list of published views ── */}
+          {!collapsed && <div className="ex-nav-h" style={{ marginTop: 16 }}>Screens</div>}
+          {collapsed && <div style={{ height: 8 }} />}
+          {publishedViews.length === 0 && !collapsed && (
+            <div className="ex-nav-empty">No published screens yet</div>
+          )}
+          {publishedViews.map(view => {
+            const path = `/screens/${view.artifact_id}`
+            const isActive = location.pathname === path
+            const label = view.view_label ?? view.view_code ?? 'Screen'
+            return (
+              <button
+                key={view.artifact_id}
+                className={`ex-nav-item${isActive ? ' active' : ''}`}
+                data-testid={`screens-nav-item-${view.artifact_id}`}
+                onClick={() => navigate(path, {
+                  state: { label, entity: view.primary_entity },
+                })}
+                title={collapsed ? label : undefined}
+              >
+                <Monitor size={18} />
+                {!collapsed && <span className="lbl">{label}</span>}
+              </button>
+            )
+          })}
         </nav>
 
         {/* Footer tip */}

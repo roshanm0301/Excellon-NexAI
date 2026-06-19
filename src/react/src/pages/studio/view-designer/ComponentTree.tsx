@@ -4,6 +4,9 @@ import { useCanvasStore } from './useCanvasStore'
 import { TreeContextMenu } from './TreeContextMenu'
 import type { ComponentNode } from '../../../types/viewStudio'
 
+// MIME type for tree-internal reorder drags (distinct from palette → tree drags)
+const TREE_NODE_MIME = 'application/x-tree-node-key'
+
 interface ComponentTreeProps {
   tree: ComponentNode
 }
@@ -22,8 +25,9 @@ interface TreeNodeProps {
 }
 
 function TreeNode({ node, depth }: TreeNodeProps) {
-  const { selectedKey, hoveredKey, select, hover, removeNode, duplicateNode, insertNode, canInsertChild } = useCanvasStore()
+  const { selectedKey, hoveredKey, select, hover, removeNode, duplicateNode, insertNode, canInsertChild, moveNode } = useCanvasStore()
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+  const [isDragOver, setIsDragOver] = useState(false)
 
   const isSelected = selectedKey === node.component_key
   const isHovered = hoveredKey === node.component_key
@@ -82,16 +86,96 @@ function TreeNode({ node, depth }: TreeNodeProps) {
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
-    const code = e.dataTransfer.types.includes('application/x-component-code')
-      ? e.dataTransfer.getData('application/x-component-code')
-      : ''
-    e.dataTransfer.dropEffect = (!code || canInsertChild(node.component_key, code)) ? 'copy' : 'none'
+    // Palette → tree: component code drag
+    if (e.dataTransfer.types.includes('application/x-component-code')) {
+      const code = e.dataTransfer.getData('application/x-component-code')
+      e.dataTransfer.dropEffect = (!code || canInsertChild(node.component_key, code)) ? 'copy' : 'none'
+      return
+    }
+    // Tree reorder drag
+    if (e.dataTransfer.types.includes(TREE_NODE_MIME)) {
+      e.dataTransfer.dropEffect = 'move'
+      setIsDragOver(true)
+    }
   }, [node.component_key, canInsertChild])
+
+  const handleDragLeave = useCallback(() => {
+    setIsDragOver(false)
+  }, [])
+
+  // ── Tree-reorder: drag the GripVertical of this node ─────────────────────
+  const handleNodeDragStart = useCallback((e: React.DragEvent) => {
+    if (node.component_code === 'page_root') { e.preventDefault(); return }
+    e.stopPropagation()
+    e.dataTransfer.setData(TREE_NODE_MIME, node.component_key)
+    e.dataTransfer.effectAllowed = 'move'
+  }, [node.component_key, node.component_code])
+
+  const handleNodeDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+
+    // Only handle tree-reorder drops
+    const draggedKey = e.dataTransfer.getData(TREE_NODE_MIME)
+    if (!draggedKey || draggedKey === node.component_key) return
+
+    // Don't allow dropping on page_root (it has no parent to insert into as sibling)
+    if (node.component_code === 'page_root') return
+
+    // Read from the store payload to do lookups
+    const state = useCanvasStore.getState()
+    if (!state.payload) return
+
+    // ── Cycle detection: prevent dragging a node onto one of its own descendants ──
+    function containsKey(tree: ComponentNode, key: string): boolean {
+      if (tree.component_key === key) return true
+      return (tree.children ?? []).some(c => containsKey(c, key))
+    }
+    // Find the dragged node and check if drop target is inside it
+    function findNode(tree: ComponentNode, key: string): ComponentNode | null {
+      if (tree.component_key === key) return tree
+      for (const child of tree.children ?? []) {
+        const found = findNode(child, key)
+        if (found) return found
+      }
+      return null
+    }
+    const draggedNode = findNode(state.payload.component_tree, draggedKey)
+    if (draggedNode && containsKey(draggedNode, node.component_key)) {
+      // Drop target is inside the dragged node — would create a cycle; silently reject
+      return
+    }
+
+    function findParent(tree: ComponentNode, key: string): ComponentNode | null {
+      for (const child of tree.children ?? []) {
+        if (child.component_key === key) return tree
+        const found = findParent(child, key)
+        if (found) return found
+      }
+      return null
+    }
+
+    const parent = findParent(state.payload.component_tree, node.component_key)
+    if (!parent) return
+
+    // Validate that the dragged node can be a sibling (same parent) — check parent allows it
+    if (draggedNode && !canInsertChild(parent.component_key, draggedNode.component_code)) {
+      return
+    }
+
+    const targetIdx = (parent.children ?? []).findIndex(c => c.component_key === node.component_key)
+    if (targetIdx < 0) return
+
+    // Move dragged node to be a sibling just before the drop target
+    moveNode(draggedKey, parent.component_key, targetIdx)
+  }, [node.component_key, node.component_code, moveNode, canInsertChild])
 
   const classNames = [
     'ct-node',
     isSelected && 'ct-node--selected',
     isHovered && !isSelected && 'ct-node--hovered',
+    isDragOver && 'ct-node--drag-over',
   ].filter(Boolean).join(' ')
 
   return (
@@ -99,8 +183,16 @@ function TreeNode({ node, depth }: TreeNodeProps) {
       className={classNames}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onDrop={handleDrop}
+      onDrop={(e) => {
+        // Route to tree-reorder or palette-insert depending on MIME type
+        if (e.dataTransfer.types.includes(TREE_NODE_MIME)) {
+          handleNodeDrop(e)
+        } else {
+          handleDrop(e)
+        }
+      }}
       onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
       style={{ marginLeft: depth > 0 ? '0.25rem' : 0 }}
     >
       <div
@@ -109,7 +201,16 @@ function TreeNode({ node, depth }: TreeNodeProps) {
         onContextMenu={handleContextMenu}
         data-component-key={node.component_key}
       >
-        {depth > 0 && <GripVertical size={12} style={{ opacity: 0.4, cursor: 'grab' }} />}
+        {depth > 0 && (
+          <GripVertical
+            size={12}
+            style={{ opacity: 0.4, cursor: 'grab', flexShrink: 0 }}
+            draggable
+            onDragStart={handleNodeDragStart}
+            // Prevent the click from propagating to the node header select
+            onClick={(e) => e.stopPropagation()}
+          />
+        )}
         <span>{node.label || node.component_code}</span>
         <span className="ct-node__code">{node.component_code}</span>
 

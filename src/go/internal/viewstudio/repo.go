@@ -661,6 +661,119 @@ func (r *Repo) GetComponent(ctx context.Context, code string) (*ComponentEntry, 
 	return &e, nil
 }
 
+func (r *Repo) CreateComponent(ctx context.Context, req CreateComponentRequest) (*ComponentEntry, error) {
+	setDefault := func(v json.RawMessage, def string) json.RawMessage {
+		if len(v) == 0 {
+			return json.RawMessage(def)
+		}
+		return v
+	}
+	surfaces := setDefault(req.SupportedSurfaces, `["all"]`)
+	bindings := setDefault(req.SupportedBindings, `[]`)
+	parents := setDefault(req.AllowedParents, `["all"]`)
+	children := setDefault(req.AllowedChildren, `[]`)
+	schema := setDefault(req.ConfigSchema, `{}`)
+	props := setDefault(req.DefaultProps, `{}`)
+	events := setDefault(req.EventSupport, `{"emits":[],"handles":[]}`)
+	rules := setDefault(req.ValidationRules, `[]`)
+
+	const q = `
+		INSERT INTO ui_component_registry
+		  (component_code, component_name, category, version, source,
+		   supported_surfaces, supported_bindings, is_container, allowed_parents, allowed_children,
+		   config_schema, default_props, event_support, validation_rules,
+		   runtime_renderer, designer_panel, preview_support)
+		VALUES ($1,$2,$3,$4,$5, $6,$7,$8,$9,$10, $11,$12,$13,$14, $15,$16,$17)
+		RETURNING component_code`
+	var code string
+	err := r.pool.QueryRow(ctx, q,
+		req.ComponentCode, req.ComponentName, req.Category, req.Version, req.Source,
+		surfaces, bindings, req.IsContainer, parents, children,
+		schema, props, events, rules,
+		req.RuntimeRenderer, req.DesignerPanel, req.PreviewSupport,
+	).Scan(&code)
+	if err != nil {
+		return nil, fmt.Errorf("viewstudio: create component: %w", err)
+	}
+	return r.GetComponent(ctx, code)
+}
+
+func (r *Repo) UpdateComponent(ctx context.Context, code string, req UpdateComponentRequest) (*ComponentEntry, error) {
+	// Build dynamic SET clauses for only the fields that are provided
+	var setClauses []string
+	args := []interface{}{}
+	argIdx := 1
+
+	addField := func(col string, val interface{}) {
+		setClauses = append(setClauses, fmt.Sprintf("%s = $%d", col, argIdx))
+		args = append(args, val)
+		argIdx++
+	}
+
+	if len(req.SupportedSurfaces) > 0 { addField("supported_surfaces", req.SupportedSurfaces) }
+	if len(req.SupportedBindings) > 0 { addField("supported_bindings", req.SupportedBindings) }
+	if len(req.AllowedParents) > 0     { addField("allowed_parents", req.AllowedParents) }
+	if len(req.AllowedChildren) > 0    { addField("allowed_children", req.AllowedChildren) }
+	if len(req.ConfigSchema) > 0       { addField("config_schema", req.ConfigSchema) }
+	if len(req.DefaultProps) > 0       { addField("default_props", req.DefaultProps) }
+	if len(req.EventSupport) > 0       { addField("event_support", req.EventSupport) }
+	if len(req.ValidationRules) > 0    { addField("validation_rules", req.ValidationRules) }
+	if req.IsContainer != nil          { addField("is_container", *req.IsContainer) }
+	if req.RuntimeRenderer != nil      { addField("runtime_renderer", *req.RuntimeRenderer) }
+	if req.DesignerPanel != nil        { addField("designer_panel", *req.DesignerPanel) }
+	if req.PreviewSupport != nil       { addField("preview_support", *req.PreviewSupport) }
+
+	if len(setClauses) == 0 {
+		// Nothing to update
+		return r.GetComponent(ctx, code)
+	}
+
+	args = append(args, code)
+	q := fmt.Sprintf(`UPDATE ui_component_registry SET %s WHERE component_code = $%d`,
+		joinSlice(setClauses, ", "), argIdx)
+
+	tag, err := r.pool.Exec(ctx, q, args...)
+	if err != nil {
+		return nil, fmt.Errorf("viewstudio: update component: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return nil, fmt.Errorf("viewstudio: component %q not found", code)
+	}
+	return r.GetComponent(ctx, code)
+}
+
+func (r *Repo) DeprecateComponent(ctx context.Context, code string, successorCode string) error {
+	var q string
+	var args []interface{}
+	if successorCode != "" {
+		q = `UPDATE ui_component_registry SET deprecated_at = NOW(), successor_code = $1, is_active = false WHERE component_code = $2`
+		args = []interface{}{successorCode, code}
+	} else {
+		q = `UPDATE ui_component_registry SET deprecated_at = NOW(), is_active = false WHERE component_code = $1`
+		args = []interface{}{code}
+	}
+	tag, err := r.pool.Exec(ctx, q, args...)
+	if err != nil {
+		return fmt.Errorf("viewstudio: deprecate component: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("viewstudio: component %q not found", code)
+	}
+	return nil
+}
+
+// joinSlice is a local helper (strings.Join would work too but kept local for clarity)
+func joinSlice(ss []string, sep string) string {
+	result := ""
+	for i, s := range ss {
+		if i > 0 {
+			result += sep
+		}
+		result += s
+	}
+	return result
+}
+
 // ─── Plugins ─────────────────────────────────────────────────────────────────
 
 func (r *Repo) ListPlugins(ctx context.Context, tenantID string) ([]Plugin, error) {
@@ -842,6 +955,7 @@ func (r *Repo) GetEntityFields(ctx context.Context, tenantID, entityType string)
 			FieldType: f.CompiledType,
 			Required:  f.Required,
 			ReadOnly:  f.Expression != "",
+			Options:   f.Options,
 		})
 	}
 	for _, rel := range schema.Relationships {
@@ -865,11 +979,12 @@ func (r *Repo) GetEntityFields(ctx context.Context, tenantID, entityType string)
 
 // compiledFieldRaw is the minimal shape of a compiled field we need here.
 type compiledFieldRaw struct {
-	Key          string `json:"key"`
-	Label        string `json:"label"`
-	CompiledType string `json:"compiled_type"`
-	Required     bool   `json:"required"`
-	Expression   string `json:"expression,omitempty"`
+	Key          string   `json:"key"`
+	Label        string   `json:"label"`
+	CompiledType string   `json:"compiled_type"`
+	Required     bool     `json:"required"`
+	Expression   string   `json:"expression,omitempty"`
+	Options      []string `json:"options,omitempty"`
 }
 
 // ─── Duplicate ───────────────────────────────────────────────────────────────

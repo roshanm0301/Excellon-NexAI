@@ -374,6 +374,14 @@ body {
   padding: 4px 8px;
 }
 
+.ex-nav-empty {
+  font-size: 0.7rem;
+  color: var(--fg-tertiary);
+  padding: 3px 10px;
+  font-style: italic;
+  opacity: 0.7;
+}
+
 .ex-nav-item {
   display: flex;
   align-items: center;

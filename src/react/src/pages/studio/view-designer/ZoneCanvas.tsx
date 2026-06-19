@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { useCanvasStore } from './useCanvasStore'
 import { useComponentRegistry } from '../../../hooks/useViewStudio'
+import { useToast } from '../../../design-system'
 import type { ComponentNode, ComponentRegistryEntry, FieldBinding } from '../../../types/viewStudio'
 import { FIELD_TYPE_TO_COMPONENT, type FieldDragData } from './EntityFieldPicker'
 
@@ -37,8 +38,9 @@ function formatLabel(code: string) {
 export function ZoneCanvas() {
   const {
     payload, selectedKey, hoveredKey, primaryEntity,
-    select, hover, insertNode, updateNodeBindings, canInsertChild,
+    select, hover, insertNode, updateNodeBindings, canInsertChild, canInsertChildWithReason,
   } = useCanvasStore()
+  const { addToast } = useToast()
   const { data: registry = [] } = useComponentRegistry()
 
   // Track which containers are expanded (pre-expand level-1 children of page_root)
@@ -71,11 +73,19 @@ export function ZoneCanvas() {
       e.preventDefault()
       e.stopPropagation()
       const isField = e.dataTransfer.types.includes('application/x-entity-field')
-      const code = e.dataTransfer.types.includes('application/x-component-code')
-        ? e.dataTransfer.getData('application/x-component-code')
-        : ''
-      // For field drops, assume valid (we don't know the component code until drop)
-      const valid = isField ? true : (code ? canInsertChild(targetKey, code) : true)
+      let valid = true
+      if (isField) {
+        // Check if ANY possible field-mapped component can be placed in this target.
+        // (We cannot call getData for field content during dragover in all browsers,
+        //  so we check if at least one field component type is allowed here.)
+        const fieldComponentCodes = Object.values(FIELD_TYPE_TO_COMPONENT) as string[]
+        valid = fieldComponentCodes.some(code => canInsertChild(targetKey, code))
+      } else {
+        const code = e.dataTransfer.types.includes('application/x-component-code')
+          ? e.dataTransfer.getData('application/x-component-code')
+          : ''
+        valid = code ? canInsertChild(targetKey, code) : true
+      }
       e.dataTransfer.dropEffect = valid ? 'copy' : 'none'
       setDropTarget({ key: targetKey, valid })
     }
@@ -103,7 +113,13 @@ export function ZoneCanvas() {
         let fieldData: FieldDragData
         try { fieldData = JSON.parse(fieldDataRaw) } catch { return }
         const componentCode = FIELD_TYPE_TO_COMPONENT[fieldData.field_type] ?? 'text_input'
-        if (!canInsertChild(targetKey, componentCode)) return
+        const fieldInsertCheck = canInsertChildWithReason(targetKey, componentCode)
+        if (!fieldInsertCheck.allowed) {
+          if (fieldInsertCheck.reason) {
+            addToast({ type: 'warning', message: `Field "${fieldData.label}": ${fieldInsertCheck.reason}` })
+          }
+          return
+        }
         const newKey = `${componentCode}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`
         insertNode(targetKey, {
           component_key: newKey,
@@ -126,7 +142,13 @@ export function ZoneCanvas() {
       const code = e.dataTransfer.getData('application/x-component-code')
       const name = e.dataTransfer.getData('application/x-component-name')
       if (!code) return
-      if (!canInsertChild(targetKey, code)) return
+      const insertCheck = canInsertChildWithReason(targetKey, code)
+      if (!insertCheck.allowed) {
+        if (insertCheck.reason) {
+          addToast({ type: 'warning', message: insertCheck.reason })
+        }
+        return
+      }
       const newKey = `${code}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`
       insertNode(targetKey, {
         component_key: newKey,
@@ -235,14 +257,21 @@ function ZoneCard({
   const children = node.children ?? []
 
   return (
-    <div className="zc-zone" data-testid="zone-card">
-      <div className="zc-zone__header">
+    <div className="zc-zone" data-testid="zone-card" data-component-key={node.component_key} data-component-code={node.component_code}>
+      <div
+        className="zc-zone__header"
+        onClick={(e) => { e.stopPropagation(); onSelect(node.component_key) }}
+        style={{ cursor: 'pointer' }}
+        title="Click to select and edit properties"
+      >
         <span className="zc-zone__label">{node.label || formatLabel(node.component_code)}</span>
         <span className="zc-zone__type">{node.component_code}</span>
       </div>
       <div
         className={bodyClass}
         data-testid="zone-body"
+        data-component-key={node.component_key}
+        data-component-code={node.component_code}
         onDragOver={onDragOver(node.component_key)}
         onDragLeave={onDragLeave()}
         onDrop={onDrop(node.component_key)}

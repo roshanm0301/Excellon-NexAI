@@ -60,7 +60,7 @@ export function ComponentPalette() {
   const [infoTarget, setInfoTarget] = useState<InfoTarget | null>(null)
 
   const { data: components } = useComponentRegistry()
-  const { insertNode, payload, canInsertChild, surfaceType } = useCanvasStore()
+  const { insertNode, payload, canInsertChild, surfaceType, selectedKey, getNode } = useCanvasStore()
 
   const grouped = useMemo(() => {
     const all = (components ?? []).filter(c => c.component_code !== 'page_root')
@@ -71,17 +71,34 @@ export function ComponentPalette() {
         )
       : all
 
-    const bySurface = filterMode === 'compatible'
-      ? bySearch.filter(c => isCompatible(c, surfaceType))
+    // Compatible mode: filter by surface type only — no strikethrough, no disabled states.
+    // When a specific container is selected, also filter by what that container allows.
+    // All mode: show every component without any filtering.
+    const filtered = filterMode === 'compatible'
+      ? bySearch.filter(c => {
+          // 1. Surface compatibility
+          if (!isCompatible(c, surfaceType)) return false
+          // 2. Parent context — only apply when a specific non-root container is selected
+          const selectedNode = selectedKey ? getNode(selectedKey) : null
+          const selectedEntry = selectedNode
+            ? (components ?? []).find(r => r.component_code === selectedNode.component_code)
+            : null
+          if (selectedKey && selectedEntry?.is_container) {
+            // A container is explicitly selected — filter to what it allows
+            return canInsertChild(selectedKey, c.component_code)
+          }
+          // No specific container selected — show all surface-compatible items
+          return true
+        })
       : bySearch
 
     const groups: Record<string, ComponentRegistryEntry[]> = {}
-    for (const item of bySurface) {
+    for (const item of filtered) {
       if (!groups[item.category]) groups[item.category] = []
       groups[item.category].push(item)
     }
     return groups
-  }, [components, search, filterMode, surfaceType])
+  }, [components, search, filterMode, surfaceType, selectedKey, canInsertChild, getNode])
 
   const totalFiltered = useMemo(
     () => Object.values(grouped).reduce((sum, arr) => sum + arr.length, 0),
@@ -196,19 +213,14 @@ export function ComponentPalette() {
             {!isCollapsed && (
               <div className="cp-category__items">
                 {items.map(c => {
-                  const rootKey = payload?.component_tree?.component_key ?? ''
-                  const rootAllowed = !rootKey || canInsertChild(rootKey, c.component_code)
                   return (
                     <div
                       key={c.component_code}
-                      className={`cp-item${rootAllowed ? '' : ' cp-item--disabled'}`}
-                      draggable={rootAllowed}
-                      onDragStart={e => rootAllowed ? handleDragStart(e, c) : e.preventDefault()}
-                      onDoubleClick={() => rootAllowed && handleDoubleClick(c)}
-                      title={rootAllowed
-                        ? `${c.component_name} — double-click or drag to add`
-                        : `${c.component_name} — cannot be placed here`}
-                      aria-disabled={!rootAllowed}
+                      className="cp-item"
+                      draggable
+                      onDragStart={e => handleDragStart(e, c)}
+                      onDoubleClick={() => handleDoubleClick(c)}
+                      title={`${c.component_name} — double-click or drag to add`}
                     >
                       <Icon size={14} className="cp-item__icon" />
                       <span className="cp-item__name">{c.component_name}</span>
