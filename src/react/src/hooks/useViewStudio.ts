@@ -20,6 +20,7 @@ import {
   getViewStats,
   duplicateView,
   unpublishView,
+  deleteArtifact,
 } from '../config/studioApi'
 import type {
   ViewListParams,
@@ -132,6 +133,17 @@ export function useArchiveView() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (viewKey: string) => archiveView(viewKey),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['views'] })
+      qc.invalidateQueries({ queryKey: ['view-stats'] })
+    },
+  })
+}
+
+export function useDeleteViewPermanently() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (artifactId: string) => deleteArtifact(artifactId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['views'] })
       qc.invalidateQueries({ queryKey: ['view-stats'] })

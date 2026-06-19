@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Save, Undo2, Redo2, Eye, Upload, ChevronLeft, AlertTriangle, CheckCircle2, Settings, BookOpen, HelpCircle } from 'lucide-react'
+import { Save, Undo2, Redo2, Eye, Upload, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle2, Settings, BookOpen, HelpCircle } from 'lucide-react'
 import { Button, Spinner, useToast } from '../../../design-system'
 import { useView, useSaveDraft, usePublishView, useComponentRegistry } from '../../../hooks/useViewStudio'
 import { useCanvasStore } from './useCanvasStore'
@@ -29,7 +29,7 @@ export function ViewDesignerPage() {
   const {
     setView, reset, isDirty, payload, previewMode,
     togglePreview, undo, redo, canUndo, canRedo,
-    paletteOpen, selectedKey, setRegistry,
+    paletteOpen, togglePalette, selectedKey, setRegistry,
     select, getNode, removeNode, duplicateNode, moveNodeUp, moveNodeDown,
   } = useCanvasStore()
 
@@ -356,6 +356,16 @@ export function ViewDesignerPage() {
           <aside className="vd-sidebar vd-sidebar--left">
             <LeftRail />
           </aside>
+        )}
+        {!paletteOpen && !previewMode && (
+          <button
+            className="vd-expand-rail"
+            onClick={togglePalette}
+            title="Expand panel"
+            aria-label="Expand left panel"
+          >
+            <ChevronRight size={14} />
+          </button>
         )}
 
         {/* Center: Canvas / Tree / Preview */}

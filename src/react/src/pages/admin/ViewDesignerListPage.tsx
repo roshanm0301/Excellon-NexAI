@@ -11,7 +11,7 @@ import {
 } from '../../design-system'
 import {
   useViews, useArchiveView, useCreateView, useEntityTypes, useViewStats,
-  usePublishViewById, useDuplicateView, useUnpublishView,
+  usePublishViewById, useDuplicateView, useUnpublishView, useDeleteViewPermanently,
 } from '../../hooks/useViewStudio'
 import type { View, SurfaceType, CreateViewRequest } from '../../types/viewStudio'
 import { SURFACE_TYPES, SURFACE_TYPE_META } from '../../types/viewStudio'
@@ -95,6 +95,7 @@ export function ViewDesignerListPage() {
   const [viewSearch, setViewSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [deleteTarget, setDeleteTarget] = useState<View | null>(null)
+  const [permanentDeleteTarget, setPermanentDeleteTarget] = useState<View | null>(null)
   const [confirmUnpublish, setConfirmUnpublish] = useState<View | null>(null)
   const [creating, setCreating] = useState(false)
   const [preselectedEntity, setPreselectedEntity] = useState<string | null>(null)
@@ -119,6 +120,7 @@ export function ViewDesignerListPage() {
   })
 
   const archiveMut = useArchiveView()
+  const deletePermanentlyMut = useDeleteViewPermanently()
   const createMut = useCreateView()
   const publishMut = usePublishViewById()
   const duplicateMut = useDuplicateView()
@@ -271,6 +273,17 @@ export function ViewDesignerListPage() {
     })
   }
 
+  function handlePermanentDelete() {
+    if (!permanentDeleteTarget) return
+    deletePermanentlyMut.mutate(permanentDeleteTarget.artifact_id, {
+      onSuccess: () => {
+        success('Deleted', `${permanentDeleteTarget.view_label ?? permanentDeleteTarget.artifact_name} permanently deleted`)
+        setPermanentDeleteTarget(null)
+      },
+      onError: () => error('Failed', 'Could not delete view'),
+    })
+  }
+
   function handleUnpublish() {
     if (!confirmUnpublish) return
     unpublishMut.mutate(confirmUnpublish.artifact_id, {
@@ -309,9 +322,13 @@ export function ViewDesignerListPage() {
           }),
         },
       {
-        label: 'Delete',
-        variant: 'danger' as const,
+        label: 'Archive',
         onClick: () => setDeleteTarget(row),
+      },
+      {
+        label: 'Delete Permanently',
+        variant: 'danger' as const,
+        onClick: () => setPermanentDeleteTarget(row),
       },
     ]
   }
@@ -808,6 +825,19 @@ export function ViewDesignerListPage() {
         message={`Are you sure you want to archive "${deleteTarget?.view_label ?? deleteTarget?.artifact_name}"? This will deactivate the published version.`}
         confirmLabel="Archive"
         danger={true}
+        loading={archiveMut.isPending}
+      />
+
+      {/* ── Permanent Delete Confirm ── */}
+      <ConfirmDialog
+        open={!!permanentDeleteTarget}
+        onClose={() => setPermanentDeleteTarget(null)}
+        onConfirm={handlePermanentDelete}
+        title="Delete View Permanently"
+        message={`This will permanently delete "${permanentDeleteTarget?.view_label ?? permanentDeleteTarget?.artifact_name}" and all its versions. This action cannot be undone.`}
+        confirmLabel="Delete Permanently"
+        danger={true}
+        loading={deletePermanentlyMut.isPending}
       />
 
       {/* ── Unpublish Confirm ── */}

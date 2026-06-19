@@ -106,6 +106,25 @@
   width: 260px;
 }
 
+.vd-expand-rail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  flex-shrink: 0;
+  border: none;
+  border-right: 1px solid var(--color-border, #e2e8f0);
+  background: var(--bg-primary, #fff);
+  color: var(--fg-tertiary, #94a3b8);
+  cursor: pointer;
+  transition: background 120ms, color 120ms;
+}
+
+.vd-expand-rail:hover {
+  background: var(--bg-secondary, #f8fafc);
+  color: var(--fg-primary, #1e293b);
+}
+
 .vd-sidebar--right {
   width: 280px;
   border-right: none;
