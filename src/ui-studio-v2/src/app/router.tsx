@@ -7,7 +7,6 @@ import { Route as settingsRoute } from "@/routes/settings"
 import { Route as editorAppRoute } from "@/routes/editor.$appId"
 import { Route as editorPageRoute } from "@/routes/editor.$appId.$pageId"
 
-// Phase 4 §4 — TanStack Router instance; search-param validation added in Prompt 04
 const routeTree = rootRoute.addChildren([
   indexRoute,
   homeRoute,
@@ -16,7 +15,10 @@ const routeTree = rootRoute.addChildren([
   editorAppRoute.addChildren([editorPageRoute]),
 ])
 
-export const router = createRouter({ routeTree })
+export const router = createRouter({
+  routeTree,
+  defaultPreload: "intent",
+})
 
 declare module "@tanstack/react-router" {
   interface Register {

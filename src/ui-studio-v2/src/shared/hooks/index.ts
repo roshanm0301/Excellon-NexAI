@@ -1,2 +1,2 @@
-// Phase 4 §1 — shared/hooks
-export {}
+// Phase 4 §4 — shared/hooks barrel
+export { useCascadeNav } from "./use-cascade-nav"
