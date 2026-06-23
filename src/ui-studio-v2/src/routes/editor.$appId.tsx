@@ -6,6 +6,7 @@ import { queryClient } from "@/shared/query/client"
 import { qk } from "@/shared/query/keys"
 import { services } from "@/services"
 import type { CascadeLevel, Env } from "@/domain/types"
+import { ShellLayout } from "@/features/shell"
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
@@ -44,6 +45,6 @@ export const Route = createRoute({
     }
   },
   component: function EditorAppPage() {
-    return null
+    return <ShellLayout />
   },
 })

@@ -22,13 +22,13 @@ The Design System Engine defines the **single UI vocabulary** `[L32]`: the close
 ## 6.4 The semantic component catalogue (canonical, closed set)
 Components are **semantic**, not implementation-named. The catalogue is closed `[L32]`: only registered types are valid `semanticType` values in the Meta Model. Starter catalogue (extensible only via governed registration, Doc 10):
 
-| Category | Semantic types (starter) |
+| Category | Semantic types (canonical, v1) |
 |---|---|
-| Foundation | Container, Stack, Grid, Section, Splitter, Tabs |
-| Data Entry | FormField, Select, Autocomplete, DatePicker, NumberField, FileUpload, Toggle |
-| Data Display | DataTable, List, Card, KpiCard, Chart, Tree, StatusChip, Badge |
+| Foundation | Container, Stack, Grid, Section, Splitter, Tabs, Separator |
+| Data Entry | FormField, Select, Autocomplete, DatePicker, NumberField, FileUpload, Toggle, TextArea, Checkbox, RadioGroup |
+| Data Display | DataTable, List, Card, KpiCard, Chart, Tree, StatusChip, Badge, Avatar, Alert, DescriptionList |
 | Workflow | TaskInbox, ApprovalPanel, ProcessTimeline, TransitionButton |
-| Navigation/Action | Button, MenuButton, Breadcrumb, Link |
+| Navigation | Button, MenuButton, Breadcrumb, Link, Toolbar |
 | Enterprise | ObjectHeader, MasterDetail, Dashboard, WorkspaceShell, Stepper |
 
 Each type declares a **contract**: prop schema (typed), slots/children, bindable properties, accessibility defaults `[L35]`, responsive behavior `[L36]`, events emitted.
