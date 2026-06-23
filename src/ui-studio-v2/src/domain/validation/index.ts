@@ -1,2 +1,4 @@
-// Phase 4 §2 — domain/validation: implemented in Prompt 02 (Epic E2)
-export {}
+// Phase 4 §2 — domain/validation barrel
+export { validateBrokenBindings } from "./brokenBinding"
+export { validateOrphans } from "./orphan"
+export { validateTypeContracts } from "./typeContract"

@@ -1,2 +1,5 @@
-// Phase 4 §2 — domain/cascade: implemented in Prompt 02 (Epic E2)
-export {}
+// Phase 4 §2 — domain/cascade barrel
+export { deriveOrigin } from "./deriveOrigin"
+export { applyOverrideOps } from "./applyOverrideOps"
+export { resolveCascade } from "./resolveCascade"
+export type { CascadeResult } from "./resolveCascade"

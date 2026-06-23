@@ -1,10 +1,7 @@
 import { create } from "zustand"
+import type { Env, CascadeLevel } from "@/domain/types"
 
 // Phase 4 §3.1 — workspace/cascade context state
-// CascadeLevel and Env will be imported from domain/types in Prompt 02;
-// inline literals used here until the domain layer exists.
-type Env = "dev" | "staging" | "prod"
-type CascadeLevel = "platform" | "vertical" | "tenant" | "org"
 
 interface WorkspaceState {
   env: Env
