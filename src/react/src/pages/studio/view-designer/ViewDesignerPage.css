@@ -1679,3 +1679,18 @@
   font-size: 0.72rem;
   color: var(--fg-primary, #334155);
 }
+
+/* ── Compact accordions inside the Properties tab ─────────────────────────── */
+.pp-compact-accordion .MuiAccordion-root {
+  margin-bottom: 2px !important;
+}
+.pp-compact-accordion .MuiAccordionSummary-root {
+  min-height: 32px !important;
+  padding: 0 10px !important;
+}
+.pp-compact-accordion .MuiAccordionSummary-content {
+  margin: 5px 0 !important;
+}
+.pp-compact-accordion .MuiAccordionDetails-root {
+  padding: 6px 10px 10px !important;
+}

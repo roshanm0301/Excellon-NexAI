@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { Trash2, MousePointer2, Plus, X } from 'lucide-react'
-import { Button } from '../../../design-system'
+import { Button, AccordionRow } from '../../../design-system'
 import { useCanvasStore } from './useCanvasStore'
 import { useComponentRegistry } from '../../../hooks/useViewStudio'
 import { ExpressionEditor } from '../../../components/expression/ExpressionEditor'
@@ -8,7 +8,8 @@ import { BindingEditor } from './BindingEditor'
 import { EventEditor } from './EventEditor'
 import { VisibilityRuleBuilder } from './VisibilityRuleBuilder'
 import { PermissionEditor } from './PermissionEditor'
-import type { ComponentNode } from '../../../types/viewStudio'
+import type { ComponentNode, SchemaGroup } from '../../../types/viewStudio'
+import { ICON_NAMES } from '../../../lib/iconRegistry'
 
 function countNodes(node: ComponentNode | undefined | null): number {
   if (!node) return 0
@@ -138,6 +139,7 @@ export function PropertyPanel() {
 
 interface SchemaProperty {
   type: string
+  title?: string       // human-readable field label (takes priority over key-derived label)
   enum?: string[]
   minimum?: number
   maximum?: number
@@ -145,9 +147,27 @@ interface SchemaProperty {
   description?: string
   required?: boolean   // per-property required flag (mirrors x-required from validator)
   pattern?: string     // HTML pattern attribute for text inputs
+  showWhen?: {         // conditional visibility
+    prop: string
+    value?: unknown    // show when currentProps[prop] === value
+    not?: unknown      // show when currentProps[prop] !== not
+  }
 }
 
 // ─── Properties Tab ──────────────────────────────────────────────────────────
+
+// ── showWhen condition evaluator ─────────────────────────────────────────────
+
+function isFieldVisible(fieldSchema: SchemaProperty, currentProps: Record<string, unknown>): boolean {
+  const sw = fieldSchema.showWhen
+  if (!sw) return true
+  const actual = currentProps[sw.prop]
+  if ('value' in sw) return actual === sw.value
+  if ('not'   in sw) return actual !== sw.not && actual != null && actual !== '' && actual !== undefined
+  return true
+}
+
+// ── PropertiesTab ─────────────────────────────────────────────────────────────
 
 function PropertiesTab({
   properties,
@@ -158,46 +178,74 @@ function PropertiesTab({
   properties: Record<string, SchemaProperty>
   currentProps: Record<string, unknown>
   onChange: (key: string, value: unknown) => void
-  configSchema?: { required?: string[] }
+  configSchema?: { required?: string[]; groups?: SchemaGroup[] }
 }) {
   if (Object.keys(properties).length === 0) {
     return <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', padding: '8px 0' }}>No configurable properties.</p>
   }
 
-  // Merge top-level required array with per-property required flags
   const topLevelRequired = new Set(configSchema?.required ?? [])
+  const groups = configSchema?.groups
 
+  function renderField(key: string, schema: SchemaProperty) {
+    if (!isFieldVisible(schema, currentProps)) return null
+    return (
+      <PropertyField
+        key={key}
+        name={key}
+        schema={{ ...schema, required: schema.required || topLevelRequired.has(key) }}
+        value={currentProps[key]}
+        onChange={(v) => onChange(key, v)}
+      />
+    )
+  }
+
+  // ── Grouped rendering ─────────────────────────────────────────────────────
+  if (groups?.length) {
+    // Collect any property keys not in any group (safety net)
+    const groupedKeys = new Set(groups.flatMap(g => g.keys))
+    const ungroupedKeys = Object.keys(properties).filter(k => !groupedKeys.has(k))
+
+    return (
+      <div className="pp-compact-accordion" style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '6px 0' }}>
+        {groups.map((group, gi) => {
+          const visibleFields = group.keys
+            .filter(key => properties[key])
+            .map(key => renderField(key, properties[key]))
+            .filter(Boolean)
+
+          if (visibleFields.length === 0) return null
+          return (
+            <AccordionRow key={group.id} title={group.label} defaultOpen={gi === 0}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 4 }}>
+                {visibleFields}
+              </div>
+            </AccordionRow>
+          )
+        })}
+        {/* Ungrouped fallback */}
+        {ungroupedKeys.length > 0 && (
+          <AccordionRow title="Other" defaultOpen={false}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 4 }}>
+              {ungroupedKeys.map(key => renderField(key, properties[key]))}
+            </div>
+          </AccordionRow>
+        )}
+      </div>
+    )
+  }
+
+  // ── Flat rendering (components without groups) ────────────────────────────
   return (
     <div className="pp-section">
       <div className="pp-section__title">Configuration</div>
-      {Object.entries(properties).map(([key, schema]) => (
-        <PropertyField
-          key={key}
-          name={key}
-          schema={{ ...schema, required: schema.required || topLevelRequired.has(key) }}
-          value={currentProps[key]}
-          onChange={(v) => onChange(key, v)}
-        />
-      ))}
+      {Object.entries(properties).map(([key, schema]) => renderField(key, schema))}
     </div>
   )
 }
 
-// ─── Common icon names from lucide-react ─────────────────────────────────────
-const COMMON_ICONS = [
-  'AlertTriangle', 'AlertCircle', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown',
-  'Bell', 'BellOff', 'Bookmark', 'BookOpen', 'Calendar', 'Check', 'CheckCircle',
-  'ChevronDown', 'ChevronRight', 'ChevronLeft', 'ChevronUp', 'Clock', 'Copy',
-  'CreditCard', 'Database', 'Download', 'Edit', 'Edit2', 'Eye', 'EyeOff',
-  'File', 'FileText', 'Filter', 'Flag', 'Globe', 'Grid', 'Heart', 'Home',
-  'Image', 'Info', 'Link', 'Link2', 'List', 'Lock', 'LogOut', 'Mail',
-  'Map', 'MapPin', 'Menu', 'MessageCircle', 'Moon', 'MoreHorizontal', 'MoreVertical',
-  'Package', 'Phone', 'Plus', 'PlusCircle', 'Print', 'RefreshCw', 'Save',
-  'Search', 'Settings', 'Share', 'Shield', 'ShoppingCart', 'Sliders', 'Star',
-  'Sun', 'Tag', 'Target', 'Trash', 'Trash2', 'TrendingUp', 'TrendingDown',
-  'Upload', 'User', 'UserPlus', 'Users', 'Wifi', 'X', 'XCircle',
-  'Zap', 'ZoomIn', 'ZoomOut',
-]
+// Icon names are sourced from the shared registry so ButtonRenderer and the
+// icon picker always reference exactly the same set of available icons.
 
 function PropertyField({
   name,
@@ -210,23 +258,13 @@ function PropertyField({
   value: unknown
   onChange: (v: unknown) => void
 }) {
-  const label = name.replace(/_/g, ' ')
+  // Prefer explicit title from schema; fall back to formatting the key name
+  const label = (schema as SchemaProperty & { title?: string }).title ?? name.replace(/_/g, ' ')
   const requiredMark = schema.required
     ? <span style={{ color: 'var(--error-fg, #ef4444)', marginLeft: 2 }} title="Required">*</span>
     : null
 
-  // Render the field content based on type, then wrap with hint if description exists
-  const fieldContent = renderFieldContent(name, schema, label, requiredMark, value, onChange)
-
-  if (schema.description) {
-    return (
-      <>
-        {fieldContent}
-        <p className="pp-field__hint">{schema.description}</p>
-      </>
-    )
-  }
-  return fieldContent
+  return renderFieldContent(name, schema, label, requiredMark, value, onChange)
 }
 
 function renderFieldContent(
@@ -395,7 +433,7 @@ function renderFieldContent(
           data-testid={`prop-${name}`}
         >
           <option value="">— No icon —</option>
-          {COMMON_ICONS.map(icon => (
+          {ICON_NAMES.map(icon => (
             <option key={icon} value={icon}>{icon}</option>
           ))}
         </select>

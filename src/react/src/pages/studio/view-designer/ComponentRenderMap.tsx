@@ -6,13 +6,15 @@
  * emit events into the engine when in live-preview mode.
  */
 
-import React, { useState, useCallback } from 'react'
+import React, { createElement, useState, useCallback } from 'react'
 import { Search } from 'lucide-react'
 import type { ComponentNode, EventType } from '../../../types/viewStudio'
 import { useRuntimeViewContext } from '../../../components/studio/ViewRuntimeContext'
 import { useEntityRecords } from '../../../hooks/useEntityRecords'
 import { RuntimeDataTable } from '../runtime/RuntimeDataTable'
 import { RuntimeCreateModal } from '../runtime/RuntimeCreateModal'
+import { Button, Tooltip } from '../../../design-system'
+import { ICON_REGISTRY } from '../../../lib/iconRegistry'
 
 export type OnEventFn = (
   eventType: EventType,
@@ -794,27 +796,56 @@ function KanbanBoardRenderer({ node, children }: PreviewProps) {
 
 function ButtonRenderer({ node, isPreviewMode, onEvent }: PreviewProps) {
   const runtimeCtx = useRuntimeViewContext()
-  const label = bindingLabel(node, 'label', node.props?.label as string || 'Button')
-  const variant = node.props?.variant as string ?? 'primary'
+
+  // ── Props ────────────────────────────────────────────────────────────────
+  const label     = bindingLabel(node, 'label', node.props?.label as string || 'Button')
+  const variant   = (node.props?.variant as string) ?? 'primary'
+  const size      = (node.props?.size as 'sm' | 'md' | 'lg') ?? 'md'
+  const iconName  = node.props?.icon as string | undefined
+  const iconPos   = (node.props?.icon_position as 'left' | 'right') ?? 'left'
+  const fullWidth = !!node.props?.full_width
+  const disabled  = !!node.props?.disabled
+  const loading   = !!node.props?.loading
+  const tooltip   = node.props?.tooltip as string | undefined
+  const ariaLabel = node.props?.aria_label as string | undefined
+  const htmlType  = (node.props?.type as 'button' | 'submit' | 'reset') ?? 'button'
+
+  // Template shorthand (not user-configurable in Properties; set by surface templates)
   const action = node.props?.action as string | undefined
 
+  // ── Icon resolution ──────────────────────────────────────────────────────
+  const IconComp = iconName ? ICON_REGISTRY[iconName] : undefined
+  const iconEl   = IconComp ? createElement(IconComp, { size: 14 }) : undefined
+
+  // ── Click handler ────────────────────────────────────────────────────────
   function handleClick() {
     if (!isPreviewMode) return
-    // Wire action props to runtime context
+    // Template shorthand actions wired to runtime context
     if (action === 'create_modal' && runtimeCtx) runtimeCtx.setCreateModalOpen(true)
     if (action === 'open_filter_drawer' && runtimeCtx) runtimeCtx.setFilterDrawerOpen(true)
     if (onEvent) onEvent('on_click', node.component_key, { label, variant, action })
   }
 
-  return (
-    <button
-      className={`prev-button prev-button--${variant}`}
-      disabled={!isPreviewMode}
+  // ── Render ───────────────────────────────────────────────────────────────
+  const btn = (
+    <Button
+      variant={variant as 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline-brand' | 'brand-link'}
+      size={size}
+      icon={iconEl}
+      iconPosition={iconPos}
+      loading={loading}
+      disabled={disabled || !isPreviewMode}
       onClick={handleClick}
+      type={htmlType}
+      aria-label={ariaLabel}
+      style={fullWidth ? { width: '100%' } : undefined}
     >
       {label}
-    </button>
+    </Button>
   )
+
+  if (tooltip && isPreviewMode) return <Tooltip content={tooltip}>{btn}</Tooltip>
+  return btn
 }
 
 // ─── Fallback ────────────────────────────────────────────────────────────────

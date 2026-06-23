@@ -331,6 +331,18 @@ export interface VersionListResponse {
   items: ViewVersion[];
 }
 
+// ─── Property Schema ─────────────────────────────────────────────────────────
+
+/** A logical grouping of property keys shown as a collapsible section in PropertyPanel. */
+export interface SchemaGroup {
+  id: string
+  label: string
+  /** Optional lucide icon name shown beside the group label. */
+  icon?: string
+  /** Property keys (from config_schema.properties) that belong to this group. */
+  keys: string[]
+}
+
 // ─── Component Registry ──────────────────────────────────────────────────────
 
 export interface ComponentRegistryEntry {
