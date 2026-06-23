@@ -1,3 +1,5 @@
-// Phase 4 §6 / Phase 5 T3.3.2 — MSW browser worker (Prompt 03)
-// Started in providers.tsx once handlers exist
-export {}
+// Phase 4 §6 — MSW browser worker for dev mode
+import { setupWorker } from "msw/browser"
+import { handlers } from "./handlers"
+
+export const worker = setupWorker(...handlers)

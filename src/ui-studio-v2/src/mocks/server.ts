@@ -1,2 +1,5 @@
-// Phase 4 §6 / Phase 5 T3.3.2 — MSW Node server for tests (Prompt 03)
-export {}
+// Phase 4 §6 — MSW Node server for Vitest
+import { setupServer } from "msw/node"
+import { handlers } from "./handlers"
+
+export const server = setupServer(...handlers)
