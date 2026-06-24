@@ -52,3 +52,19 @@ export function useImpact(env: Env, appId: string, level: CascadeLevel, scopeId:
     queryFn: () => services.compiler.impact({ env, appId, editingLevel: level, scopeId }),
   })
 }
+
+export function useRegistrySearch(query: string) {
+  return useQuery({
+    queryKey: qk.registrySearch(query),
+    queryFn: () => services.registry.search(query),
+    enabled: query.length > 0,
+  })
+}
+
+export function useRegistryShape(ref: string) {
+  return useQuery({
+    queryKey: qk.registryShape(ref),
+    queryFn: () => services.registry.shape(ref),
+    enabled: ref !== "",
+  })
+}
