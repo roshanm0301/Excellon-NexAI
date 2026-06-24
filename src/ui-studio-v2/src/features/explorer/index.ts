@@ -1,2 +1,2 @@
-// Phase 4 §1 — explorer feature public barrel
-export {}
+// Phase 6 §3 — Explorer feature public barrel
+export { ExplorerPanel } from "./components/ExplorerPanel"

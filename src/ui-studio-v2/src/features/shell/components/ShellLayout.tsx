@@ -42,9 +42,9 @@ export function ShellLayout() {
                 <>
                   <ResizablePanel
                     id="left-panel"
-                    defaultSize={20}
-                    minSize={12}
-                    maxSize={40}
+                    defaultSize="20%"
+                    minSize="12%"
+                    maxSize="40%"
                     onResize={(size) => setExplorerWidth(size.asPercentage)}
                   >
                     <LeftPanel />
@@ -53,7 +53,7 @@ export function ShellLayout() {
                 </>
               )}
 
-              <ResizablePanel id="canvas" defaultSize={inspectorVisible ? 55 : 80}>
+              <ResizablePanel id="canvas" defaultSize={inspectorVisible ? "55%" : "80%"}>
                 <CanvasHost />
               </ResizablePanel>
 
@@ -62,9 +62,9 @@ export function ShellLayout() {
                   <ResizableHandle withHandle />
                   <ResizablePanel
                     id="inspector"
-                    defaultSize={25}
-                    minSize={15}
-                    maxSize={45}
+                    defaultSize="25%"
+                    minSize="15%"
+                    maxSize="45%"
                     onResize={(size) => setInspectorWidth(size.asPercentage)}
                   >
                     <InspectorPanel />
