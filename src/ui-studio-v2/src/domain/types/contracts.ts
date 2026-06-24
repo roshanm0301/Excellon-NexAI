@@ -301,4 +301,70 @@ export const SEMANTIC_CONTRACTS: Record<SemanticType, SemanticContract> = {
     slots: ["steps"],
     events: ["onStepChange"],
   },
+
+  // Foundation additions
+  Separator: {
+    semanticType: "Separator",
+    props: {
+      orientation: { type: "string", required: false },
+    },
+  },
+
+  // Data Entry additions
+  TextArea: {
+    semanticType: "TextArea",
+    props: {
+      label: { type: "string", required: true },
+      rows: { type: "number", required: false },
+      placeholder: { type: "string", required: false },
+    },
+    events: ["onChange"],
+  },
+  Checkbox: {
+    semanticType: "Checkbox",
+    props: {
+      label: { type: "string", required: true },
+      defaultChecked: { type: "boolean", required: false },
+    },
+    events: ["onChange"],
+  },
+  RadioGroup: {
+    semanticType: "RadioGroup",
+    props: {
+      label: { type: "string", required: true },
+      options: { type: "record", required: false },
+    },
+    events: ["onChange"],
+  },
+
+  // Data Display additions
+  Avatar: {
+    semanticType: "Avatar",
+    props: {
+      src: { type: "string", required: false },
+      alt: { type: "string", required: false },
+    },
+  },
+  Alert: {
+    semanticType: "Alert",
+    props: {
+      severity: { type: "string", required: false },
+      message: { type: "string", required: true },
+    },
+  },
+  DescriptionList: {
+    semanticType: "DescriptionList",
+    props: {
+      items: { type: "record", required: false },
+    },
+  },
+
+  // Navigation additions
+  Toolbar: {
+    semanticType: "Toolbar",
+    props: {
+      variant: { type: "string", required: false },
+    },
+    slots: ["children"],
+  },
 }

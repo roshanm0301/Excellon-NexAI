@@ -10,6 +10,8 @@ export type ActivityMode =
   | "preview"
   | "settings"
 
+export type ZoomLevel = 0.5 | 0.75 | 1 | 1.5 | 2
+
 interface PanelsState {
   explorerWidth: number
   inspectorWidth: number
@@ -19,6 +21,7 @@ interface PanelsState {
   bottomDockVisible: boolean
   breakpoint: Breakpoint
   activeMode: ActivityMode
+  zoomScale: number
   setExplorerWidth: (w: number) => void
   setInspectorWidth: (w: number) => void
   setBottomDockHeight: (h: number) => void
@@ -27,6 +30,7 @@ interface PanelsState {
   toggleBottomDock: () => void
   setBreakpoint: (b: Breakpoint) => void
   setActiveMode: (m: ActivityMode) => void
+  setZoomScale: (z: number) => void
 }
 
 export const usePanelsStore = create<PanelsState>((set) => ({
@@ -38,6 +42,7 @@ export const usePanelsStore = create<PanelsState>((set) => ({
   bottomDockVisible: false,
   breakpoint: "desktop",
   activeMode: "explorer",
+  zoomScale: 1,
   setExplorerWidth: (w) => set({ explorerWidth: w }),
   setInspectorWidth: (w) => set({ inspectorWidth: w }),
   setBottomDockHeight: (h) => set({ bottomDockHeight: h }),
@@ -46,4 +51,5 @@ export const usePanelsStore = create<PanelsState>((set) => ({
   toggleBottomDock: () => set((s) => ({ bottomDockVisible: !s.bottomDockVisible })),
   setBreakpoint: (b) => set({ breakpoint: b }),
   setActiveMode: (m) => set({ activeMode: m }),
+  setZoomScale: (z) => set({ zoomScale: z }),
 }))
