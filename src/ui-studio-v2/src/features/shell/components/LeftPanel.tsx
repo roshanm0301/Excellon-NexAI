@@ -2,10 +2,21 @@ import { usePanelsStore } from "@/stores/panels.store"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui"
 import { ExplorerPanel } from "@/features/explorer"
 import { AssetLibrary } from "@/features/asset-library"
+import { VersionHistoryPanel } from "@/features/versioning"
+import { ThemeDesigner } from "@/features/theme-designer"
 
 export function LeftPanel() {
   const activeMode = usePanelsStore((s) => s.activeMode)
   const setActiveMode = usePanelsStore((s) => s.setActiveMode)
+
+  if (activeMode === "history") {
+    return <VersionHistoryPanel />
+  }
+
+  if (activeMode === "settings") {
+    return <ThemeDesigner />
+  }
+
   const tab = activeMode === "explorer" ? "explorer" : "assets"
 
   return (

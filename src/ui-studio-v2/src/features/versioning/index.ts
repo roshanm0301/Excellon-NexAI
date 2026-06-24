@@ -1,2 +1,1 @@
-// Phase 4 §1 — versioning feature public barrel
-export {}
+export { VersionHistoryPanel } from "./components"

@@ -7,6 +7,7 @@ import { createCompilerService } from "./http/compiler"
 import { createPreviewService } from "./http/preview"
 import { createRegistryService } from "./http/registry"
 import { createPresenceService } from "./http/presence"
+import { createVersioningService } from "./http/versioning"
 import type { Services } from "./interfaces"
 
 export const services: Services = {
@@ -15,4 +16,5 @@ export const services: Services = {
   preview: createPreviewService(),
   registry: createRegistryService(),
   presence: createPresenceService(),
+  versioning: createVersioningService(),
 }

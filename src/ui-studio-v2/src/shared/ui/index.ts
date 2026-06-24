@@ -69,3 +69,13 @@ export {
   CommandShortcut,
   CommandSeparator,
 } from "./command"
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+} from "./table"

@@ -2,9 +2,12 @@ import { useState } from "react"
 import { Command as CommandIcon } from "lucide-react"
 import { useWorkspaceStore } from "@/stores/workspace.store"
 import { usePanelsStore } from "@/stores/panels.store"
+import { useValidation } from "@/shared/query"
+import { PublishDialog } from "@/features/publish"
 import type { CascadeLevel } from "@/domain/types"
 import {
   Button,
+  Badge,
   Select,
   SelectTrigger,
   SelectValue,
@@ -14,9 +17,6 @@ import {
   AvatarFallback,
   Separator,
 } from "@/shared/ui"
-
-// Phase 3 §2 / Phase 2 §A3 — Context Bar (top): editing level + preview-as +
-// Validate/Publish actions + presence + Command Palette trigger.
 
 const EDITING_LEVELS: { value: CascadeLevel; label: string }[] = [
   { value: "platform", label: "Platform" },
@@ -41,8 +41,22 @@ export function ContextBar({ onOpenCommandPalette, presenceUsers = [] }: Context
   const previewScopeId = useWorkspaceStore((s) => s.previewScopeId)
   const setEditingLevel = useWorkspaceStore((s) => s.setEditingLevel)
   const setPreviewScope = useWorkspaceStore((s) => s.setPreviewScope)
+  const env = useWorkspaceStore((s) => s.env)
+  const appId = useWorkspaceStore((s) => s.appId)
   const toggleBottomDock = usePanelsStore((s) => s.toggleBottomDock)
-  const [isPublishing, setIsPublishing] = useState(false)
+  const setActiveMode = usePanelsStore((s) => s.setActiveMode)
+  const bottomDockVisible = usePanelsStore((s) => s.bottomDockVisible)
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false)
+
+  const { data: issues } = useValidation(env, appId)
+  const errorCount = issues?.filter((i) => i.severity === "error").length ?? 0
+
+  const handleValidate = () => {
+    setActiveMode("problems")
+    if (!bottomDockVisible) {
+      toggleBottomDock()
+    }
+  }
 
   return (
     <header
@@ -99,7 +113,7 @@ export function ContextBar({ onOpenCommandPalette, presenceUsers = [] }: Context
           className="gap-1.5"
         >
           <CommandIcon className="h-3.5 w-3.5" />
-          <span className="hidden text-xs sm:inline">⌘K</span>
+          <span className="hidden text-xs sm:inline">&#8984;K</span>
         </Button>
 
         {presenceUsers.length > 0 && (
@@ -112,19 +126,31 @@ export function ContextBar({ onOpenCommandPalette, presenceUsers = [] }: Context
           </div>
         )}
 
-        <Button variant="outline" size="sm" onClick={toggleBottomDock} aria-label="Validate">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleValidate}
+          aria-label="Validate"
+          className="gap-1.5"
+        >
           Validate
+          {errorCount > 0 && (
+            <Badge variant="destructive" className="h-4 min-w-4 px-1 text-[10px]">
+              {errorCount}
+            </Badge>
+          )}
         </Button>
         <Button
           variant="default"
           size="sm"
           aria-label="Publish"
-          onClick={() => setIsPublishing((v) => !v)}
-          disabled={isPublishing}
+          onClick={() => setPublishDialogOpen(true)}
         >
           Publish
         </Button>
       </div>
+
+      <PublishDialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen} />
     </header>
   )
 }

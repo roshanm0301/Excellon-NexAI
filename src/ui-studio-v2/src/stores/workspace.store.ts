@@ -9,9 +9,12 @@ interface WorkspaceState {
   editingScopeId: string
   previewScopeId: string
   previewRole?: string
+  appId: string
+  pageId: string
   setEditingLevel: (level: CascadeLevel, scopeId: string) => void
   setPreviewScope: (scopeId: string, role?: string) => void
   setEnv: (env: Env) => void
+  setApp: (appId: string, pageId: string) => void
 }
 
 export const useWorkspaceStore = create<WorkspaceState>((set) => ({
@@ -20,7 +23,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   editingScopeId: "",
   previewScopeId: "",
   previewRole: undefined,
+  appId: "",
+  pageId: "",
   setEditingLevel: (level, scopeId) => set({ editingLevel: level, editingScopeId: scopeId }),
   setPreviewScope: (scopeId, role) => set({ previewScopeId: scopeId, previewRole: role }),
   setEnv: (env) => set({ env }),
+  setApp: (appId, pageId) => set({ appId, pageId }),
 }))

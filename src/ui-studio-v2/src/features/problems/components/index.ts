@@ -1,2 +1,1 @@
-// Phase 4 §1 — problems/components
-export {}
+export { ProblemsPanel } from "./ProblemsPanel"

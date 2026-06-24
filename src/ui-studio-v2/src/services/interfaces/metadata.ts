@@ -35,9 +35,26 @@ export interface OverrideNodeParams {
   ops: OverrideOp[]
 }
 
+export interface CreateAppInput {
+  name: string
+  vertical: string
+  description?: string
+}
+
+export interface AppSummary {
+  id: string
+  name: string
+  vertical: string
+  description: string
+  createdAt: string
+  modifiedAt: string
+}
+
 export interface MetadataService {
   getTree(params: GetTreeParams): Promise<TreeNode[]>
   getNode(id: string): Promise<MetaNode>
   createNode(input: NodeInput): Promise<MetaNode>
   overrideNode(params: OverrideNodeParams): Promise<MetaNode>
+  createApp(input: CreateAppInput): Promise<AppSummary>
+  listApps(): Promise<AppSummary[]>
 }

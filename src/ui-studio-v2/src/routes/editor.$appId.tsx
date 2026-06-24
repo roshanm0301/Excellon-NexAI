@@ -33,13 +33,14 @@ export const Route = createRoute({
           scopeId: deps.scopeId as string,
         }),
     }),
-  beforeLoad: ({ search }) => {
+  beforeLoad: ({ params, search }) => {
     const state = useWorkspaceStore.getState()
     state.setEnv(search.env as Env)
     state.setEditingLevel(
       search.editingLevel as CascadeLevel,
       search.scopeId as string,
     )
+    state.setApp(params.appId, "")
     if (search.previewScopeId) {
       state.setPreviewScope(search.previewScopeId as string)
     }

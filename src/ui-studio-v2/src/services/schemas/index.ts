@@ -27,3 +27,13 @@ export {
 } from "./registry"
 
 export { PresenceUserSchema, PresenceListResponseSchema, LockSchema } from "./presence"
+
+export {
+  VersionEntrySchema,
+  VersionsResponseSchema,
+  VersionDiffEntrySchema,
+  VersionDiffSchema,
+  PromoteResultSchema,
+  AppSummarySchema,
+  AppsListResponseSchema,
+} from "./versioning"

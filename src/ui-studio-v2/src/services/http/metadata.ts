@@ -1,7 +1,11 @@
 // Phase 4 §5 — MetadataService HTTP implementation
 
 import { apiFetch } from "./client"
-import { GetTreeResponseSchema, MetaNodeResponseSchema } from "@/services/schemas"
+import {
+  GetTreeResponseSchema,
+  MetaNodeResponseSchema,
+} from "@/services/schemas"
+import { AppSummarySchema, AppsListResponseSchema } from "@/services/schemas"
 import type { MetadataService } from "@/services/interfaces"
 
 export function createMetadataService(): MetadataService {
@@ -32,6 +36,20 @@ export function createMetadataService(): MetadataService {
         path: `/metadata/nodes/${encodeURIComponent(params.logicalKey)}/override`,
         body: { level: params.level, ops: params.ops },
         schema: MetaNodeResponseSchema,
+      }),
+
+    createApp: (input) =>
+      apiFetch({
+        method: "POST",
+        path: "/metadata/apps",
+        body: input,
+        schema: AppSummarySchema,
+      }),
+
+    listApps: () =>
+      apiFetch({
+        path: "/metadata/apps",
+        schema: AppsListResponseSchema,
       }),
   }
 }

@@ -68,3 +68,26 @@ export function useRegistryShape(ref: string) {
     enabled: ref !== "",
   })
 }
+
+export function useVersions(appId: string) {
+  return useQuery({
+    queryKey: qk.versions(appId),
+    queryFn: () => services.versioning.getVersions(appId),
+    enabled: appId !== "",
+  })
+}
+
+export function useDiff(appId: string, v1: number, v2: number) {
+  return useQuery({
+    queryKey: qk.diff(appId, v1, v2),
+    queryFn: () => services.versioning.getDiff(appId, v1, v2),
+    enabled: appId !== "" && v1 > 0 && v2 > 0 && v1 !== v2,
+  })
+}
+
+export function useApps() {
+  return useQuery({
+    queryKey: qk.apps(),
+    queryFn: () => services.metadata.listApps(),
+  })
+}

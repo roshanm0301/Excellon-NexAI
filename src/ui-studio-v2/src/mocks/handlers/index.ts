@@ -4,6 +4,7 @@ import { compilerHandlers } from "./compiler"
 import { previewHandlers } from "./preview"
 import { registryHandlers } from "./registry"
 import { presenceHandlers } from "./presence"
+import { versioningHandlers } from "./versioning"
 
 export const handlers = [
   ...metadataHandlers,
@@ -11,4 +12,5 @@ export const handlers = [
   ...previewHandlers,
   ...registryHandlers,
   ...presenceHandlers,
+  ...versioningHandlers,
 ]

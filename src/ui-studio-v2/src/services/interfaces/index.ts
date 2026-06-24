@@ -6,6 +6,8 @@ export type {
   GetTreeParams,
   NodeInput,
   OverrideNodeParams,
+  CreateAppInput,
+  AppSummary,
 } from "./metadata"
 
 export type {
@@ -40,11 +42,18 @@ export type {
   PresenceCallback,
 } from "./presence"
 
+export type {
+  VersioningService,
+  PromoteParams,
+  RollbackParams,
+} from "./versioning"
+
 import type { MetadataService } from "./metadata"
 import type { CompilerService } from "./compiler"
 import type { PreviewService } from "./preview"
 import type { RegistryService } from "./registry"
 import type { PresenceService } from "./presence"
+import type { VersioningService } from "./versioning"
 
 export interface Services {
   metadata: MetadataService
@@ -52,4 +61,5 @@ export interface Services {
   preview: PreviewService
   registry: RegistryService
   presence: PresenceService
+  versioning: VersioningService
 }

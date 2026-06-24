@@ -72,7 +72,69 @@ function buildHierarchy(flat: TreeNode[]): TreeNode[] {
   return roots
 }
 
+interface AppRecord {
+  id: string
+  name: string
+  vertical: string
+  description: string
+  createdAt: string
+  modifiedAt: string
+}
+
+const apps: AppRecord[] = [
+  {
+    id: "dms-app",
+    name: "DMS Application",
+    vertical: "automotive",
+    description: "Dealership Management System",
+    createdAt: "2025-01-01T00:00:00.000Z",
+    modifiedAt: "2025-06-01T00:00:00.000Z",
+  },
+]
+
 export const metadataHandlers = [
+  http.get(`${API_BASE_URL}/metadata/apps`, async () => {
+    await applyLatency()
+    if (shouldError()) {
+      return HttpResponse.json({ message: "Internal Server Error" }, { status: 500 })
+    }
+    return HttpResponse.json(apps)
+  }),
+
+  http.post(`${API_BASE_URL}/metadata/apps`, async ({ request }) => {
+    await applyLatency()
+    if (shouldError()) {
+      return HttpResponse.json({ message: "Internal Server Error" }, { status: 500 })
+    }
+
+    const body = (await request.json()) as { name: string; vertical: string; description?: string }
+    const now = new Date().toISOString()
+    const id = `app-${Date.now()}`
+    const record: AppRecord = {
+      id,
+      name: body.name,
+      vertical: body.vertical,
+      description: body.description ?? "",
+      createdAt: now,
+      modifiedAt: now,
+    }
+    apps.push(record)
+
+    const appNode: MetaNode = {
+      id,
+      logicalKey: id,
+      cascadeLevel: "vertical",
+      objectVersion: 1,
+      audit: { createdBy: "mock-user", createdAt: now, modifiedBy: "mock-user", modifiedAt: now },
+      kind: "application",
+      name: body.name,
+      children: [],
+    } as MetaNode
+    addNode(appNode)
+
+    return HttpResponse.json(record, { status: 201 })
+  }),
+
   http.get(`${API_BASE_URL}/metadata/tree`, async ({ request }) => {
     await applyLatency()
     if (shouldError()) {

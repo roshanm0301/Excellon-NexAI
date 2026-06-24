@@ -1,8 +1,15 @@
 // Phase 4 §3.2 — mutation hooks
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { services } from "@/services"
-import type { NodeInput, OverrideNodeParams, TreeNode } from "@/services/interfaces"
-import type { MetaNode } from "@/domain/types"
+import type {
+  NodeInput,
+  OverrideNodeParams,
+  TreeNode,
+  CreateAppInput,
+  PromoteParams,
+  RollbackParams,
+} from "@/services/interfaces"
+import type { MetaNode, Env } from "@/domain/types"
 import { applyOverrideOps } from "@/domain/cascade"
 
 export function useCreateNode() {
@@ -52,6 +59,57 @@ export function useOverrideNode() {
       void qc.invalidateQueries({ queryKey: ["tree"] })
       void qc.invalidateQueries({ queryKey: ["node"] })
       void qc.invalidateQueries({ queryKey: ["validate"] })
+    },
+  })
+}
+
+export function usePublish() {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: (params: {
+      env: Env
+      appId: string
+      editingLevel: MetaNode["cascadeLevel"]
+      scopeId: string
+      targetEnv: Env
+    }) => services.compiler.publish(params),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ["validate"] })
+      void qc.invalidateQueries({ queryKey: ["versions"] })
+    },
+  })
+}
+
+export function usePromote() {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: (params: PromoteParams) => services.versioning.promote(params),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ["versions"] })
+    },
+  })
+}
+
+export function useRollback() {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: (params: RollbackParams) => services.versioning.rollback(params),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ["versions"] })
+    },
+  })
+}
+
+export function useCreateApp() {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: CreateAppInput) => services.metadata.createApp(input),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ["apps"] })
     },
   })
 }
