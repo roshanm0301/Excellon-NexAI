@@ -110,7 +110,7 @@ function findScopeForLevel(
 
 export function getNodeById(id: string): NodeBase | undefined {
   for (const [, node] of store.nodes) {
-    if (node.id === id) return node
+    if (node.id === id || node.logicalKey === id) return node
   }
   return undefined
 }

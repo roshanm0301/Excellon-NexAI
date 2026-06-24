@@ -1,2 +1,3 @@
-// Phase 4 §1 — inspector/components
-export {}
+export { NodeHeader } from "./NodeHeader"
+export { PropsTab } from "./PropsTab"
+export { InspectorPanel } from "./InspectorPanel"
