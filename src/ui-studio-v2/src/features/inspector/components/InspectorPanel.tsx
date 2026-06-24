@@ -1,9 +1,12 @@
-import { Skeleton, Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui"
+import { useState } from "react"
+import { Skeleton, Tabs, TabsList, TabsTrigger, TabsContent, Button } from "@/shared/ui"
 import { useSelectionStore } from "@/stores/selection.store"
+import { useWorkspaceStore } from "@/stores/workspace.store"
 import { useNode } from "@/shared/query"
 import type { MetaNode, OriginState } from "@/domain/types"
 import { NodeHeader } from "./NodeHeader"
 import { PropsTab } from "./PropsTab"
+import { EventBuilder } from "./EventBuilder"
 
 const TABS = [
   { value: "props", label: "Props" },
@@ -25,6 +28,8 @@ function deriveOrigin(node: MetaNode): OriginState {
 export function InspectorPanel() {
   const selectedKey = useSelectionStore((s) => s.selectedKeys[0] ?? "")
   const { data: node, isLoading, error } = useNode(selectedKey)
+  const editingLevel = useWorkspaceStore((s) => s.editingLevel)
+  const [eventBuilderOpen, setEventBuilderOpen] = useState(false)
 
   if (!selectedKey) {
     return (
@@ -88,8 +93,40 @@ export function InspectorPanel() {
             Bindings — Prompt 10
           </TabsContent>
 
-          <TabsContent value="events" className="mt-0 px-3 py-2 text-xs text-muted-foreground">
-            Events — Prompt 10
+          <TabsContent value="events" className="mt-0 px-3 py-2">
+            {node.kind === "component" ? (
+              <div className="flex flex-col gap-2">
+                {node.eventHandlers && node.eventHandlers.length > 0 ? (
+                  <ul className="flex flex-col gap-1">
+                    {node.eventHandlers.map((ref) => (
+                      <li key={ref} className="rounded border px-2 py-1 font-mono text-xs">
+                        {ref}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-muted-foreground">No event handlers</p>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs"
+                  onClick={() => setEventBuilderOpen(true)}
+                >
+                  + Add Event
+                </Button>
+                <EventBuilder
+                  open={eventBuilderOpen}
+                  onOpenChange={setEventBuilderOpen}
+                  node={node}
+                  editingLevel={editingLevel}
+                />
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Not applicable for {node.kind}
+              </p>
+            )}
           </TabsContent>
 
           <TabsContent value="validation" className="mt-0 px-3 py-2 text-xs">

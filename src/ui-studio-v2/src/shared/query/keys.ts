@@ -23,4 +23,8 @@ export const qk = {
 
   impact: (env: Env, appId: string, level: CascadeLevel, scopeId: string) =>
     ["impact", env, appId, level, scopeId] as const,
+
+  registrySearch: (query: string) => ["registry", "search", query] as const,
+
+  registryShape: (ref: string) => ["registry", "shape", ref] as const,
 }

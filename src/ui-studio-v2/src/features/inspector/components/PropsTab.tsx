@@ -1,4 +1,4 @@
-import { useCallback } from "react"
+import { useState, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import type { FieldErrors, Resolver } from "react-hook-form"
@@ -10,6 +10,8 @@ import { useOverrideNode } from "@/shared/query/mutations"
 import { useWorkspaceStore } from "@/stores/workspace.store"
 import { PropertyRow } from "@/shared/ui"
 import { Button } from "@/shared/ui"
+import { BindingPicker } from "./BindingPicker"
+import { OverridePrompt, RevertDialog } from "./OverridePrompt"
 
 interface PropsTabProps {
   node: ComponentNode
@@ -71,6 +73,12 @@ export function PropsTab({ node, origin }: PropsTabProps) {
   const editingLevel = useWorkspaceStore((s) => s.editingLevel)
   const overrideNode = useOverrideNode()
   const queryClient = useQueryClient()
+
+  const [bindingPickerOpen, setBindingPickerOpen] = useState(false)
+  const [bindingPickerPropKey, setBindingPickerPropKey] = useState("")
+  const [overridePromptOpen, setOverridePromptOpen] = useState(false)
+  const [revertDialogOpen, setRevertDialogOpen] = useState(false)
+  const [revertPropKey, setRevertPropKey] = useState("")
 
   const props = contract?.props ?? {}
   const schema = buildZodSchema(props)
@@ -140,12 +148,12 @@ export function PropsTab({ node, origin }: PropsTabProps) {
               setValue(key, v, { shouldDirty: true, shouldValidate: true })
             }}
             onClickBind={() => {
-              // Stub — wired in Prompt 10
-              console.info("[stub] onClickBind for", key)
+              setBindingPickerPropKey(key)
+              setBindingPickerOpen(true)
             }}
             onRevert={() => {
-              // Stub — wired in Prompt 10
-              console.info("[stub] onRevert for", key)
+              setRevertPropKey(key)
+              setRevertDialogOpen(true)
             }}
           />
         ))}
@@ -159,6 +167,31 @@ export function PropsTab({ node, origin }: PropsTabProps) {
       >
         {overrideNode.isPending ? "Saving…" : "Save Changes"}
       </Button>
+
+      <BindingPicker
+        open={bindingPickerOpen}
+        onOpenChange={setBindingPickerOpen}
+        propKey={bindingPickerPropKey}
+        propType={props[bindingPickerPropKey]?.type ?? "string"}
+        onBind={(binding) => {
+          setValue(bindingPickerPropKey, binding, { shouldDirty: true })
+        }}
+      />
+
+      <OverridePrompt
+        open={overridePromptOpen}
+        onOpenChange={setOverridePromptOpen}
+        node={node}
+        editingLevel={editingLevel}
+      />
+
+      <RevertDialog
+        open={revertDialogOpen}
+        onOpenChange={setRevertDialogOpen}
+        propKey={revertPropKey}
+        logicalKey={node.logicalKey}
+        editingLevel={editingLevel}
+      />
     </form>
   )
 }
