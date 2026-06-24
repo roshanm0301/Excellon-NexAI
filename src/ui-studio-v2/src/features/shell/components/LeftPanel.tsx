@@ -1,16 +1,6 @@
 import { usePanelsStore } from "@/stores/panels.store"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui"
-
-// Phase 3 §2 — Left panel: tabbed between Explorer and Asset Library
-// Explorer + AssetLibrary feature components are wired in Prompts 06/07 via their barrels.
-
-function ExplorerStub() {
-  return (
-    <div className="flex h-full items-center justify-center p-4 text-xs text-muted-foreground">
-      Explorer (Prompt 06)
-    </div>
-  )
-}
+import { ExplorerPanel } from "@/features/explorer"
 
 function AssetLibraryStub() {
   return (
@@ -31,7 +21,7 @@ export function LeftPanel() {
         <TabsTrigger value="assets">Assets</TabsTrigger>
       </TabsList>
       <TabsContent value="explorer" className="mt-0 flex-1 overflow-hidden">
-        <ExplorerStub />
+        <ExplorerPanel />
       </TabsContent>
       <TabsContent value="assets" className="mt-0 flex-1 overflow-hidden">
         <AssetLibraryStub />

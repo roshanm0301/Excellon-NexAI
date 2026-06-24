@@ -2,6 +2,28 @@
 // Chrome components only — never import from runtime-preview/ [Phase 4 §7.1]
 export { Button, buttonVariants } from "./button"
 export type { ButtonProps } from "./button"
+export { Badge, badgeVariants } from "./badge"
+export type { BadgeProps } from "./badge"
+export { Skeleton } from "./skeleton"
+export { ScrollArea, ScrollBar } from "./scroll-area"
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuGroup,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuRadioGroup,
+} from "./dropdown-menu"
+export { OriginBadge } from "./origin-badge"
 export { Separator } from "./separator"
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "./tooltip"
 export { Avatar, AvatarImage, AvatarFallback } from "./avatar"

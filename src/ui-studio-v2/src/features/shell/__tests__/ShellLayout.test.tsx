@@ -3,16 +3,20 @@ import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ShellLayout } from "@/features/shell"
 import { useWorkspaceStore } from "@/stores/workspace.store"
 import { usePanelsStore } from "@/stores/panels.store"
 
 // Phase 5 T5.1.1 — shell layout integration
 function renderShell() {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
-    <DndProvider backend={HTML5Backend}>
-      <ShellLayout />
-    </DndProvider>,
+    <QueryClientProvider client={qc}>
+      <DndProvider backend={HTML5Backend}>
+        <ShellLayout />
+      </DndProvider>
+    </QueryClientProvider>,
   )
 }
 
