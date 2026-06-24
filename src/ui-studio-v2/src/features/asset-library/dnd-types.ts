@@ -1,0 +1,4 @@
+export const DND_TYPES = {
+  COMPONENT: "ASSET_COMPONENT",
+  ARCHETYPE: "ASSET_ARCHETYPE",
+} as const

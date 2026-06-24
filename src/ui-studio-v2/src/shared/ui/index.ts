@@ -24,6 +24,7 @@ export {
   DropdownMenuRadioGroup,
 } from "./dropdown-menu"
 export { OriginBadge } from "./origin-badge"
+export { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./accordion"
 export { Separator } from "./separator"
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "./tooltip"
 export { Avatar, AvatarImage, AvatarFallback } from "./avatar"

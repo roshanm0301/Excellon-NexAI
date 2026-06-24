@@ -1,14 +1,7 @@
 import { usePanelsStore } from "@/stores/panels.store"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui"
 import { ExplorerPanel } from "@/features/explorer"
-
-function AssetLibraryStub() {
-  return (
-    <div className="flex h-full items-center justify-center p-4 text-xs text-muted-foreground">
-      Asset Library (Prompt 07)
-    </div>
-  )
-}
+import { AssetLibrary } from "@/features/asset-library"
 
 export function LeftPanel() {
   const activeMode = usePanelsStore((s) => s.activeMode)
@@ -24,7 +17,7 @@ export function LeftPanel() {
         <ExplorerPanel />
       </TabsContent>
       <TabsContent value="assets" className="mt-0 flex-1 overflow-hidden">
-        <AssetLibraryStub />
+        <AssetLibrary />
       </TabsContent>
     </Tabs>
   )
