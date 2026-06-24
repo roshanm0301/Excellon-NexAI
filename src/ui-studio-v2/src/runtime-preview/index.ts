@@ -17,3 +17,6 @@ export type {
   LayoutProps,
   NodeRegistryEntry,
 } from "./types"
+export { BindingPlaceholder } from "./BindingPlaceholder"
+export { CanvasOverlay } from "./overlay"
+export type { DropItem, OverlayRect } from "./overlay"
