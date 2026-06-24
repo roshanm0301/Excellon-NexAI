@@ -28,12 +28,25 @@ import { DataGridPro } from "@mui/x-data-grid-pro"
 
 import { isBinding } from "@/domain/types/nodes"
 import type { PropValue, Binding } from "@/domain/types"
+import { BindingPlaceholder } from "./BindingPlaceholder"
 
 function resolvePropDisplay(value: PropValue | undefined, fallback: string): string {
   if (value === undefined || value === null) return fallback
   if (isBinding(value)) {
     const b = value as Binding
     return `{{ ${b.bind.ref}${b.bind.path ? "." + b.bind.path : ""} }}`
+  }
+  return String(value)
+}
+
+// T8.4.1 — broken binding red placeholder: returns React element for bound props
+function resolveBindingElement(
+  value: PropValue | undefined,
+  fallback: string,
+): React.ReactNode {
+  if (value === undefined || value === null) return fallback
+  if (isBinding(value)) {
+    return React.createElement(BindingPlaceholder, { binding: value as Binding })
   }
   return String(value)
 }
@@ -250,8 +263,10 @@ const CardComponent: React.FC<RuntimeComponentProps> = ({ node, children }) => {
 const KpiCardComponent: React.FC<RuntimeComponentProps> = ({ node }) => {
   const props = getProps(node)
   return React.createElement(Paper, { variant: "outlined", sx: { p: 2, textAlign: "center", mb: 1 } },
-    React.createElement(Typography, { variant: "caption", color: "text.secondary" }, resolvePropDisplay(props.title, "KPI")),
-    React.createElement(Typography, { variant: "h5", sx: { fontWeight: 700 } }, resolvePropDisplay(props.value, "—")),
+    React.createElement(Typography, { variant: "caption", color: "text.secondary", component: "div" },
+      resolveBindingElement(props.title, "KPI")),
+    React.createElement(Typography, { variant: "h5", sx: { fontWeight: 700 }, component: "div" },
+      resolveBindingElement(props.value, "—")),
   )
 }
 
@@ -398,10 +413,10 @@ const ToolbarComponent: React.FC<RuntimeComponentProps> = ({ children }) => (
 const ObjectHeaderComponent: React.FC<RuntimeComponentProps> = ({ node }) => {
   const props = getProps(node)
   return React.createElement(Box, { sx: { mb: 2, pb: 1, borderBottom: "1px solid", borderColor: "divider" } },
-    React.createElement(Typography, { variant: "h6", sx: { fontWeight: 700 } },
-      resolvePropDisplay(props.title, "Object")),
-    props.subtitle ? React.createElement(Typography, { variant: "body2", color: "text.secondary" },
-      resolvePropDisplay(props.subtitle, "")) : null,
+    React.createElement(Typography, { variant: "h6", sx: { fontWeight: 700 }, component: "div" },
+      resolveBindingElement(props.title, "Object")),
+    props.subtitle ? React.createElement(Typography, { variant: "body2", color: "text.secondary", component: "div" },
+      resolveBindingElement(props.subtitle, "")) : null,
     props.status ? React.createElement(Chip, {
       label: resolvePropDisplay(props.status, ""),
       size: "small",

@@ -1,10 +1,15 @@
-// Phase 3 §4 / Phase 5 T8.1.1 — Canvas surface: fetches model, renders via Renderer
+// Phase 3 §4 / Phase 5 T8.1.1–T8.5.1 — Canvas surface: fetches model, renders + overlays
 
+import { useCallback, useEffect, useRef, useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { usePreview } from "@/shared/query"
+import { useCreateNode } from "@/shared/query/mutations"
 import { useWorkspaceStore } from "@/stores/workspace.store"
 import { usePanelsStore } from "@/stores/panels.store"
+import { useSelectionStore } from "@/stores/selection.store"
 import { Renderer, NodeRegistryProvider } from "@/runtime-preview"
-import { useContainerRef } from "@/runtime-preview/useNodeRegistryHooks"
+import { useContainerRef, useNodeRegistry } from "@/runtime-preview/useNodeRegistryHooks"
+import { CanvasOverlay, type DropItem } from "@/runtime-preview/overlay"
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 import CircularProgress from "@mui/material/CircularProgress"
@@ -14,11 +19,21 @@ const DEFAULT_APP_ID = "app.dms"
 const DEFAULT_PAGE_ID = "page.salesOrder"
 
 function CanvasSurfaceInner() {
-  const containerRef = useContainerRef()
+  const registryContainerRef = useContainerRef()
+  const registry = useNodeRegistry()
+  const [containerEl, setContainerEl] = useState<HTMLElement | null>(null)
   const zoomScale = usePanelsStore((s) => s.zoomScale)
 
   const env = useWorkspaceStore((s) => s.env)
   const previewScopeId = useWorkspaceStore((s) => s.previewScopeId)
+  const editingLevel = useWorkspaceStore((s) => s.editingLevel)
+
+  const setSelected = useSelectionStore((s) => s.setSelected)
+  const clearSelection = useSelectionStore((s) => s.clearSelection)
+  const setHover = useSelectionStore((s) => s.setHover)
+
+  const createNode = useCreateNode()
+  const queryClient = useQueryClient()
 
   const { data: model, isLoading, error } = usePreview(
     env,
@@ -27,11 +42,101 @@ function CanvasSurfaceInner() {
     previewScopeId,
   )
 
-  // Loading state — shimmer
+  const mergedRef = useCallback(
+    (el: HTMLElement | null) => {
+      registryContainerRef(el)
+      setContainerEl(el)
+    },
+    [registryContainerRef],
+  )
+
+  // Recalculate registry rects on scroll (viewport-relative rects shift)
+  const tickingRef = useRef(false)
+  useEffect(() => {
+    if (!containerEl) return
+    const onScroll = () => {
+      if (!tickingRef.current) {
+        tickingRef.current = true
+        requestAnimationFrame(() => {
+          registry.recalculateAll()
+          tickingRef.current = false
+        })
+      }
+    }
+    containerEl.addEventListener("scroll", onScroll, { passive: true })
+    return () => containerEl.removeEventListener("scroll", onScroll)
+  }, [containerEl, registry])
+
+  // Click-to-select via event delegation on data-node-key attributes
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      const target = e.target as HTMLElement
+      const nodeEl = target.closest("[data-node-key]")
+      if (nodeEl) {
+        const key = nodeEl.getAttribute("data-node-key")
+        if (key) {
+          setSelected([key])
+          return
+        }
+      }
+      clearSelection()
+    },
+    [setSelected, clearSelection],
+  )
+
+  // Hover tracking via event delegation
+  const handleMouseOver = useCallback(
+    (e: React.MouseEvent) => {
+      const target = e.target as HTMLElement
+      const nodeEl = target.closest("[data-node-key]")
+      setHover(nodeEl?.getAttribute("data-node-key") ?? null)
+    },
+    [setHover],
+  )
+
+  const handleMouseLeave = useCallback(() => {
+    setHover(null)
+  }, [setHover])
+
+  // DnD drop handler: inserts a new component into the target section
+  const handleDrop = useCallback(
+    (sectionKey: string, item: DropItem) => {
+      const logicalKey = `cmp.${item.semanticType.toLowerCase()}.${Date.now()}`
+      createNode.mutate(
+        {
+          kind: "component",
+          logicalKey,
+          cascadeLevel: editingLevel,
+          parentKey: sectionKey,
+          data: {
+            semanticType: item.semanticType,
+            props: item.defaultProps,
+          },
+        },
+        {
+          onSettled: () => {
+            void queryClient.invalidateQueries({ queryKey: ["preview"] })
+          },
+        },
+      )
+    },
+    [createNode, editingLevel, queryClient],
+  )
+
+  // T8.5.1 — Loading state: spinner + shimmer text
   if (isLoading) {
     return (
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", gap: 1 }}>
-        <CircularProgress size={20} />
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+          gap: 1.5,
+        }}
+      >
+        <CircularProgress size={28} />
         <Typography variant="body2" color="text.secondary">
           Resolving preview…
         </Typography>
@@ -39,30 +144,36 @@ function CanvasSurfaceInner() {
     )
   }
 
-  // Error state — inline banner
+  // T8.5.1 — Error state: inline banner with retry guidance
   if (error) {
     return (
       <Box sx={{ p: 2 }}>
-        <MuiAlert severity="error">
+        <MuiAlert severity="error" variant="outlined">
           Can&apos;t render: {error instanceof Error ? error.message : "Unknown error"}
         </MuiAlert>
       </Box>
     )
   }
 
-  // Empty state — no model or no nodes
+  // T8.5.1 — Empty state: centered message with drop prompt
   if (!model || model.nodes.length === 0) {
     return (
-      <Box sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100%",
-        gap: 1,
-      }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+          gap: 1,
+          color: "text.disabled",
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 400, fontSize: "1rem" }}>
+          No content to render
+        </Typography>
         <Typography variant="body2" color="text.secondary">
-          Drop an archetype or component
+          Drop an archetype or component from the Asset Library
         </Typography>
       </Box>
     )
@@ -70,7 +181,10 @@ function CanvasSurfaceInner() {
 
   return (
     <Box
-      ref={containerRef}
+      ref={mergedRef}
+      onClick={handleClick}
+      onMouseOver={handleMouseOver}
+      onMouseLeave={handleMouseLeave}
       sx={{
         flex: 1,
         overflow: "auto",
@@ -86,6 +200,9 @@ function CanvasSurfaceInner() {
       >
         <Renderer model={model} />
       </Box>
+      {containerEl && (
+        <CanvasOverlay containerEl={containerEl} onDrop={handleDrop} />
+      )}
     </Box>
   )
 }

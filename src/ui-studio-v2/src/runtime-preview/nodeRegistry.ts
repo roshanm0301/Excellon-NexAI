@@ -13,6 +13,7 @@ interface TrackedNode {
 
 export class NodeRegistry {
   private entries = new Map<string, NodeRegistryEntry>()
+  private snapshot: ReadonlyMap<string, NodeRegistryEntry> = new Map()
   private tracked = new Map<string, TrackedNode>()
   private listeners = new Set<() => void>()
   private resizeObserver: ResizeObserver
@@ -90,8 +91,9 @@ export class NodeRegistry {
     return () => { this.listeners.delete(listener) }
   }
 
+  // useSyncExternalStore compares by reference — return a fresh Map after mutations
   getSnapshot(): ReadonlyMap<string, NodeRegistryEntry> {
-    return this.entries
+    return this.snapshot
   }
 
   destroy(): void {
@@ -136,6 +138,7 @@ export class NodeRegistry {
   }
 
   private notify(): void {
+    this.snapshot = new Map(this.entries)
     for (const listener of this.listeners) {
       listener()
     }
