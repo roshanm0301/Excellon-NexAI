@@ -5,10 +5,16 @@ import { AssetLibrary } from "@/features/asset-library"
 
 export function LeftPanel() {
   const activeMode = usePanelsStore((s) => s.activeMode)
+  const setActiveMode = usePanelsStore((s) => s.setActiveMode)
   const tab = activeMode === "explorer" ? "explorer" : "assets"
 
   return (
-    <Tabs value={tab} className="flex h-full flex-col" aria-label="Left panel">
+    <Tabs
+      value={tab}
+      onValueChange={(v) => setActiveMode(v === "explorer" ? "explorer" : "search")}
+      className="flex h-full flex-col"
+      aria-label="Left panel"
+    >
       <TabsList className="m-2 self-start">
         <TabsTrigger value="explorer">Explorer</TabsTrigger>
         <TabsTrigger value="assets">Assets</TabsTrigger>
