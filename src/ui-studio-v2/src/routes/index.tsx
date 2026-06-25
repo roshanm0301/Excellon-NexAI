@@ -1,14 +1,15 @@
 import { createRoute } from "@tanstack/react-router"
 import { Route as rootRoute } from "./__root"
+import { homeSearchSchema } from "./search-schemas"
+import { WorkspaceHome } from "@/features/workspace-home"
+import type { Env } from "@/domain/types"
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
+  validateSearch: homeSearchSchema,
   component: function IndexPage() {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <p className="text-muted-foreground text-sm">UI Studio V2 — scaffold ready</p>
-      </div>
-    )
+    const search = Route.useSearch()
+    return <WorkspaceHome env={search.env as Env} />
   },
 })
