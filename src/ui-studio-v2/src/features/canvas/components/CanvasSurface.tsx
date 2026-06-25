@@ -1,9 +1,9 @@
 // Phase 3 §4 / Phase 5 T8.1.1–T8.5.1 — Canvas surface: fetches model, renders + overlays
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { useQueryClient } from "@tanstack/react-query"
 import { usePreview } from "@/shared/query"
-import { useCreateNode } from "@/shared/query/mutations"
+// eslint-disable-next-line no-restricted-imports -- intra-feature hook import; same-feature deep imports allowed by convention
+import { useInsertComponent } from "@/features/canvas/hooks/useInsertComponent"
 import { useWorkspaceStore } from "@/stores/workspace.store"
 import { usePanelsStore } from "@/stores/panels.store"
 import { useSelectionStore } from "@/stores/selection.store"
@@ -26,14 +26,12 @@ function CanvasSurfaceInner() {
 
   const env = useWorkspaceStore((s) => s.env)
   const previewScopeId = useWorkspaceStore((s) => s.previewScopeId)
-  const editingLevel = useWorkspaceStore((s) => s.editingLevel)
 
   const setSelected = useSelectionStore((s) => s.setSelected)
   const clearSelection = useSelectionStore((s) => s.clearSelection)
   const setHover = useSelectionStore((s) => s.setHover)
 
-  const createNode = useCreateNode()
-  const queryClient = useQueryClient()
+  const insertComponent = useInsertComponent()
 
   const { data: model, isLoading, error } = usePreview(
     env,
@@ -98,29 +96,16 @@ function CanvasSurfaceInner() {
     setHover(null)
   }, [setHover])
 
-  // DnD drop handler: inserts a new component into the target section
+  // DnD drop handler: inserts a new component into the target section.
+  // Shares insert logic with the keyboard (Enter/Space) affordance via useInsertComponent.
   const handleDrop = useCallback(
     (sectionKey: string, item: DropItem) => {
-      const logicalKey = `cmp.${item.semanticType.toLowerCase()}.${Date.now()}`
-      createNode.mutate(
-        {
-          kind: "component",
-          logicalKey,
-          cascadeLevel: editingLevel,
-          parentKey: sectionKey,
-          data: {
-            semanticType: item.semanticType,
-            props: item.defaultProps,
-          },
-        },
-        {
-          onSettled: () => {
-            void queryClient.invalidateQueries({ queryKey: ["preview"] })
-          },
-        },
+      insertComponent(
+        { semanticType: item.semanticType, defaultProps: item.defaultProps },
+        sectionKey,
       )
     },
-    [createNode, editingLevel, queryClient],
+    [insertComponent],
   )
 
   // T8.5.1 — Loading state: spinner + shimmer text
@@ -182,6 +167,8 @@ function CanvasSurfaceInner() {
   return (
     <Box
       ref={mergedRef}
+      role="region"
+      aria-label="Design canvas"
       onClick={handleClick}
       onMouseOver={handleMouseOver}
       onMouseLeave={handleMouseLeave}

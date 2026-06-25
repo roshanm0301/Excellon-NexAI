@@ -1,12 +1,14 @@
 import { DraggableCard } from "./DraggableCard"
+import type { InsertableAsset } from "./AssetLibrary"
 import { DND_TYPES } from "@/features/asset-library/dnd-types"
 import type { ArchetypeEntry } from "@/features/asset-library/catalogue"
 
 interface ArchetypeListProps {
   archetypes: ArchetypeEntry[]
+  onInsert?: (asset: InsertableAsset) => void
 }
 
-export function ArchetypeList({ archetypes }: ArchetypeListProps) {
+export function ArchetypeList({ archetypes, onInsert }: ArchetypeListProps) {
   if (archetypes.length === 0) {
     return (
       <p className="p-4 text-center text-xs text-muted-foreground">
@@ -25,6 +27,11 @@ export function ArchetypeList({ archetypes }: ArchetypeListProps) {
             icon={a.icon}
             semanticType={a.semanticType}
             defaultProps={a.defaultProps}
+            onActivate={
+              onInsert
+                ? () => onInsert({ semanticType: a.semanticType, defaultProps: a.defaultProps, label: a.label })
+                : undefined
+            }
           />
         </div>
       ))}

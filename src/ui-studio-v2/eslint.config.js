@@ -42,7 +42,7 @@ const noDeepFeaturePattern = {
 // ── ESLint config ─────────────────────────────────────────────────────────────
 
 export default tseslint.config(
-  { ignores: ["dist/**", "node_modules/**", "public/**"] },
+  { ignores: ["dist/**", "node_modules/**", "public/**", "coverage/**"] },
 
   // ── Global rules (all TS/TSX) ─────────────────────────────────────────────
   {

@@ -20,4 +20,6 @@ export {
   usePromote,
   useRollback,
   useCreateApp,
+  useLock,
+  type LockOutcome,
 } from "./mutations"

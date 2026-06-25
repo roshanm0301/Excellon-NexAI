@@ -1,4 +1,5 @@
 import { usePanelsStore } from "@/stores/panels.store"
+import { useWorkspaceStore } from "@/stores/workspace.store"
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -7,6 +8,7 @@ import {
 } from "@/shared/ui"
 import { CommandPalette, useCommandPalette } from "@/features/command-palette"
 import { PreviewHost } from "@/features/preview"
+import { usePresence } from "@/features/collaboration"
 import { ContextBar } from "./ContextBar"
 import { ActivityBar } from "./ActivityBar"
 import { LeftPanel } from "./LeftPanel"
@@ -21,6 +23,8 @@ export function ShellLayout() {
   const activeMode = usePanelsStore((s) => s.activeMode)
   const setExplorerWidth = usePanelsStore((s) => s.setExplorerWidth)
   const setInspectorWidth = usePanelsStore((s) => s.setInspectorWidth)
+  const appId = useWorkspaceStore((s) => s.appId)
+  const { users: presenceUsers } = usePresence(appId)
 
   const isPreviewMode = activeMode === "preview"
 
@@ -30,7 +34,7 @@ export function ShellLayout() {
         data-testid="shell-layout"
         className="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground"
       >
-        <ContextBar onOpenCommandPalette={palette.open} />
+        <ContextBar onOpenCommandPalette={palette.open} presenceUsers={presenceUsers} />
 
         <div className="flex flex-1 overflow-hidden">
           <ActivityBar />

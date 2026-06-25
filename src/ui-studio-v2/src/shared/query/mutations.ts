@@ -1,6 +1,7 @@
 // Phase 4 §3.2 — mutation hooks
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { services } from "@/services"
+import { ApiError } from "@/services/http/client"
 import type {
   NodeInput,
   OverrideNodeParams,
@@ -8,9 +9,33 @@ import type {
   CreateAppInput,
   PromoteParams,
   RollbackParams,
+  Lock,
 } from "@/services/interfaces"
 import type { MetaNode, Env } from "@/domain/types"
 import { applyOverrideOps } from "@/domain/cascade"
+
+// T12.1.1 — node-level optimistic lock acquisition. A 409 means another user
+// already holds the lock; we resolve to a non-throwing "denied" outcome so the
+// caller can flip into the read-only/locked-by-other state rather than error.
+export type LockOutcome =
+  | { acquired: true; lock: Lock }
+  | { acquired: false }
+
+export function useLock() {
+  return useMutation<LockOutcome, Error, string>({
+    mutationFn: async (key: string): Promise<LockOutcome> => {
+      try {
+        const lock = await services.presence.lock(key)
+        return { acquired: true, lock }
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 409) {
+          return { acquired: false }
+        }
+        throw err
+      }
+    },
+  })
+}
 
 export function useCreateNode() {
   const qc = useQueryClient()

@@ -13,6 +13,7 @@ import {
   SCOPE_MAP,
 } from "@/mocks/fixtures/dms-app"
 import { registryHits, typeShapes } from "@/mocks/fixtures/registry"
+import { seedPresenceUsers, seedLocks } from "@/mocks/fixtures/presence"
 
 export interface MockConfig {
   latencyMs: number
@@ -48,12 +49,22 @@ function buildInitialStore(): MockStore {
     nodes.set(nodeKey(node.logicalKey, node.cascadeLevel), node)
   }
 
+  const presence = new Map<string, PresenceUser>()
+  for (const user of seedPresenceUsers) {
+    presence.set(user.userId, { ...user, lockedKeys: [...user.lockedKeys] })
+  }
+
+  const locks = new Map<string, Lock>()
+  for (const lock of seedLocks) {
+    locks.set(lock.key, { ...lock })
+  }
+
   return {
     nodes,
     registry: [...registryHits],
     shapes: new Map(typeShapes),
-    presence: new Map(),
-    locks: new Map(),
+    presence,
+    locks,
     publishHistory: [],
     config: {
       latencyMs: 0,

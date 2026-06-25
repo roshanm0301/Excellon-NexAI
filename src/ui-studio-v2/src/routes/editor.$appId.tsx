@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react"
 import { createRoute } from "@tanstack/react-router"
 import { Route as rootRoute } from "./__root"
 import { editorAppSearchSchema } from "./search-schemas"
@@ -6,7 +7,12 @@ import { queryClient } from "@/shared/query/client"
 import { qk } from "@/shared/query/keys"
 import { services } from "@/services"
 import type { CascadeLevel, Env } from "@/domain/types"
-import { ShellLayout } from "@/features/shell"
+
+// Code-split the editor shell (pulls in the MUI runtime canvas) so it loads on
+// demand and stays out of the initial Workspace Home / sign-in bundle. [T12.4.1]
+const ShellLayout = lazy(() =>
+  import("@/features/shell").then((m) => ({ default: m.ShellLayout })),
+)
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
@@ -46,6 +52,16 @@ export const Route = createRoute({
     }
   },
   component: function EditorAppPage() {
-    return <ShellLayout />
+    return (
+      <Suspense
+        fallback={
+          <div className="flex h-screen w-screen items-center justify-center text-sm text-muted-foreground">
+            Loading editor…
+          </div>
+        }
+      >
+        <ShellLayout />
+      </Suspense>
+    )
   },
 })

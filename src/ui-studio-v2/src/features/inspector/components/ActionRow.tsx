@@ -84,7 +84,7 @@ export function ActionRow({ value, onChange, onRemove }: ActionRowProps) {
     <div className="flex flex-col gap-2 rounded border p-2">
       <div className="flex items-center gap-2">
         <Select value={value.actionKind} onValueChange={handleKindChange}>
-          <SelectTrigger className="h-7 flex-1 text-xs">
+          <SelectTrigger className="h-7 flex-1 text-xs" aria-label="Action kind">
             <SelectValue placeholder="Action kind…" />
           </SelectTrigger>
           <SelectContent>
@@ -126,7 +126,7 @@ export function ActionRow({ value, onChange, onRemove }: ActionRowProps) {
             <p className="text-[10px] text-muted-foreground">Loading transitions…</p>
           ) : transitions.length > 0 ? (
             <Select value={value.transition} onValueChange={handleTransitionChange}>
-              <SelectTrigger className="h-7 text-xs">
+              <SelectTrigger className="h-7 text-xs" aria-label="Workflow transition">
                 <SelectValue placeholder="Select transition…" />
               </SelectTrigger>
               <SelectContent>

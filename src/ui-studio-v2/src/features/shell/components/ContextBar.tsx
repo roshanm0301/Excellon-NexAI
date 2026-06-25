@@ -5,6 +5,7 @@ import { usePanelsStore } from "@/stores/panels.store"
 import { useValidation } from "@/shared/query"
 import { PublishDialog } from "@/features/publish"
 import type { CascadeLevel } from "@/domain/types"
+import type { PresenceUser } from "@/services/interfaces"
 import {
   Button,
   Badge,
@@ -32,7 +33,7 @@ const PREVIEW_SCOPES: { value: string; label: string }[] = [
 
 interface ContextBarProps {
   onOpenCommandPalette: () => void
-  presenceUsers?: { userId: string; displayName: string }[]
+  presenceUsers?: PresenceUser[]
 }
 
 export function ContextBar({ onOpenCommandPalette, presenceUsers = [] }: ContextBarProps) {

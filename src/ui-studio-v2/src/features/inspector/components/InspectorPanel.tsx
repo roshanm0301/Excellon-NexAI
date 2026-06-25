@@ -1,8 +1,9 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Skeleton, Tabs, TabsList, TabsTrigger, TabsContent, Button } from "@/shared/ui"
 import { useSelectionStore } from "@/stores/selection.store"
 import { useWorkspaceStore } from "@/stores/workspace.store"
 import { useNode } from "@/shared/query"
+import { usePresence, LockBanner } from "@/features/collaboration"
 import type { MetaNode, OriginState } from "@/domain/types"
 import { NodeHeader } from "./NodeHeader"
 import { PropsTab } from "./PropsTab"
@@ -19,7 +20,10 @@ const TABS = [
   { value: "mobile", label: "Mobile" },
 ] as const
 
-function deriveOrigin(node: MetaNode): OriginState {
+// Single-node origin heuristic for the Inspector. The domain `deriveOrigin`
+// needs the full node map + editing level to resolve cascade origin; the
+// Inspector only has the selected node, so it uses this lightweight 3-state form.
+function deriveSingleNodeOrigin(node: MetaNode): OriginState {
   if (!node.overrideOf) return "own"
   if (node.overrideOps && node.overrideOps.length > 0) return "overridden"
   return "inherited"
@@ -29,7 +33,17 @@ export function InspectorPanel() {
   const selectedKey = useSelectionStore((s) => s.selectedKeys[0] ?? "")
   const { data: node, isLoading, error } = useNode(selectedKey)
   const editingLevel = useWorkspaceStore((s) => s.editingLevel)
+  const appId = useWorkspaceStore((s) => s.appId)
+  const { lockedByOthers } = usePresence(appId)
   const [eventBuilderOpen, setEventBuilderOpen] = useState(false)
+
+  const lockedBy = selectedKey ? lockedByOthers.get(selectedKey) : undefined
+  const isLocked = lockedBy !== undefined
+
+  const origin: OriginState = useMemo(
+    () => (node ? deriveSingleNodeOrigin(node) : "own"),
+    [node],
+  )
 
   if (!selectedKey) {
     return (
@@ -61,12 +75,11 @@ export function InspectorPanel() {
     )
   }
 
-  const origin = deriveOrigin(node)
-
   return (
     <aside aria-label="Inspector" className="flex h-full flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-background">
         <NodeHeader node={node} origin={origin} />
+        {isLocked && <LockBanner displayName={lockedBy.displayName} />}
       </div>
 
       <Tabs defaultValue="props" className="flex min-h-0 flex-1 flex-col">
@@ -81,7 +94,7 @@ export function InspectorPanel() {
         <div className="flex-1 overflow-auto">
           <TabsContent value="props" className="mt-0 px-1 py-1">
             {node.kind === "component" ? (
-              <PropsTab node={node} origin={origin} />
+              <PropsTab node={node} origin={origin} locked={isLocked} />
             ) : (
               <p className="px-2 text-xs text-muted-foreground">
                 Not applicable for {node.kind}

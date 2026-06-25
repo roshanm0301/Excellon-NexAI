@@ -5,14 +5,16 @@ import {
   AccordionContent,
 } from "@/shared/ui"
 import { DraggableCard } from "./DraggableCard"
+import type { InsertableAsset } from "./AssetLibrary"
 import { DND_TYPES } from "@/features/asset-library/dnd-types"
 import { CATEGORIES, type CatalogueEntry, type CatalogueCategory } from "@/features/asset-library/catalogue"
 
 interface ComponentsTabProps {
   components: CatalogueEntry[]
+  onInsert?: (asset: InsertableAsset) => void
 }
 
-export function ComponentsTab({ components }: ComponentsTabProps) {
+export function ComponentsTab({ components, onInsert }: ComponentsTabProps) {
   const byCategory = CATEGORIES.reduce<Record<CatalogueCategory, CatalogueEntry[]>>(
     (acc, cat) => {
       acc[cat] = components.filter((c) => c.category === cat)
@@ -48,6 +50,11 @@ export function ComponentsTab({ components }: ComponentsTabProps) {
                     icon={c.icon}
                     semanticType={c.semanticType}
                     defaultProps={c.defaultProps}
+                    onActivate={
+                      onInsert
+                        ? () => onInsert({ semanticType: c.semanticType, defaultProps: c.defaultProps, label: c.label })
+                        : undefined
+                    }
                   />
                 </div>
               ))}

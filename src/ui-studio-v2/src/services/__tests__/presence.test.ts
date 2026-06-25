@@ -5,6 +5,8 @@ import { getStore } from "@/mocks/store"
 describe("PresenceService (MSW)", () => {
   it("subscribe returns users from store", async () => {
     const store = getStore()
+    // Reset the seeded collaborators to assert on a known single-user state.
+    store.presence.clear()
     store.presence.set("user-1", {
       userId: "user-1",
       displayName: "Test User",

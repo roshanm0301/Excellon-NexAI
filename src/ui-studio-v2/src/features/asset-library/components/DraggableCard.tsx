@@ -10,6 +10,8 @@ interface DraggableCardProps {
   defaultProps: Record<string, unknown>
   isUnavailable?: boolean
   unavailableReason?: string
+  /** T12.2.1 — keyboard DnD alternative: fired on Enter/Space to insert this asset. */
+  onActivate?: () => void
 }
 
 export function DraggableCard({
@@ -20,6 +22,7 @@ export function DraggableCard({
   defaultProps,
   isUnavailable = false,
   unavailableReason,
+  onActivate,
 }: DraggableCardProps) {
   const [{ isDragging }, dragRef] = useDrag(
     () => ({
@@ -33,17 +36,27 @@ export function DraggableCard({
     [type, semanticType, defaultProps, isUnavailable],
   )
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isUnavailable || !onActivate) return
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault()
+      onActivate()
+    }
+  }
+
   const card = (
     <div
       ref={dragRef}
       role="button"
+      tabIndex={isUnavailable ? -1 : 0}
       aria-label={label}
       aria-grabbed={isDragging}
       aria-disabled={isUnavailable}
+      onKeyDown={handleKeyDown}
       data-testid={`asset-card-${semanticType}`}
       className={cn(
         "flex flex-col items-center gap-1 rounded-md border border-border p-2 text-center",
-        "transition-colors hover:bg-accent/50",
+        "transition-colors hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-ring",
         isDragging && "opacity-50",
         isUnavailable && "cursor-not-allowed opacity-50",
         !isUnavailable && "cursor-grab",

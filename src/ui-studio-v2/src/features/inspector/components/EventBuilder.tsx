@@ -159,7 +159,7 @@ export function EventBuilder({
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium">Trigger</label>
             <Select value={trigger} onValueChange={(v) => setTrigger(v as EventTrigger)}>
-              <SelectTrigger className="h-8 text-xs">
+              <SelectTrigger className="h-8 text-xs" aria-label="Event trigger">
                 <SelectValue placeholder="Select trigger…" />
               </SelectTrigger>
               <SelectContent>

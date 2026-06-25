@@ -3,17 +3,23 @@ import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { TooltipProvider } from "@/shared/ui"
 import { AssetLibrary } from "@/features/asset-library"
 import { ARCHETYPES, COMPONENTS, CATEGORIES } from "@/features/asset-library/catalogue"
 
 function renderLibrary() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
   return render(
-    <DndProvider backend={HTML5Backend}>
-      <TooltipProvider>
-        <AssetLibrary />
-      </TooltipProvider>
-    </DndProvider>,
+    <QueryClientProvider client={queryClient}>
+      <DndProvider backend={HTML5Backend}>
+        <TooltipProvider>
+          <AssetLibrary />
+        </TooltipProvider>
+      </DndProvider>
+    </QueryClientProvider>,
   )
 }
 

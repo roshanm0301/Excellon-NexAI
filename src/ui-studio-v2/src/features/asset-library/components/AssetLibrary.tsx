@@ -1,11 +1,34 @@
+import { useState } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent, ScrollArea } from "@/shared/ui"
 // eslint-disable-next-line no-restricted-imports -- intra-feature hook import; same-feature deep imports allowed by convention
 import { useAssetSearch } from "@/features/asset-library/hooks/useAssetSearch"
+import { useInsertComponent } from "@/features/canvas"
+import { useSelectionStore } from "@/stores/selection.store"
 import { ArchetypeList } from "./ArchetypeList"
 import { ComponentsTab } from "./ComponentsTab"
 
+// T12.2.1 — the minimal shape needed to insert an asset via the keyboard path.
+export interface InsertableAsset {
+  semanticType: string
+  defaultProps: Record<string, unknown>
+  label: string
+}
+
 export function AssetLibrary() {
   const { query, setQuery, filteredArchetypes, filteredComponents } = useAssetSearch()
+  const insertComponent = useInsertComponent()
+  const selectedKey = useSelectionStore((s) => s.selectedKeys[0])
+  const [announcement, setAnnouncement] = useState("")
+
+  // Keyboard DnD alternative: insert into the selected container, or prompt to pick one.
+  const handleInsert = (asset: InsertableAsset) => {
+    if (!selectedKey) {
+      setAnnouncement(`Select a container in the canvas before inserting ${asset.label}`)
+      return
+    }
+    insertComponent({ semanticType: asset.semanticType, defaultProps: asset.defaultProps }, selectedKey)
+    setAnnouncement(`Inserted ${asset.label}`)
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -28,16 +51,20 @@ export function AssetLibrary() {
 
         <TabsContent value="archetypes" className="mt-0 flex-1 overflow-hidden">
           <ScrollArea className="h-full">
-            <ArchetypeList archetypes={filteredArchetypes} />
+            <ArchetypeList archetypes={filteredArchetypes} onInsert={handleInsert} />
           </ScrollArea>
         </TabsContent>
 
         <TabsContent value="components" className="mt-0 flex-1 overflow-hidden">
           <ScrollArea className="h-full">
-            <ComponentsTab components={filteredComponents} />
+            <ComponentsTab components={filteredComponents} onInsert={handleInsert} />
           </ScrollArea>
         </TabsContent>
       </Tabs>
+
+      <div aria-live="polite" className="sr-only" data-testid="asset-insert-announcer">
+        {announcement}
+      </div>
     </div>
   )
 }

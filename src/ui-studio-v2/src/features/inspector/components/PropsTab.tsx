@@ -16,6 +16,8 @@ import { OverridePrompt, RevertDialog } from "./OverridePrompt"
 interface PropsTabProps {
   node: ComponentNode
   origin: OriginState
+  /** T12.1.1 — true when another collaborator holds the lock; blocks editing. */
+  locked?: boolean
 }
 
 // Inline zodResolver — avoids @hookform/resolvers dependency
@@ -68,7 +70,7 @@ function makeZodResolver<T extends z.ZodTypeAny>(
   }
 }
 
-export function PropsTab({ node, origin }: PropsTabProps) {
+export function PropsTab({ node, origin, locked = false }: PropsTabProps) {
   const contract = SEMANTIC_CONTRACTS[node.semanticType]
   const editingLevel = useWorkspaceStore((s) => s.editingLevel)
   const overrideNode = useOverrideNode()
@@ -125,6 +127,7 @@ export function PropsTab({ node, origin }: PropsTabProps) {
   }
 
   const isInherited = origin === "inherited"
+  const readOnly = isInherited || locked
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-1 px-1">
@@ -134,7 +137,7 @@ export function PropsTab({ node, origin }: PropsTabProps) {
         </div>
       )}
 
-      <div className={isInherited ? "pointer-events-none opacity-60" : ""}>
+      <div className={readOnly ? "pointer-events-none opacity-60" : ""}>
         {Object.entries(props).map(([key, def]) => (
           <PropertyRow
             key={key}
@@ -162,7 +165,7 @@ export function PropsTab({ node, origin }: PropsTabProps) {
       <Button
         type="submit"
         size="sm"
-        disabled={isInherited || !formState.isDirty || !formState.isValid || overrideNode.isPending}
+        disabled={readOnly || !formState.isDirty || !formState.isValid || overrideNode.isPending}
         className="mt-2 w-full text-xs"
       >
         {overrideNode.isPending ? "Saving…" : "Save Changes"}

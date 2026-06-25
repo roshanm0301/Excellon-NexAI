@@ -1,4 +1,5 @@
 export { InspectorPanel } from "./components"
+export { PropsTab } from "./components"
 export { BindingPicker } from "./components"
 export { ActionRow } from "./components"
 export type { ActionRowValue } from "./components"
