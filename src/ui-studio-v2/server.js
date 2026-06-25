@@ -1,6 +1,12 @@
 import dotenv from "dotenv"
 import express from "express"
 import { connectDB, closeDBConnection } from "./config/db.js"
+import metadataRouter from "./routes/metadata.js"
+import compilerRouter from "./routes/compiler.js"
+import registryRouter from "./routes/registry.js"
+import versioningRouter from "./routes/versioning.js"
+import presenceRouter from "./routes/presence.js"
+import previewRouter from "./routes/preview.js"
 
 dotenv.config()
 
@@ -17,6 +23,13 @@ app.get("/health", (_req, res) => {
   })
 })
 
+app.use("/api/v1/metadata", metadataRouter)
+app.use("/api/v1/compiler", compilerRouter)
+app.use("/api/v1/registry", registryRouter)
+app.use("/api/v1/versioning", versioningRouter)
+app.use("/api/v1/presence", presenceRouter)
+app.use("/api/v1/preview", previewRouter)
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -26,7 +39,6 @@ app.use((req, res) => {
 
 app.use((error, _req, res, _next) => {
   console.error("Unhandled server error:", error)
-
   res.status(error.statusCode || 500).json({
     success: false,
     message: error.message || "Internal Server Error",
