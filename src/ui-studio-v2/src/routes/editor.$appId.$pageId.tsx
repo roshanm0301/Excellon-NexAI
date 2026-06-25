@@ -9,7 +9,12 @@ export const Route = createRoute({
   path: "$pageId",
   validateSearch: editorPageSearchSchema,
   beforeLoad: ({ params, search }) => {
+    const prevPageId = useWorkspaceStore.getState().pageId
     useWorkspaceStore.getState().setApp(params.appId, params.pageId)
+    // Clear stale component selection when navigating to a different page.
+    if (prevPageId !== params.pageId) {
+      useSelectionStore.getState().clearSelection()
+    }
     const selection = search.selection as string[]
     if (selection.length > 0) {
       useSelectionStore.getState().setSelected(selection)

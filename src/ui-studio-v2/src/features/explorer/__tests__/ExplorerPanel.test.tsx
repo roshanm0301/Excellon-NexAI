@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, within, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
@@ -6,6 +6,12 @@ import { TooltipProvider } from "@/shared/ui"
 import { ExplorerPanel } from "@/features/explorer"
 import { useWorkspaceStore } from "@/stores/workspace.store"
 import { useSelectionStore } from "@/stores/selection.store"
+
+// ExplorerTree now calls useNavigate — provide a mock so tests run without a Router.
+const mockNavigate = vi.fn()
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => mockNavigate,
+}))
 
 function renderExplorer() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -20,8 +26,11 @@ function renderExplorer() {
 
 describe("ExplorerPanel", () => {
   beforeEach(() => {
+    mockNavigate.mockClear()
     useWorkspaceStore.setState({
       env: "dev",
+      appId: "app.dms",
+      pageId: "",
       editingLevel: "vertical",
       editingScopeId: "automotive",
     })
@@ -95,5 +104,27 @@ describe("ExplorerPanel", () => {
 
     await screen.findByText("Override here")
     expect(screen.getByText("Override here")).toBeInTheDocument()
+  })
+
+  it("clicking a page node navigates to that page route", async () => {
+    const user = userEvent.setup()
+    renderExplorer()
+    const pageItem = await screen.findByTestId("tree-item-page.salesOrder")
+    await user.click(pageItem)
+    expect(mockNavigate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "/editor/$appId/$pageId",
+        params: expect.objectContaining({ pageId: "page.salesOrder" }),
+      }),
+    )
+  })
+
+  it("clicking a page node clears the selection store", async () => {
+    useSelectionStore.setState({ selectedKeys: ["comp.someComponent"], hoverKey: null })
+    const user = userEvent.setup()
+    renderExplorer()
+    const pageItem = await screen.findByTestId("tree-item-page.salesOrder")
+    await user.click(pageItem)
+    expect(useSelectionStore.getState().selectedKeys).toHaveLength(0)
   })
 })

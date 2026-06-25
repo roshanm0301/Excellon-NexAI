@@ -123,6 +123,7 @@ const sectionOrderInfo: SectionNode = {
     "cmp.customerName",
     "cmp.orderDate",
     "cmp.discountField",
+    "cmp.dealerNotes",
   ],
 }
 

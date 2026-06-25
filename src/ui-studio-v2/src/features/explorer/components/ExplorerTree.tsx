@@ -1,9 +1,11 @@
 import { useCallback, useRef, useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { TreeItem } from "./TreeItem"
 // eslint-disable-next-line no-restricted-imports -- intra-feature hook import; same-feature deep imports allowed by convention
-import { useExplorerTree, type ExplorerFilter } from "@/features/explorer/hooks/useExplorerTree"
+import { useExplorerTree, type ExplorerFilter, type DisplayNode } from "@/features/explorer/hooks/useExplorerTree"
 import { useSelectionStore } from "@/stores/selection.store"
+import { useWorkspaceStore } from "@/stores/workspace.store"
 import type { TreeNode } from "@/services/interfaces"
 
 interface ExplorerTreeProps {
@@ -13,10 +15,23 @@ interface ExplorerTreeProps {
 
 const ROW_HEIGHT = 28
 
+// Walks the parentKey chain of displayNodes to find the nearest page ancestor.
+function findPageAncestor(node: DisplayNode, allNodes: DisplayNode[]): DisplayNode | null {
+  if (node.kind === "page") return node
+  if (!node.parentKey) return null
+  const parent = allNodes.find((n) => n.logicalKey === node.parentKey)
+  if (!parent) return null
+  return findPageAncestor(parent, allNodes)
+}
+
 export function ExplorerTree({ nodes, filter }: ExplorerTreeProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set())
   const displayNodes = useExplorerTree(nodes, filter, collapsed)
   const setSelected = useSelectionStore((s) => s.setSelected)
+  const clearSelection = useSelectionStore((s) => s.clearSelection)
+  const appId = useWorkspaceStore((s) => s.appId)
+  const activePageId = useWorkspaceStore((s) => s.pageId)
+  const navigate = useNavigate()
   const [activeIndex, setActiveIndex] = useState(0)
   const parentRef = useRef<HTMLDivElement>(null)
 
@@ -46,6 +61,31 @@ export function ExplorerTree({ nodes, filter }: ExplorerTreeProps) {
       virtualizer.scrollToIndex(clamped)
     },
     [displayNodes.length, virtualizer],
+  )
+
+  // Navigate to a page route or select a non-page node (switching pages first if needed).
+  const handleNodeActivate = useCallback(
+    (node: DisplayNode) => {
+      if (node.kind === "page") {
+        void navigate({
+          to: "/editor/$appId/$pageId",
+          params: { appId, pageId: node.logicalKey },
+        })
+        clearSelection()
+      } else {
+        const pageAncestor = findPageAncestor(node, displayNodes)
+        if (pageAncestor && pageAncestor.logicalKey !== activePageId) {
+          void navigate({
+            to: "/editor/$appId/$pageId",
+            params: { appId, pageId: pageAncestor.logicalKey },
+            search: (prev) => ({ ...prev, selection: [node.logicalKey] }),
+          })
+        } else {
+          setSelected([node.logicalKey])
+        }
+      }
+    },
+    [navigate, appId, activePageId, displayNodes, clearSelection, setSelected],
   )
 
   // WAI-ARIA tree keyboard model (aria-activedescendant variant — works with virtualization).
@@ -88,7 +128,7 @@ export function ExplorerTree({ nodes, filter }: ExplorerTreeProps) {
       case "Enter":
       case " ":
         e.preventDefault()
-        if (activeNode) setSelected([activeNode.logicalKey])
+        if (activeNode) handleNodeActivate(activeNode)
         break
       default:
         break
@@ -129,7 +169,7 @@ export function ExplorerTree({ nodes, filter }: ExplorerTreeProps) {
                 onToggleCollapse={() => toggleCollapse(node.logicalKey)}
                 onActivate={() => {
                   setActiveIndex(vi.index)
-                  setSelected([node.logicalKey])
+                  handleNodeActivate(node)
                 }}
               />
             </div>

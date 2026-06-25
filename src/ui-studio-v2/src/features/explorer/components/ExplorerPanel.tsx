@@ -8,18 +8,16 @@ import { ExplorerTree } from "./ExplorerTree"
 // eslint-disable-next-line no-restricted-imports -- intra-feature hook import; same-feature deep imports allowed by convention
 import type { ExplorerFilter } from "@/features/explorer/hooks/useExplorerTree"
 
-// Placeholder used in tests/storybook when no appId is in scope
-const STUB_APP_ID = "automotive"
-
 export function ExplorerPanel() {
   const [filter, setFilter] = useState<ExplorerFilter>("all")
   const env = useWorkspaceStore((s) => s.env)
+  const appId = useWorkspaceStore((s) => s.appId)
   const editingLevel = useWorkspaceStore((s) => s.editingLevel)
   const editingScopeId = useWorkspaceStore((s) => s.editingScopeId)
 
   const { data, isLoading, isError, refetch } = useTree(
     env,
-    STUB_APP_ID,
+    appId,
     editingLevel,
     editingScopeId,
   )

@@ -15,9 +15,6 @@ import Typography from "@mui/material/Typography"
 import CircularProgress from "@mui/material/CircularProgress"
 import MuiAlert from "@mui/material/Alert"
 
-const DEFAULT_APP_ID = "app.dms"
-const DEFAULT_PAGE_ID = "page.salesOrder"
-
 function CanvasSurfaceInner() {
   const registryContainerRef = useContainerRef()
   const registry = useNodeRegistry()
@@ -25,6 +22,8 @@ function CanvasSurfaceInner() {
   const zoomScale = usePanelsStore((s) => s.zoomScale)
 
   const env = useWorkspaceStore((s) => s.env)
+  const appId = useWorkspaceStore((s) => s.appId)
+  const pageId = useWorkspaceStore((s) => s.pageId)
   const previewScopeId = useWorkspaceStore((s) => s.previewScopeId)
 
   const setSelected = useSelectionStore((s) => s.setSelected)
@@ -35,8 +34,8 @@ function CanvasSurfaceInner() {
 
   const { data: model, isLoading, error } = usePreview(
     env,
-    DEFAULT_APP_ID,
-    DEFAULT_PAGE_ID,
+    appId,
+    pageId,
     previewScopeId,
   )
 
@@ -195,6 +194,31 @@ function CanvasSurfaceInner() {
 }
 
 export function CanvasSurface() {
+  const pageId = useWorkspaceStore((s) => s.pageId)
+
+  if (!pageId) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+          gap: 1,
+          color: "text.disabled",
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 400, fontSize: "1rem" }}>
+          No page selected
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Select a page from the Explorer to start designing.
+        </Typography>
+      </Box>
+    )
+  }
+
   return (
     <NodeRegistryProvider>
       <CanvasSurfaceInner />

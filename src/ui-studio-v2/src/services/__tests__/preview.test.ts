@@ -14,9 +14,10 @@ describe("PreviewService (MSW)", () => {
     expect(model.scopeId).toBe("automotive")
     expect(model.nodes.length).toBeGreaterThan(0)
 
-    const appNode = model.nodes.find((n) => n.logicalKey === "app.dms")
-    expect(appNode).toBeDefined()
-    expect(appNode!.kind).toBe("application")
+    // page.salesOrder descendants should be present; app-level nodes are not returned
+    const orderNumberCmp = model.nodes.find((n) => n.logicalKey === "cmp.orderNumber")
+    expect(orderNumberCmp).toBeDefined()
+    expect(orderNumberCmp!.kind).toBe("component")
   })
 
   it("preview-as-Toyota suppresses discountField", async () => {
