@@ -3,11 +3,10 @@ import type { ReactNode } from "react"
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { server } from "@/mocks/server"
-import { http, HttpResponse } from "msw"
 import { PublishDialog } from "@/features/publish"
 import { useWorkspaceStore } from "@/stores/workspace.store"
 import { usePanelsStore } from "@/stores/panels.store"
+import { services } from "@/services"
 
 vi.mock("@/features/publish/components/CascadeImpactDialog", () => ({
   CascadeImpactDialog: () => null,
@@ -26,14 +25,19 @@ describe("PublishDialog — promote & problems navigation (T12.3.1 coverage)", (
       editingLevel: "vertical",
       editingScopeId: "automotive",
     })
+    vi.restoreAllMocks()
+    vi.spyOn(services.versioning, "getVersions").mockResolvedValue([])
   })
 
   it("promotes dev→staging and shows the published version", async () => {
     const user = userEvent.setup()
-    server.use(
-      http.post("/api/v1/compiler/validate", () => HttpResponse.json([])),
-      http.get("/api/v1/versioning/:appId/versions", () => HttpResponse.json([])),
-    )
+    vi.spyOn(services.compiler, "validate").mockResolvedValue([])
+    vi.spyOn(services.versioning, "promote").mockResolvedValue({
+      success: true,
+      artifactVersion: 3,
+      message: "Promoted",
+      issues: [],
+    })
 
     render(<PublishDialog open onOpenChange={() => {}} />, { wrapper })
 
@@ -47,14 +51,9 @@ describe("PublishDialog — promote & problems navigation (T12.3.1 coverage)", (
   it("'View problems' opens the problems dock", async () => {
     const user = userEvent.setup()
     usePanelsStore.setState({ activeMode: "explorer", bottomDockVisible: false })
-    server.use(
-      http.post("/api/v1/compiler/validate", () =>
-        HttpResponse.json([
-          { type: "broken-binding", severity: "error", nodeId: "n1", path: "p", message: "boom" },
-        ]),
-      ),
-      http.get("/api/v1/versioning/:appId/versions", () => HttpResponse.json([])),
-    )
+    vi.spyOn(services.compiler, "validate").mockResolvedValue([
+      { type: "broken-binding", severity: "error", nodeId: "n1", path: "p", message: "boom" },
+    ])
 
     const onOpenChange = vi.fn()
     render(<PublishDialog open onOpenChange={onOpenChange} />, { wrapper })

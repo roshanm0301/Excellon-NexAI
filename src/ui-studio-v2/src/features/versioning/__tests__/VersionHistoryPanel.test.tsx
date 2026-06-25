@@ -1,13 +1,10 @@
-import { describe, it, expect, beforeEach } from "vitest"
+import { describe, it, expect, beforeEach, vi } from "vitest"
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useWorkspaceStore } from "@/stores/workspace.store"
-import { server } from "@/mocks/server"
-import { http, HttpResponse } from "msw"
 import { VersionHistoryPanel } from "@/features/versioning"
-
-const API_BASE_URL = "/api/v1"
+import { services } from "@/services"
 
 const mockVersions = [
   {
@@ -62,23 +59,16 @@ function renderWithProviders(ui: React.ReactElement) {
 describe("VersionHistoryPanel", () => {
   beforeEach(() => {
     useWorkspaceStore.setState({ appId: "test-app" })
-
-    server.use(
-      http.get(`${API_BASE_URL}/versioning/:appId/versions`, () => {
-        return HttpResponse.json(mockVersions)
-      }),
-      http.post(`${API_BASE_URL}/versioning/:appId/diff`, async ({ request }) => {
-        const body = (await request.json()) as { v1: number; v2: number }
-        return HttpResponse.json({
-          v1: body.v1,
-          v2: body.v2,
-          entries: mockDiffEntries,
-        })
-      }),
-    )
+    vi.restoreAllMocks()
+    vi.spyOn(services.versioning, "getVersions").mockResolvedValue(mockVersions)
+    vi.spyOn(services.versioning, "getDiff").mockImplementation(async (_appId, v1, v2) => ({
+      v1,
+      v2,
+      entries: mockDiffEntries,
+    }))
   })
 
-  it("lists published versions from mock data", async () => {
+  it("lists published versions from API data", async () => {
     renderWithProviders(<VersionHistoryPanel />)
 
     await waitFor(() => {
@@ -97,11 +87,7 @@ describe("VersionHistoryPanel", () => {
   })
 
   it("shows empty state when no versions exist", async () => {
-    server.use(
-      http.get(`${API_BASE_URL}/versioning/:appId/versions`, () => {
-        return HttpResponse.json([])
-      }),
-    )
+    vi.spyOn(services.versioning, "getVersions").mockResolvedValue([])
 
     renderWithProviders(<VersionHistoryPanel />)
 
@@ -157,14 +143,7 @@ describe("VersionHistoryPanel", () => {
   })
 
   it("shows error state with Retry button on server error", async () => {
-    server.use(
-      http.get(`${API_BASE_URL}/versioning/:appId/versions`, () => {
-        return HttpResponse.json(
-          { message: "Internal Server Error" },
-          { status: 500 },
-        )
-      }),
-    )
+    vi.spyOn(services.versioning, "getVersions").mockRejectedValue(new Error("Internal Server Error"))
 
     renderWithProviders(<VersionHistoryPanel />)
 

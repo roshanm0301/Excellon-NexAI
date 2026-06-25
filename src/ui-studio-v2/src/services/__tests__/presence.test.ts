@@ -1,19 +1,8 @@
 import { describe, it, expect, vi } from "vitest"
 import { services } from "@/services"
-import { getStore } from "@/mocks/store"
 
-describe("PresenceService (MSW)", () => {
-  it("subscribe returns users from store", async () => {
-    const store = getStore()
-    // Reset the seeded collaborators to assert on a known single-user state.
-    store.presence.clear()
-    store.presence.set("user-1", {
-      userId: "user-1",
-      displayName: "Test User",
-      lockedKeys: [],
-      lastSeen: new Date().toISOString(),
-    })
-
+describe("PresenceService", () => {
+  it("subscribe returns the seeded collaborators from the real API", async () => {
     const callback = vi.fn()
     const unsub = services.presence.subscribe("app.dms", callback)
 
@@ -22,8 +11,9 @@ describe("PresenceService (MSW)", () => {
     })
 
     const users = callback.mock.calls[0][0]
-    expect(users).toHaveLength(1)
-    expect(users[0].userId).toBe("user-1")
+    expect(users).toHaveLength(2)
+    expect(users.some((user: { userId: string }) => user.userId === "mock-user")).toBe(true)
+    expect(users.some((user: { userId: string }) => user.userId === "u-jordan")).toBe(true)
 
     unsub()
   })

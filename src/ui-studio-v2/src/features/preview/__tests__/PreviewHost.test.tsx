@@ -3,8 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useWorkspaceStore } from "@/stores/workspace.store"
 import { usePanelsStore } from "@/stores/panels.store"
-import { server } from "@/mocks/server"
-import { http, HttpResponse } from "msw"
+import { services } from "@/services"
 
 vi.mock("@/runtime-preview/Renderer", () => ({
   Renderer: ({ model }: { model: unknown }) => (
@@ -31,7 +30,13 @@ async function importPreviewHost() {
 
 describe("PreviewHost", () => {
   it("shows empty state when no previewScopeId is set", async () => {
-    useWorkspaceStore.setState({ previewScopeId: "" })
+    useWorkspaceStore.setState({
+      env: "dev",
+      appId: "app.dms",
+      pageId: "page.salesOrder",
+      previewScopeId: "",
+      previewRole: undefined,
+    })
 
     const PreviewHost = await importPreviewHost()
     renderWithProviders(<PreviewHost />)
@@ -64,11 +69,7 @@ describe("PreviewHost", () => {
       ],
     }
 
-    server.use(
-      http.post("/api/v1/preview/resolve", () => {
-        return HttpResponse.json(mockModel)
-      }),
-    )
+    vi.spyOn(services.preview, "resolve").mockResolvedValue(mockModel)
 
     const PreviewHost = await importPreviewHost()
     renderWithProviders(<PreviewHost />)
@@ -90,14 +91,7 @@ describe("PreviewHost", () => {
       previewRole: "admin",
     })
 
-    // Use a handler that never resolves to keep the query in loading state
-    server.use(
-      http.post("/api/v1/preview/resolve", () => {
-        return new Promise(() => {
-          // intentionally never resolves
-        })
-      }),
-    )
+    vi.spyOn(services.preview, "resolve").mockImplementation(() => new Promise(() => {}))
 
     const PreviewHost = await importPreviewHost()
     renderWithProviders(<PreviewHost />)
@@ -139,14 +133,7 @@ describe("PreviewHost", () => {
       previewRole: "admin",
     })
 
-    server.use(
-      http.post("/api/v1/preview/resolve", () => {
-        return HttpResponse.json(
-          { message: "Internal Server Error" },
-          { status: 500 },
-        )
-      }),
-    )
+    vi.spyOn(services.preview, "resolve").mockRejectedValue(new Error("API error 500"))
 
     const PreviewHost = await importPreviewHost()
     renderWithProviders(<PreviewHost />)

@@ -1,12 +1,11 @@
-import { describe, it, expect, beforeEach } from "vitest"
+import { describe, it, expect, beforeEach, vi } from "vitest"
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useWorkspaceStore } from "@/stores/workspace.store"
 import { useSelectionStore } from "@/stores/selection.store"
-import { server } from "@/mocks/server"
-import { http, HttpResponse } from "msw"
 import { ProblemsPanel } from "@/features/problems"
+import { services } from "@/services"
 
 const mockIssues = [
   {
@@ -45,12 +44,8 @@ describe("ProblemsPanel", () => {
   beforeEach(() => {
     useWorkspaceStore.setState({ appId: "test-app", env: "dev" })
     useSelectionStore.setState({ selectedKeys: [], hoverKey: null })
-
-    server.use(
-      http.post("/api/v1/compiler/validate", () => {
-        return HttpResponse.json(mockIssues)
-      }),
-    )
+    vi.restoreAllMocks()
+    vi.spyOn(services.compiler, "validate").mockResolvedValue(mockIssues)
   })
 
   it("renders issue list from mock validation data", async () => {
@@ -78,11 +73,7 @@ describe("ProblemsPanel", () => {
   })
 
   it("shows 'No issues found' when validation returns empty array", async () => {
-    server.use(
-      http.post("/api/v1/compiler/validate", () => {
-        return HttpResponse.json([])
-      }),
-    )
+    vi.spyOn(services.compiler, "validate").mockResolvedValue([])
 
     renderWithProviders(<ProblemsPanel />)
 

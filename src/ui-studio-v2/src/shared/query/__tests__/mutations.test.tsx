@@ -1,9 +1,7 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 import type { ReactNode } from "react"
 import { renderHook } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { http, HttpResponse } from "msw"
-import { server } from "@/mocks/server"
 import {
   useCreateNode,
   useOverrideNode,
@@ -12,6 +10,7 @@ import {
   useRollback,
   useCreateApp,
 } from "@/shared/query"
+import { services } from "@/services"
 
 function makeWrapper() {
   const qc = new QueryClient({
@@ -62,18 +61,12 @@ describe("query mutations", () => {
   })
 
   it("usePublish publishes to the target env", async () => {
-    // Stub a clean publish so the mutation path is exercised deterministically
-    // (the seeded fixture otherwise returns validation errors → 422).
-    server.use(
-      http.post("/api/v1/compiler/publish", () =>
-        HttpResponse.json({
-          success: true,
-          artifactVersion: 1,
-          message: "Published successfully",
-          issues: [],
-        }),
-      ),
-    )
+    vi.spyOn(services.compiler, "publish").mockResolvedValue({
+      success: true,
+      artifactVersion: 1,
+      message: "Published successfully",
+      issues: [],
+    })
     const { wrapper } = makeWrapper()
     const { result } = renderHook(() => usePublish(), { wrapper })
 

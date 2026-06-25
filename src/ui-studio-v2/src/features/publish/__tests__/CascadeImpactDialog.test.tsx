@@ -3,11 +3,8 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useWorkspaceStore } from "@/stores/workspace.store"
-import { server } from "@/mocks/server"
-import { http, HttpResponse } from "msw"
 import { CascadeImpactDialog } from "@/features/publish"
-
-const API_BASE_URL = "/api/v1"
+import { services } from "@/services"
 
 const mockImpactResponse = {
   affectedOems: 3,
@@ -33,12 +30,8 @@ describe("CascadeImpactDialog", () => {
       editingLevel: "platform",
       editingScopeId: "",
     })
-
-    server.use(
-      http.post(`${API_BASE_URL}/compiler/impact`, () => {
-        return HttpResponse.json(mockImpactResponse)
-      }),
-    )
+    vi.restoreAllMocks()
+    vi.spyOn(services.compiler, "impact").mockResolvedValue(mockImpactResponse)
   })
 
   it("shows impact counts when data loads", async () => {
@@ -72,14 +65,7 @@ describe("CascadeImpactDialog", () => {
   })
 
   it("error state blocks publish with fail-safe message", async () => {
-    server.use(
-      http.post(`${API_BASE_URL}/compiler/impact`, () => {
-        return HttpResponse.json(
-          { message: "Internal Server Error" },
-          { status: 500 },
-        )
-      }),
-    )
+    vi.spyOn(services.compiler, "impact").mockRejectedValue(new Error("Internal Server Error"))
 
     renderWithProviders(
       <CascadeImpactDialog
@@ -151,12 +137,7 @@ describe("CascadeImpactDialog", () => {
   })
 
   it("proceed button is disabled during loading", () => {
-    server.use(
-      http.post(`${API_BASE_URL}/compiler/impact`, () => {
-        // Never resolve — keeps the component in loading state
-        return new Promise(() => {})
-      }),
-    )
+    vi.spyOn(services.compiler, "impact").mockImplementation(() => new Promise(() => {}))
 
     renderWithProviders(
       <CascadeImpactDialog

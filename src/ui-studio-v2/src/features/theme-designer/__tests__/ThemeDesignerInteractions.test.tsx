@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest"
+import { describe, it, expect, beforeEach, vi } from "vitest"
 import type { ReactNode } from "react"
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
@@ -6,8 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { TooltipProvider } from "@/shared/ui"
 import { ThemeDesigner } from "@/features/theme-designer"
 import { useWorkspaceStore } from "@/stores/workspace.store"
-import { server } from "@/mocks/server"
-import { http, HttpResponse } from "msw"
+import { services } from "@/services"
 
 function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
@@ -41,7 +40,8 @@ describe("ThemeDesigner — token editing (T12.3.1 coverage)", () => {
       editingLevel: "tenant",
       editingScopeId: "toyota",
     })
-    server.use(http.get("/api/v1/metadata/tree", () => HttpResponse.json(themeTree)))
+    vi.restoreAllMocks()
+    vi.spyOn(services.metadata, "getTree").mockResolvedValue(themeTree)
   })
 
   it("enables Save after editing a token, then saves", async () => {

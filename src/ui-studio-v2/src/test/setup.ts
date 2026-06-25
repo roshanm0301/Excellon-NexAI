@@ -1,9 +1,15 @@
 import "@testing-library/jest-dom"
-import { server } from "@/mocks/server"
-import { resetStore } from "@/mocks/store"
-import { afterAll, afterEach, beforeAll } from "vitest"
+import { afterAll, afterEach, beforeAll, vi } from "vitest"
+import { MongoMemoryServer } from "mongodb-memory-server"
+import { app } from "../server/app"
+import { resetStudioData } from "../server/db"
+import { connectDB, closeDBConnection } from "../../config/db.js"
 
-// jsdom polyfills required by Radix/cmdk components (chrome layer)
+let mongoServer: MongoMemoryServer
+let originalFetch: typeof globalThis.fetch
+let baseUrl = ""
+let httpServer: import("node:http").Server
+
 if (typeof globalThis.ResizeObserver === "undefined") {
   globalThis.ResizeObserver = class {
     observe() {}
@@ -11,29 +17,30 @@ if (typeof globalThis.ResizeObserver === "undefined") {
     disconnect() {}
   }
 }
+
 if (typeof Element.prototype.scrollIntoView === "undefined") {
   Element.prototype.scrollIntoView = () => {}
 }
+
 if (!Element.prototype.hasPointerCapture) {
   Element.prototype.hasPointerCapture = () => false
 }
+
 if (!Element.prototype.setPointerCapture) {
   Element.prototype.setPointerCapture = () => {}
 }
+
 if (!Element.prototype.releasePointerCapture) {
   Element.prototype.releasePointerCapture = () => {}
 }
 
-// jsdom reports offsetWidth/offsetHeight as 0 (no layout). @tanstack/react-virtual
-// measures the scroll element via offsetWidth/offsetHeight, so without a non-zero
-// default it renders an empty window. Override jsdom's zero-getters with a
-// viewport-sized default so virtualized lists render a realistic slice in tests.
 Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
   configurable: true,
   get() {
     return 600
   },
 })
+
 Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
   configurable: true,
   get() {
@@ -41,9 +48,55 @@ Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
   },
 })
 
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }))
-afterEach(() => {
-  server.resetHandlers()
-  resetStore()
+beforeAll(async () => {
+  mongoServer = await MongoMemoryServer.create()
+  process.env.MONGO_URI = mongoServer.getUri()
+
+  await connectDB()
+  await resetStudioData()
+
+  await new Promise<void>((resolve) => {
+    httpServer = app.listen(0, () => {
+      const address = httpServer.address()
+      if (typeof address === "object" && address && "port" in address) {
+        baseUrl = `http://127.0.0.1:${address.port}`
+      }
+      resolve()
+    })
+  })
+
+  originalFetch = globalThis.fetch.bind(globalThis)
+  globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+    const target = typeof input === "string" && input.startsWith("/")
+      ? `${baseUrl}${input}`
+      : input
+    return originalFetch(target as RequestInfo | URL, init)
+  }) as typeof globalThis.fetch
 })
-afterAll(() => server.close())
+
+afterEach(async () => {
+  vi.restoreAllMocks()
+  await resetStudioData()
+})
+
+afterAll(async () => {
+  globalThis.fetch = originalFetch
+
+  if (httpServer) {
+    await new Promise<void>((resolve, reject) => {
+      httpServer.close((error) => {
+        if (error) {
+          reject(error)
+          return
+        }
+        resolve()
+      })
+    })
+  }
+
+  await closeDBConnection()
+
+  if (mongoServer) {
+    await mongoServer.stop()
+  }
+})

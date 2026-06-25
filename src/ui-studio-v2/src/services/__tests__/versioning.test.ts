@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest"
 import { services } from "@/services"
 
-describe("VersioningService (MSW)", () => {
+describe("VersioningService", () => {
   it("getVersions returns the publish history as version entries", async () => {
     // Seed two published versions via promote.
     await services.versioning.promote({
@@ -19,6 +19,36 @@ describe("VersioningService (MSW)", () => {
   })
 
   it("getDiff returns node-level diff entries between two versions", async () => {
+    await services.metadata.createNode({
+      kind: "component",
+      logicalKey: "cmp.diff-check",
+      cascadeLevel: "vertical",
+      parentKey: "section.orderInfo",
+      data: {
+        semanticType: "FormField",
+        props: { label: "Diff One", fieldType: "text" },
+      },
+    })
+    await services.versioning.promote({
+      env: "dev",
+      appId: "app.dms",
+      fromEnv: "dev",
+      toEnv: "staging",
+      version: 1,
+    })
+    await services.metadata.overrideNode({
+      logicalKey: "cmp.diff-check",
+      level: "tenant",
+      ops: [{ op: "set", path: "props.label", value: "Diff Two" }],
+    })
+    await services.versioning.promote({
+      env: "dev",
+      appId: "app.dms",
+      fromEnv: "staging",
+      toEnv: "prod",
+      version: 2,
+    })
+
     const diff = await services.versioning.getDiff("app.dms", 1, 2)
     expect(diff.v1).toBe(1)
     expect(diff.v2).toBe(2)

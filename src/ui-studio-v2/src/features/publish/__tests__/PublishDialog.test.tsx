@@ -3,8 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useWorkspaceStore } from "@/stores/workspace.store"
-import { server } from "@/mocks/server"
-import { http, HttpResponse } from "msw"
+import { services } from "@/services"
 
 vi.mock("@/features/publish/components/CascadeImpactDialog", () => ({
   CascadeImpactDialog: ({
@@ -26,8 +25,6 @@ vi.mock("@/features/publish/components/CascadeImpactDialog", () => ({
 
 import { PublishDialog } from "@/features/publish"
 
-const API_BASE_URL = "/api/v1"
-
 function renderWithProviders(ui: React.ReactElement) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -45,19 +42,14 @@ describe("PublishDialog", () => {
       editingLevel: "platform",
       editingScopeId: "",
     })
+    vi.restoreAllMocks()
+    vi.spyOn(services.versioning, "getVersions").mockResolvedValue([])
   })
 
   it("renders target env selector with Development/Staging/Production options", async () => {
     const user = userEvent.setup()
 
-    server.use(
-      http.post(`${API_BASE_URL}/compiler/validate`, () => {
-        return HttpResponse.json([])
-      }),
-      http.get(`${API_BASE_URL}/versioning/:appId/versions`, () => {
-        return HttpResponse.json([])
-      }),
-    )
+    vi.spyOn(services.compiler, "validate").mockResolvedValue([])
 
     renderWithProviders(
       <PublishDialog open={true} onOpenChange={() => {}} />,
@@ -76,29 +68,22 @@ describe("PublishDialog", () => {
   })
 
   it("shows 'Publish blocked' when validation has errors", async () => {
-    server.use(
-      http.post(`${API_BASE_URL}/compiler/validate`, () => {
-        return HttpResponse.json([
-          {
-            type: "broken-binding",
-            severity: "error",
-            nodeId: "node-1",
-            path: "props.dataSource",
-            message: "Binding target not found",
-          },
-          {
-            type: "contract-violation",
-            severity: "error",
-            nodeId: "node-2",
-            path: "props.columns",
-            message: "Type mismatch",
-          },
-        ])
-      }),
-      http.get(`${API_BASE_URL}/versioning/:appId/versions`, () => {
-        return HttpResponse.json([])
-      }),
-    )
+    vi.spyOn(services.compiler, "validate").mockResolvedValue([
+      {
+        type: "broken-binding",
+        severity: "error",
+        nodeId: "node-1",
+        path: "props.dataSource",
+        message: "Binding target not found",
+      },
+      {
+        type: "contract-violation",
+        severity: "error",
+        nodeId: "node-2",
+        path: "props.columns",
+        message: "Type mismatch",
+      },
+    ])
 
     renderWithProviders(
       <PublishDialog open={true} onOpenChange={() => {}} />,
@@ -112,14 +97,7 @@ describe("PublishDialog", () => {
   })
 
   it("shows 'View impact' button when validation is clean", async () => {
-    server.use(
-      http.post(`${API_BASE_URL}/compiler/validate`, () => {
-        return HttpResponse.json([])
-      }),
-      http.get(`${API_BASE_URL}/versioning/:appId/versions`, () => {
-        return HttpResponse.json([])
-      }),
-    )
+    vi.spyOn(services.compiler, "validate").mockResolvedValue([])
 
     renderWithProviders(
       <PublishDialog open={true} onOpenChange={() => {}} />,
@@ -133,14 +111,7 @@ describe("PublishDialog", () => {
   })
 
   it("renders promote buttons with correct labels", async () => {
-    server.use(
-      http.post(`${API_BASE_URL}/compiler/validate`, () => {
-        return HttpResponse.json([])
-      }),
-      http.get(`${API_BASE_URL}/versioning/:appId/versions`, () => {
-        return HttpResponse.json([])
-      }),
-    )
+    vi.spyOn(services.compiler, "validate").mockResolvedValue([])
 
     renderWithProviders(
       <PublishDialog open={true} onOpenChange={() => {}} />,
@@ -161,22 +132,15 @@ describe("PublishDialog", () => {
   })
 
   it("shows 'View problems' link when errors exist", async () => {
-    server.use(
-      http.post(`${API_BASE_URL}/compiler/validate`, () => {
-        return HttpResponse.json([
-          {
-            type: "broken-binding",
-            severity: "error",
-            nodeId: "node-1",
-            path: "props.dataSource",
-            message: "Binding target not found",
-          },
-        ])
-      }),
-      http.get(`${API_BASE_URL}/versioning/:appId/versions`, () => {
-        return HttpResponse.json([])
-      }),
-    )
+    vi.spyOn(services.compiler, "validate").mockResolvedValue([
+      {
+        type: "broken-binding",
+        severity: "error",
+        nodeId: "node-1",
+        path: "props.dataSource",
+        message: "Binding target not found",
+      },
+    ])
 
     renderWithProviders(
       <PublishDialog open={true} onOpenChange={() => {}} />,

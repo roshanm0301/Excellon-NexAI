@@ -27,7 +27,7 @@ describe("WorkspaceHome — navigation & create (T12.3.1 coverage)", () => {
     expect(navigate).toHaveBeenCalledTimes(1)
     const arg = navigate.mock.calls[0][0]
     expect(arg.to).toBe("/editor/$appId")
-    expect(arg.params.appId).toBe("dms-app")
+    expect(arg.params.appId).toBe("app.dms")
   })
 
   it("opens the create dialog from the New Application button", async () => {

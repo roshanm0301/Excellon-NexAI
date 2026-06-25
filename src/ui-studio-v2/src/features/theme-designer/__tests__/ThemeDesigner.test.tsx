@@ -3,10 +3,8 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useWorkspaceStore } from "@/stores/workspace.store"
-import { server } from "@/mocks/server"
-import { http, HttpResponse } from "msw"
-import { API_BASE_URL } from "@/shared/config"
 import { ThemeDesigner } from "@/features/theme-designer"
+import { services } from "@/services"
 
 vi.mock("@/shared/ui/origin-badge", () => ({
   OriginBadge: ({ state }: { state: string }) => (
@@ -45,11 +43,8 @@ beforeEach(() => {
     editingScopeId: "automotive",
   })
 
-  server.use(
-    http.get(`${API_BASE_URL}/metadata/tree`, () => {
-      return HttpResponse.json(themeTreeResponse)
-    }),
-  )
+  vi.restoreAllMocks()
+  vi.spyOn(services.metadata, "getTree").mockResolvedValue(themeTreeResponse)
 })
 
 describe("ThemeDesigner", () => {

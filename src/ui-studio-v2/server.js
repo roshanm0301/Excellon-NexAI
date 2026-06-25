@@ -1,37 +1,10 @@
 import dotenv from "dotenv"
-import express from "express"
+import { app } from "./src/server/app.ts"
 import { connectDB, closeDBConnection } from "./config/db.js"
 
 dotenv.config()
 
-const app = express()
 const PORT = process.env.PORT || 5000
-
-app.use(express.json())
-
-app.get("/health", (_req, res) => {
-  res.status(200).json({
-    status: "ok",
-    service: "ui-studio-v2-api",
-    environment: process.env.NODE_ENV || "development",
-  })
-})
-
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: `Route not found: ${req.method} ${req.originalUrl}`,
-  })
-})
-
-app.use((error, _req, res, _next) => {
-  console.error("Unhandled server error:", error)
-
-  res.status(error.statusCode || 500).json({
-    success: false,
-    message: error.message || "Internal Server Error",
-  })
-})
 
 async function startServer() {
   try {
