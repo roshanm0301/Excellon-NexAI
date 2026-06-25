@@ -51,5 +51,13 @@ export function createMetadataService(): MetadataService {
         path: "/metadata/apps",
         schema: AppsListResponseSchema,
       }),
+
+    createPage: (input) =>
+      apiFetch({
+        method: "POST",
+        path: "/metadata/pages",
+        body: input,
+        schema: MetaNodeResponseSchema,
+      }),
   }
 }

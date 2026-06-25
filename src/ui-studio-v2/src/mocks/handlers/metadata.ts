@@ -3,6 +3,7 @@ import { http, HttpResponse } from "msw"
 import { API_BASE_URL } from "@/shared/config"
 import { deriveOrigin } from "@/domain/cascade"
 import type { CascadeLevel, NodeBase, MetaNode } from "@/domain/types"
+import type { PageArchetype } from "@/domain/types"
 import type { TreeNode } from "@/services/interfaces"
 import {
   getStore,
@@ -12,6 +13,8 @@ import {
   applyLatency,
   shouldError,
 } from "@/mocks/store"
+import { buildPageScaffold } from "./page-scaffold"
+import { toCamelCase } from "@/shared/lib/utils"
 
 function buildTreeNodes(
   nodes: NodeBase[],
@@ -194,6 +197,59 @@ export const metadataHandlers = [
 
     addNode(newNode)
     return HttpResponse.json(newNode, { status: 201 })
+  }),
+
+  http.post(`${API_BASE_URL}/metadata/pages`, async ({ request }) => {
+    await applyLatency()
+    if (shouldError()) {
+      return HttpResponse.json({ message: "Internal Server Error" }, { status: 500 })
+    }
+
+    const body = (await request.json()) as {
+      appId?: string
+      moduleKey?: string
+      title?: string
+      archetype?: PageArchetype
+      entityRef?: string
+      cascadeLevel?: CascadeLevel
+    }
+
+    const title = body.title ?? "Untitled Page"
+    const archetype = body.archetype ?? "list-report"
+    const moduleKey = body.moduleKey ?? ""
+    const cascadeLevel: CascadeLevel = body.cascadeLevel ?? "vertical"
+    const entityRef = body.entityRef
+    const slug = toCamelCase(title)
+
+    const now = new Date().toISOString()
+    const audit = {
+      createdBy: "mock-user",
+      createdAt: now,
+      modifiedBy: "mock-user",
+      modifiedAt: now,
+    }
+
+    const scaffoldNodes = buildPageScaffold(slug, title, archetype, entityRef, cascadeLevel, audit)
+    for (const n of scaffoldNodes) {
+      addNode(n)
+    }
+
+    // Link the new page into the parent module's pages array
+    if (moduleKey) {
+      const moduleNode = getStore().nodes.get(`${moduleKey}:vertical`)
+        ?? getStore().nodes.get(`${moduleKey}:${cascadeLevel}`)
+      if (moduleNode && "kind" in moduleNode && (moduleNode as MetaNode & { kind: string }).kind === "module") {
+        const mod = moduleNode as MetaNode & { pages?: string[] }
+        const updatedModule = {
+          ...mod,
+          pages: [...(mod.pages ?? []), `page.${slug}`],
+        }
+        addNode(updatedModule as NodeBase)
+      }
+    }
+
+    const pageNode = scaffoldNodes[scaffoldNodes.length - 1] as MetaNode
+    return HttpResponse.json(pageNode, { status: 201 })
   }),
 
   http.post(`${API_BASE_URL}/metadata/nodes/:logicalKey/override`, async ({ params, request }) => {

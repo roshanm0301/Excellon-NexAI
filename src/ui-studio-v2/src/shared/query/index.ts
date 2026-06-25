@@ -12,6 +12,7 @@ export {
   useVersions,
   useDiff,
   useApps,
+  useRegistryList,
 } from "./hooks"
 export {
   useCreateNode,
@@ -20,6 +21,7 @@ export {
   usePromote,
   useRollback,
   useCreateApp,
+  useCreatePage,
   useLock,
   type LockOutcome,
 } from "./mutations"

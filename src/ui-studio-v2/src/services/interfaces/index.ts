@@ -7,6 +7,7 @@ export type {
   NodeInput,
   OverrideNodeParams,
   CreateAppInput,
+  CreatePageInput,
   AppSummary,
 } from "./metadata"
 

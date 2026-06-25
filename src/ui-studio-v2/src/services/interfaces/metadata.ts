@@ -1,7 +1,7 @@
 // Phase 4 §5 — MetadataService: registry CRUD + composition tree
 
 import type { CascadeLevel, Env, OriginState, OverrideOp } from "@/domain/types"
-import type { MetaNode } from "@/domain/types"
+import type { MetaNode, PageArchetype } from "@/domain/types"
 
 export interface TreeNode {
   id: string
@@ -50,6 +50,15 @@ export interface AppSummary {
   modifiedAt: string
 }
 
+export interface CreatePageInput {
+  appId: string
+  moduleKey: string
+  title: string
+  archetype: PageArchetype
+  entityRef?: string
+  cascadeLevel: CascadeLevel
+}
+
 export interface MetadataService {
   getTree(params: GetTreeParams): Promise<TreeNode[]>
   getNode(id: string): Promise<MetaNode>
@@ -57,4 +66,5 @@ export interface MetadataService {
   overrideNode(params: OverrideNodeParams): Promise<MetaNode>
   createApp(input: CreateAppInput): Promise<AppSummary>
   listApps(): Promise<AppSummary[]>
+  createPage(input: CreatePageInput): Promise<MetaNode>
 }

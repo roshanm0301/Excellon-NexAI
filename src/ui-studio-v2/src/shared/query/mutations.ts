@@ -7,6 +7,7 @@ import type {
   OverrideNodeParams,
   TreeNode,
   CreateAppInput,
+  CreatePageInput,
   PromoteParams,
   RollbackParams,
   Lock,
@@ -135,6 +136,17 @@ export function useCreateApp() {
     mutationFn: (input: CreateAppInput) => services.metadata.createApp(input),
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: ["apps"] })
+    },
+  })
+}
+
+export function useCreatePage() {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: CreatePageInput) => services.metadata.createPage(input),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ["tree"] })
     },
   })
 }

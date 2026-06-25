@@ -1,15 +1,18 @@
 import { useState } from "react"
-import { Skeleton } from "@/shared/ui"
+import { PlusIcon } from "lucide-react"
+import { Skeleton, Button, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui"
 import { useTree } from "@/shared/query/hooks"
 import { useWorkspaceStore } from "@/stores/workspace.store"
 import { CascadeHeader } from "./CascadeHeader"
 import { FilterBar } from "./FilterBar"
 import { ExplorerTree } from "./ExplorerTree"
+import { CreatePageDialog } from "./CreatePageDialog"
 // eslint-disable-next-line no-restricted-imports -- intra-feature hook import; same-feature deep imports allowed by convention
 import type { ExplorerFilter } from "@/features/explorer/hooks/useExplorerTree"
 
 export function ExplorerPanel() {
   const [filter, setFilter] = useState<ExplorerFilter>("all")
+  const [createPageOpen, setCreatePageOpen] = useState(false)
   const env = useWorkspaceStore((s) => s.env)
   const appId = useWorkspaceStore((s) => s.appId)
   const editingLevel = useWorkspaceStore((s) => s.editingLevel)
@@ -57,10 +60,31 @@ export function ExplorerPanel() {
   return (
     <div className="flex h-full flex-col">
       <CascadeHeader />
-      <FilterBar value={filter} onChange={setFilter} />
+      <div className="flex items-center gap-1 pr-1">
+        <div className="flex-1">
+          <FilterBar value={filter} onChange={setFilter} />
+        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 shrink-0"
+                aria-label="New page"
+                onClick={() => setCreatePageOpen(true)}
+              >
+                <PlusIcon className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">New page</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
       <div className="flex-1 overflow-hidden">
         <ExplorerTree nodes={data} filter={filter} />
       </div>
+      <CreatePageDialog open={createPageOpen} onOpenChange={setCreatePageOpen} />
     </div>
   )
 }

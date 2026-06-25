@@ -28,6 +28,8 @@ export const qk = {
 
   registryShape: (ref: string) => ["registry", "shape", ref] as const,
 
+  registryList: (kind?: string) => ["registry", "list", kind ?? "all"] as const,
+
   versions: (appId: string) => ["versions", appId] as const,
 
   diff: (appId: string, v1: number, v2: number) => ["diff", appId, v1, v2] as const,

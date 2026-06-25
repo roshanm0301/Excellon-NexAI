@@ -1,6 +1,7 @@
 // Phase 4 §3.2 — query hooks: thin wrappers over TanStack Query
 import { useQuery } from "@tanstack/react-query"
 import type { CascadeLevel, Env } from "@/domain/types"
+import type { RegistryKind } from "@/services/interfaces"
 import { services } from "@/services"
 import { qk } from "./keys"
 
@@ -89,5 +90,15 @@ export function useApps() {
   return useQuery({
     queryKey: qk.apps(),
     queryFn: () => services.metadata.listApps(),
+  })
+}
+
+export function useRegistryList(kind?: RegistryKind) {
+  return useQuery({
+    queryKey: qk.registryList(kind),
+    queryFn: async () => {
+      const all = await services.registry.search("")
+      return kind ? all.filter((h) => h.kind === kind) : all
+    },
   })
 }
